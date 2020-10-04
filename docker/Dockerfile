@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:20.04
 MAINTAINER GitLab Inc. <support@gitlab.com>
 
 SHELL ["/bin/sh", "-c"],
@@ -17,6 +17,7 @@ RUN apt-get update -q \
       tzdata \
       nano \
       less \
+      libatomic1 \
     && rm -rf /var/lib/apt/lists/* \
     && sed 's/session\s*required\s*pam_loginuid.so/session optional pam_loginuid.so/g' -i /etc/pam.d/sshd
 
