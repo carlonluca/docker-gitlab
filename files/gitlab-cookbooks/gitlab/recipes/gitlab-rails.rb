@@ -56,6 +56,7 @@ repositories_storages = node['gitlab']['gitlab-rails']['repositories_storages']
 repositories_storages.each do |_name, repositories_storage|
   storage_directory repositories_storage['path'] do
     owner gitlab_user
+    group gitlab_group
     mode "2770"
   end
 end
@@ -298,6 +299,9 @@ templatesymlink "Create a gitlab.yml and create a symlink to Rails root" do
       pages_external_https: node['gitlab']['gitlab-pages']['external_https'],
       pages_artifacts_server: node['gitlab']['gitlab-pages']['artifacts_server'],
       pages_access_control: node['gitlab']['gitlab-pages']['access_control'],
+      pages_object_store_enabled: node['gitlab']['gitlab-rails']['pages_object_store_enabled'],
+      pages_object_store_remote_directory: node['gitlab']['gitlab-rails']['pages_object_store_remote_directory'],
+      pages_object_store_connection: node['gitlab']['gitlab-rails']['pages_object_store_connection'],
       mattermost_host: mattermost_host,
       mattermost_enabled: node['mattermost']['enable'] || !mattermost_host.nil?,
       sidekiq: node['gitlab']['sidekiq'],
@@ -339,6 +343,7 @@ templatesymlink "Create a gitlab_shell_secret and create a symlink to Rails root
   sensitive true
   variables(secret_token: node['gitlab']['gitlab-shell']['secret_token'])
   dependent_services.each { |svc| notifies :restart, svc }
+  notifies :run, 'bash[Set proper security context on ssh files for selinux]', :delayed if SELinuxHelper.enabled?
 end
 
 gitlab_pages_services = dependent_services
@@ -355,6 +360,22 @@ templatesymlink "Create a gitlab_pages_secret and create a symlink to Rails root
   variables(secret_token: node['gitlab']['gitlab-pages']['api_secret_key'])
   gitlab_pages_services.each { |svc| notifies :restart, svc }
   only_if { node['gitlab']['gitlab-pages']['api_secret_key'] }
+end
+
+gitlab_kas_services = dependent_services
+gitlab_kas_services += ['runit_service[gitlab-kas]'] if omnibus_helper.should_notify?('gitlab-kas')
+
+templatesymlink 'Create a gitlab_kas_secret and create a symlink to Rails root' do
+  link_from File.join(gitlab_rails_source_dir, '.gitlab_kas_secret')
+  link_to File.join(gitlab_rails_etc_dir, 'gitlab_kas_secret')
+  source 'secret_token.erb'
+  owner 'root'
+  group 'root'
+  mode '0644'
+  sensitive true
+  variables(secret_token: node['gitlab-kas']['api_secret_key'])
+  gitlab_kas_services.each { |svc| notifies :restart, svc }
+  only_if { node['gitlab-kas']['api_secret_key'] }
 end
 
 rails_env = {

@@ -267,7 +267,7 @@ production: &base
       remote_directory: <%= quote(@uploads_object_store_remote_directory) %>
       connection: <%= @uploads_object_store_connection.to_json %>
 
-  ## Packages (EE only)
+  ## Packages
   packages:
     enabled: <%= @packages_enabled %>
     # The location where build packages are stored (default: shared/packages).
@@ -336,6 +336,10 @@ production: &base
     external_http: <%= @pages_external_http.to_json %>
     external_https: <%= @pages_external_https.to_json %>
     artifacts_server: <%= @pages_artifacts_server %>
+    object_store:
+      enabled: <%= @pages_object_store_enabled %>
+      remote_directory: <%= quote(@pages_object_store_remote_directory) %>
+      connection: <%= @pages_object_store_connection.to_json %>
 
   ## Gravatar
   ## For Libravatar see: https://docs.gitlab.com/ee/customization/libravatar.html
@@ -615,6 +619,12 @@ production: &base
     # (default: accept any service name in keytab file)
     service_principal_name: <%= @kerberos_service_principal_name %>
 
+    # Kerberos realms/domains that are allowed to automatically link LDAP identities.
+    # By default, GitLab accepts a realm that matches the domain derived from the
+    # LDAP `base` DN. For example, `ou=users,dc=example,dc=com` would allow users
+    # with a realm matching `example.com`.
+    simple_ldap_linking_allowed_realms: <%= @kerberos_simple_ldap_linking_allowed_realms.to_json %>
+
     # Dedicated port: Git before 2.4 does not fall back to Basic authentication if Negotiate fails.
     # To support both Basic and Negotiate methods with older versions of Git, configure
     # nginx to proxy GitLab on an extra port (e.g. 8443) and uncomment the following lines
@@ -713,6 +723,21 @@ production: &base
 <% @omniauth_providers.each do |provider| %>
       - <%= provider.to_json %>
 <% end %>
+
+  # FortiAuthenticator settings
+  forti_authenticator:
+    # Allow using FortiAuthenticator as OTP provider
+    enabled: <%= @forti_authenticator_enabled %>
+
+    # Host and port of FortiAuthenticator instance
+    host: <%= @forti_authenticator_host %>
+    port: <%= @forti_authenticator_port %>
+
+    # Username for accessing FortiAuthenticator API
+    username: <%= quote(@forti_authenticator_username) %>
+
+    # Access token for FortiAuthenticator API
+    access_token: <%= quote(@forti_authenticator_access_token) %>
 
   # Shared file storage settings
   shared:

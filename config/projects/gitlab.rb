@@ -78,7 +78,13 @@ if rhel?
 end
 
 # Arm targets need libatomic
-runtime_dependency 'libatomic1' if OhaiHelper.arm?
+if OhaiHelper.arm?
+  if rhel?
+    runtime_dependency 'libatomic'
+  else
+    runtime_dependency 'libatomic1'
+  end
+end
 
 dependency 'git'
 dependency 'jemalloc'
@@ -117,6 +123,7 @@ dependency 'gitlab-shell'
 dependency 'gitlab-ctl'
 dependency 'gitlab-psql'
 dependency 'gitlab-redis-cli'
+dependency 'gitlab-kas'
 dependency 'gitlab-healthcheck'
 dependency 'gitlab-cookbooks'
 dependency 'chef-acme'
@@ -207,8 +214,14 @@ exclude 'embedded/lib/ruby/gems/*/gems/*/sample'
 exclude 'embedded/lib/ruby/gems/*/gems/*/script'
 exclude 'embedded/lib/ruby/gems/*/gems/*/t'
 
-# Exclude additional test files from specific gems
+# Exclude additional files from specific gems
+exclude 'embedded/lib/ruby/gems/*/gems/grpc-*/include'
+exclude 'embedded/lib/ruby/gems/*/gems/grpc-*/src/core'
+exclude 'embedded/lib/ruby/gems/*/gems/grpc-*/src/ruby/ext'
 exclude 'embedded/lib/ruby/gems/*/gems/grpc-*/src/ruby/spec'
+exclude 'embedded/lib/ruby/gems/*/gems/grpc-*/third_party'
+exclude 'embedded/lib/ruby/gems/*/gems/rbtrace-*/ext/src'
+exclude 'embedded/lib/ruby/gems/*/gems/rbtrace-*/ext/dst'
 
 # Enable signing packages
 package :rpm do

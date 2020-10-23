@@ -619,7 +619,7 @@ setting `gitlab_rails['auto_migrate'] = false` in
 #### Use Redis HA (using Sentinel) **(PREMIUM ONLY)**
 
 Package upgrades may involve version updates to the bundled Redis service. On
-instances using [Redis HA](https://docs.gitlab.com/ee/administration/high_availability/redis.html),
+instances using [Redis for scaling](https://docs.gitlab.com/ee/administration/redis/index.html),
 upgrades must follow a proper order to ensure minimum downtime, as specified
 below. This doc assumes the official guides are being followed to setup Redis
 HA.
@@ -1299,3 +1299,7 @@ ALTER TABLE push_rules ADD COLUMN commit_message_negative_regex VARCHAR;
 # Restart GitLab
 sudo gitlab-ctl restart
 ```
+
+### Error `Failed to connect to the internal GitLab API` on a separate GitLab Pages server
+
+Please see [GitLab Pages troubleshooting](https://docs.gitlab.com/ee/administration/pages/index.html#failed-to-connect-to-the-internal-gitlab-api).
