@@ -178,6 +178,21 @@ add_command_under_category 'pg-upgrade', 'database',
 
   deprecation_message if @db_worker.target_version.major.to_f < 11
 
+  if @db_worker.target_version.major.to_f >= 12 && service_enabled?('repmgrd')
+    error_messsage = <<~EOF
+      Detected an HA cluster using Repmgr. To upgrade PostgreSQL to version 12, it is mandatory to use Patroni instead for replication and failover.
+      Refer to https://docs.gitlab.com/ee/administration/postgresql/replication_and_failover.html#switching-from-repmgr-to-patroni for details.
+    EOF
+    $stderr.puts error_messsage
+    Kernel.exit 1
+  end
+
+  target_data_dir = "#{@db_worker.tmp_data_dir}.#{@db_worker.target_version.major}"
+  if @db_worker.upgrade_artifact_exists?(target_data_dir)
+    $stderr.puts "Cannot upgrade, #{target_data_dir} is not empty. Move or delete this directory to proceed with upgrade"
+    Kernel.exit 0
+  end
+
   unless options[:skip_disk_check]
     check_dirs = [@db_worker.tmp_dir]
     check_dirs << @db_worker.data_dir if pg_enabled || patroni_enabled
@@ -564,7 +579,7 @@ end
 def analyze_cluster
   pg_username = @attributes.dig(:gitlab, :postgresql, :username) || @attributes.dig(:postgresql, :username)
   pg_host = @attributes.dig(:gitlab, :postgresql, :unix_socket_directory) || @attributes.dig(:postgresql, :unix_socket_directory)
-  analyze_cmd = "#{@db_worker.target_version_path}/bin/vacuumdb -j2 --all --analyze-in-stages -h #{pg_host}"
+  analyze_cmd = "#{@db_worker.target_version_path}/bin/vacuumdb -j2 --all --analyze-in-stages -h #{pg_host} -p #{@db_worker.port}"
   begin
     @db_worker.run_pg_command(analyze_cmd)
   rescue GitlabCtl::Errors::ExecutionError => e

@@ -120,7 +120,7 @@ After starting a container you can visit `gitlab.example.com` (or
 `http://192.168.59.103` if you used boot2docker on macOS). It might take a while
 before the Docker container starts to respond to queries.
 The very first time you visit GitLab, you will be asked to set up the admin
-password. After you change it, you can login with username `root` and the
+password. After you change it, you can log in with username `root` and the
 password you set up.
 
 ### Install GitLab using Docker Compose
@@ -502,6 +502,12 @@ docker exec -t <container name> gitlab-backup create
 ```
 
 Read more on how to [back up and restore GitLab](https://docs.gitlab.com/ee/raketasks/backup_restore.html).
+
+NOTE: **Note:**
+If configuration is provided entirely via the `GITLAB_OMNIBUS_CONFIG` environment variable
+(per the ["Pre-configure Docker Container"](#pre-configure-docker-container) steps),
+meaning no configuration is set directly in the `gitlab.rb` file, then there is no need
+to back up the `gitlab.rb` file.
 
 ## Installing GitLab Community Edition
 

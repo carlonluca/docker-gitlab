@@ -9,9 +9,9 @@ RSpec.describe 'gitlab::logrotate_folder_and_configs_spec' do
 
   context 'when logrotate is enabled' do
     it 'creates default set of directories' do
-      expect(chef_run.node['gitlab']['logrotate']['dir'])
+      expect(chef_run.node['logrotate']['dir'])
         .to eql('/var/opt/gitlab/logrotate')
-      expect(chef_run.node['gitlab']['logrotate']['log_directory'])
+      expect(chef_run.node['logrotate']['log_directory'])
         .to eql('/var/log/gitlab/logrotate')
 
       expect(chef_run).to create_directory('/var/opt/gitlab/logrotate').with(
@@ -58,6 +58,7 @@ RSpec.describe 'gitlab::logrotate_folder_and_configs_spec' do
       expect(chef_run).to create_template('/var/opt/gitlab/logrotate/logrotate.d/gitlab-shell')
       expect(chef_run).to create_template('/var/opt/gitlab/logrotate/logrotate.d/gitlab-workhorse')
       expect(chef_run).to create_template('/var/opt/gitlab/logrotate/logrotate.d/gitlab-pages')
+      expect(chef_run).to create_template('/var/opt/gitlab/logrotate/logrotate.d/gitaly')
     end
 
     it 'populates configuration template with default values' do
@@ -69,6 +70,8 @@ RSpec.describe 'gitlab::logrotate_folder_and_configs_spec' do
         .with_content(/compress/)
       expect(chef_run).to render_file('/var/opt/gitlab/logrotate/logrotate.d/nginx')
         .with_content(/copytruncate/)
+      expect(chef_run).to render_file('/var/opt/gitlab/logrotate/logrotate.d/nginx')
+        .with_content(/notifempty/)
       expect(chef_run).to render_file('/var/opt/gitlab/logrotate/logrotate.d/nginx')
         .with_content(/postrotate/)
       expect(chef_run).not_to render_file('/var/opt/gitlab/logrotate/logrotate.d/nginx')

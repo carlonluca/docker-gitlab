@@ -374,6 +374,7 @@ default['gitlab']['gitlab-rails']['gitlab_shell_git_timeout'] = 10800
 # defaults to /opt/gitlab/embedded/bin/git. The install-dir path is set at build time
 default['gitlab']['gitlab-rails']['git_bin_path'] = "#{node['package']['install-dir']}/embedded/bin/git"
 default['gitlab']['gitlab-rails']['extra_google_analytics_id'] = nil
+default['gitlab']['gitlab-rails']['extra_google_tag_manager_id'] = nil
 default['gitlab']['gitlab-rails']['extra_piwik_url'] = nil
 default['gitlab']['gitlab-rails']['extra_piwik_site_id'] = nil
 default['gitlab']['gitlab-rails']['rack_attack_git_basic_auth'] = nil
@@ -561,6 +562,8 @@ default['gitlab']['sidekiq']['listen_port'] = 8082
 
 # Cluster specific settings
 default['gitlab']['sidekiq']['cluster'] = true
+default['gitlab']['sidekiq']['queue_selector'] = false
+# Remove with https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/646
 default['gitlab']['sidekiq']['experimental_queue_selector'] = false
 default['gitlab']['sidekiq']['interval'] = nil
 default['gitlab']['sidekiq']['max_concurrency'] = 50
@@ -581,6 +584,7 @@ default['gitlab']['sidekiq-cluster']['max_concurrency'] = nil
 default['gitlab']['sidekiq-cluster']['min_concurrency'] = nil
 default['gitlab']['sidekiq-cluster']['queue_groups'] = []
 default['gitlab']['sidekiq-cluster']['negate'] = false
+# Remove with https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/646
 default['gitlab']['sidekiq-cluster']['experimental_queue_selector'] = false
 
 ###
@@ -814,17 +818,6 @@ default['gitlab']['remote-syslog']['log_directory'] = "/var/log/gitlab/remote-sy
 default['gitlab']['remote-syslog']['destination_host'] = "localhost"
 default['gitlab']['remote-syslog']['destination_port'] = 514
 default['gitlab']['remote-syslog']['services'] = %w(redis nginx puma unicorn gitlab-rails gitlab-shell postgresql sidekiq gitlab-workhorse gitlab-pages praefect gitlab-kas)
-
-###
-# Logrotate
-###
-default['gitlab']['logrotate']['enable'] = false
-default['gitlab']['logrotate']['ha'] = false
-default['gitlab']['logrotate']['dir'] = "/var/opt/gitlab/logrotate"
-default['gitlab']['logrotate']['log_directory'] = "/var/log/gitlab/logrotate"
-default['gitlab']['logrotate']['services'] = %w(nginx puma actioncable unicorn gitlab-rails gitlab-shell gitlab-workhorse gitlab-pages gitlab-kas)
-default['gitlab']['logrotate']['pre_sleep'] = 600 # sleep 10 minutes before rotating after start-up
-default['gitlab']['logrotate']['post_sleep'] = 3000 # wait 50 minutes after rotating
 
 ###
 # High Availability

@@ -65,10 +65,11 @@ to work best with the available resources. Check out the [documentation](setting
 - [SSL](settings/ssl.md)
 - [GitLab and Registry](architecture/registry/README.md)
 - [Configuring an asset proxy server](https://docs.gitlab.com/ee/security/asset_proxy.html)
+- [Image scaling](settings/image_scaling.md)
 
 ## Updating
 
-- [Upgrade support policy](https://docs.gitlab.com/ee/policy/maintenance.html)
+- [Upgrade guidance](https://docs.gitlab.com/ee/update/README.html), including [supported upgrade paths](https://docs.gitlab.com/ee/update/README.html#upgrade-paths).
 - [Upgrade from Community Edition to Enterprise Edition](update/README.md#update-community-edition-to-enterprise-edition)
 - [Update to the latest version](update/README.md#update-using-the-official-repositories)
 - [Downgrade to an earlier version](update/README.md#downgrade)
