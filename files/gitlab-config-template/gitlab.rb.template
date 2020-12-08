@@ -604,8 +604,8 @@ external_url 'GENERATED_EXTERNAL_URL'
 ### Extra customization
 # gitlab_rails['extra_google_analytics_id'] = '_your_tracking_id'
 # gitlab_rails['extra_google_tag_manager_id'] = '_your_tracking_id'
-# gitlab_rails['extra_piwik_url'] = '_your_piwik_url'
-# gitlab_rails['extra_piwik_site_id'] = '_your_piwik_site_id'
+# gitlab_rails['extra_matomo_url'] = '_your_matomo_url'
+# gitlab_rails['extra_matomo_site_id'] = '_your_matomo_site_id'
 
 ##! Docs: https://docs.gitlab.com/omnibus/settings/environment-variables.html
 # gitlab_rails['env'] = {
@@ -663,6 +663,12 @@ external_url 'GENERATED_EXTERNAL_URL'
 # gitlab_rails['db_prepared_statements'] = false
 # gitlab_rails['db_statements_limit'] = 1000
 # gitlab_rails['db_connect_timeout'] = nil
+# gitlab_rails['db_keepalives'] = nil
+# gitlab_rails['db_keepalives_idle'] = nil
+# gitlab_rails['db_keepalives_interval'] = nil
+# gitlab_rails['db_keepalives_count'] = nil
+# gitlab_rails['db_tcp_user_timeout'] = nil
+# gitlab_rails['db_application_name'] = nil
 
 
 ### GitLab Redis settings
@@ -1480,6 +1486,9 @@ external_url 'GENERATED_EXTERNAL_URL'
 ##! Configure to expose GitLab Pages on external IP address, serving the HTTPS
 # gitlab_pages['external_https'] = []
 
+##! Configure to expose GitLab Pages on external IP address, serving the HTTPS over PROXYv2
+# gitlab_pages['external_https_proxyv2'] = []
+
 ##! Configure to use the default list of cipher suites
 # gitlab_pages['insecure_ciphers'] = false
 
@@ -1549,6 +1558,19 @@ external_url 'GENERATED_EXTERNAL_URL'
 
 ##! Shared secret used for authentication between Pages and GitLab
 # gitlab_pages['api_secret_key'] = nil # Will be generated if not set. Base64 encoded and exactly 32 bytes long.
+
+##! Advanced settings for serving GitLab Pages from zip archives.
+##! The recommended default values are set inside GitLab Pages.
+##! Should be changed only if absolutely needed.
+
+##! The maximum time an archive will be cached in memory.
+# gitlab_pages['zip_cache_expiration'] = "60s"
+##! Zip archive cache cleaning interval.
+# gitlab_pages['zip_cache_cleanup'] = "30s"
+##! The interval to refresh a cache archive if accessed before expiring.
+# gitlab_pages['zip_cache_refresh'] = "30s"
+##! The maximum amount of time it takes to open a zip archive from the file system or object storage.
+# gitlab_pages['zip_open_timeout'] = "30s"
 
 # gitlab_pages['env_directory'] = "/opt/gitlab/etc/gitlab-pages/env"
 # gitlab_pages['env'] = {
@@ -2184,8 +2206,8 @@ external_url 'GENERATED_EXTERNAL_URL'
 # }
 
 ################################################################################
-## Dependency proxy (EE Only)
-##! Docs: https://docs.gitlab.com/ee/administration/dependency_proxy.md
+## Dependency proxy
+##! Docs: https://docs.gitlab.com/ee/administration/packages/dependency_proxy.html
 ################################################################################
 
 # gitlab_rails['dependency_proxy_enabled'] = true

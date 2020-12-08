@@ -122,6 +122,7 @@ RSpec.describe 'gitlab::gitlab-pages' do
         gitlab_pages: {
           external_http: ['external_pages.example.com', 'localhost:9000'],
           external_https: ['external_pages.example.com', 'localhost:9001'],
+          external_https_proxyv2: ['external_pages.example.com', 'localhost:9002'],
           metrics_address: 'localhost:1234',
           redirect_http: true,
           dir: '/var/opt/gitlab/pages',
@@ -148,6 +149,10 @@ RSpec.describe 'gitlab::gitlab-pages' do
           gitlab_client_http_timeout: "10s",
           gitlab_client_jwt_expiry: "30s",
           domain_config_source: "disk",
+          zip_cache_expiration: "120s",
+          zip_cache_cleanup: "1m",
+          zip_cache_refresh: "60s",
+          zip_open_timeout: "45s",
           env: {
             GITLAB_CONTINUOUS_PROFILING: "stackdriver?service=gitlab-pages",
             http_proxy: "http://example:8081/"
@@ -184,6 +189,7 @@ RSpec.describe 'gitlab::gitlab-pages' do
       expect(chef_run).to render_file("/opt/gitlab/sv/gitlab-pages/run").with_content(%r{-listen-http="localhost:9000"})
       expect(chef_run).to render_file("/opt/gitlab/sv/gitlab-pages/run").with_content(%r{-listen-https="external_pages.example.com"})
       expect(chef_run).to render_file("/opt/gitlab/sv/gitlab-pages/run").with_content(%r{-listen-https="localhost:9001"})
+      expect(chef_run).to render_file("/opt/gitlab/sv/gitlab-pages/run").with_content(%r{-listen-https-proxyv2="localhost:9002"})
       expect(chef_run).to render_file("/opt/gitlab/sv/gitlab-pages/run").with_content(%r{-root-key})
       expect(chef_run).to render_file("/opt/gitlab/sv/gitlab-pages/run").with_content(%r{-artifacts-server="https://gitlab.elsewhere.com/api/v5"})
       expect(chef_run).to render_file("/opt/gitlab/sv/gitlab-pages/run").with_content(%r{-artifacts-server-timeout=60})
@@ -215,6 +221,10 @@ RSpec.describe 'gitlab::gitlab-pages' do
       expect(chef_run).to render_file("/var/opt/gitlab/pages/gitlab-pages-config").with_content(%r{auth-client-secret=app_secret})
       expect(chef_run).to render_file("/var/opt/gitlab/pages/gitlab-pages-config").with_content(%r{auth-redirect-uri=https://projects.pages.example.com/auth})
       expect(chef_run).to render_file("/var/opt/gitlab/pages/gitlab-pages-config").with_content(%r{auth-secret=auth_secret})
+      expect(chef_run).to render_file("/var/opt/gitlab/pages/gitlab-pages-config").with_content(%r{zip-cache-expiration=120s})
+      expect(chef_run).to render_file("/var/opt/gitlab/pages/gitlab-pages-config").with_content(%r{zip-cache-cleanup=1m})
+      expect(chef_run).to render_file("/var/opt/gitlab/pages/gitlab-pages-config").with_content(%r{zip-cache-refresh=60s})
+      expect(chef_run).to render_file("/var/opt/gitlab/pages/gitlab-pages-config").with_content(%r{zip-open-timeout=45s})
     end
 
     it 'deletes old admin.secret file' do

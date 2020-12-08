@@ -334,7 +334,7 @@ production: &base
     port: <%= @pages_port %>
     https: <%= @pages_https %>
     external_http: <%= @pages_external_http.to_json %>
-    external_https: <%= @pages_external_https.to_json %>
+    external_https: <%= !@pages_external_https&.empty? || !@pages_external_https_proxyv2&.empty? %>
     artifacts_server: <%= @pages_artifacts_server %>
     object_store:
       enabled: <%= @pages_object_store_enabled %>
@@ -864,10 +864,10 @@ production: &base
     google_tag_manager_id: <%= quote(@extra_google_tag_manager_id) %>
     <% end %>
 
-    <% if @extra_piwik_url %>
-    ## Piwik analytics.
-    piwik_url: <%= quote(@extra_piwik_url) %>
-    piwik_site_id: <%= quote(@extra_piwik_site_id) %>
+    <% if @extra_matomo_url %>
+    ## matomo analytics.
+    matomo_url: <%= quote(@extra_matomo_url) %>
+    matomo_site_id: <%= quote(@extra_matomo_site_id) %>
     <% end %>
 
   rack_attack:

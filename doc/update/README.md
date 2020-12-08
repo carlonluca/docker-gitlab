@@ -509,7 +509,7 @@ database migrations.
 
 #### Use PostgreSQL HA
 
-Pick a node to be the `Deploy Node`. It can be any node, but it must be the same
+Pick a node to be the `Deploy Node`. It can be any application node, but it must be the same
 node throughout the process.
 
 **Deploy node**
@@ -1111,7 +1111,7 @@ sudo gitlab-ctl restart geo-logcursor
    ```shell
    sudo gitlab-ctl reconfigure
    ```
-   
+
 **On all secondary "deploy nodes"**
 
 1. Run post-deployment database migrations, specific to the Geo database:
