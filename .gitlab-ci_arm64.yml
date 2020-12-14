@@ -1,0 +1,17 @@
+stages:
+  - build
+
+docker-build:
+  image: docker:latest
+  stage: build
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_DOCKER_HUB_USER" -p "$CI_DOCKER_HUB_PASSWORD" docker.io
+  script:
+    - cd docker
+    - docker build -t carlonluca/gitlab:"$VERSION" -t carlonluca/gitlab:latest .
+    - docker push carlonluca/gitlab:"$VERSION"
+    - docker push carlonluca/gitlab:latest
+  rules:
+    - when: manual
