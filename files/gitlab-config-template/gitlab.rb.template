@@ -522,6 +522,11 @@ external_url 'GENERATED_EXTERNAL_URL'
 # gitlab_rails['forti_authenticator_username'] = 'admin'
 # gitlab_rails['forti_authenticator_access_token'] = 's3cr3t'
 
+### FortiToken Cloud authentication settings
+# gitlab_rails['forti_token_cloud_enabled'] = false
+# gitlab_rails['forti_token_cloud_client_id'] = 'forti_token_cloud_client_id'
+# gitlab_rails['forti_token_cloud_client_secret'] = 's3cr3t'
+
 ### Backup Settings
 ###! Docs: https://docs.gitlab.com/omnibus/settings/backups.html
 
@@ -2042,6 +2047,13 @@ external_url 'GENERATED_EXTERNAL_URL'
 # gitaly['daily_maintenance_start_minute'] = 30
 # gitaly['daily_maintenance_duration'] = '30m'
 # gitaly['daily_maintenance_storages'] = ["default"]
+# gitaly['cgroups_count'] = 10
+# gitaly['cgroups_mountpoint'] = '/sys/fs/cgroup'
+# gitaly['cgroups_hierarchy_root'] = 'gitaly'
+# gitaly['cgroups_memory_enabled'] = true
+# gitaly['cgroups_memory_limit'] = 1048576
+# gitaly['cgroups_cpu_enabled'] = true
+# gitaly['cgroups_cpu_shares'] = 512
 
 ################################################################################
 ## Praefect
@@ -2167,6 +2179,7 @@ external_url 'GENERATED_EXTERNAL_URL'
 # gitlab_rails['historical_data_worker_cron'] = "0 12 * * *"
 # gitlab_rails['pseudonymizer_worker_cron'] = "0 23 * * *"
 # gitlab_rails['elastic_index_bulk_cron'] = "*/1 * * * *"
+# gitlab_rails['analytics_devops_adoption_create_all_snapshots_worker_cron'] = "0 0 1 * *"
 
 ################################################################################
 ## Kerberos (EE Only)
@@ -2538,7 +2551,9 @@ external_url 'GENERATED_EXTERNAL_URL'
 # patroni['maximum_lag_on_failover'] = 1_048_576
 # patroni['max_timelines_history'] = 0
 # patroni['master_start_timeout'] = 300
-# patroni['use_pg_rewind'] = false
+# patroni['use_pg_rewind'] = true
+# patroni['remove_data_directory_on_rewind_failure'] = false
+# patroni['remove_data_directory_on_diverged_timelines'] = false
 # patroni['use_slots'] = true
 # patroni['replication_password'] = nil
 # patroni['replication_slots'] = {}

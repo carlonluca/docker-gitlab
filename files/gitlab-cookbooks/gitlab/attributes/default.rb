@@ -131,6 +131,7 @@ default['gitlab']['gitlab-rails']['remove_unaccepted_member_invites_cron_worker'
 default['gitlab']['gitlab-rails']['schedule_migrate_external_diffs_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['ci_platform_metrics_update_cron_worker'] = nil
 default['gitlab']['gitlab-rails']['historical_data_worker_cron'] = nil
+default['gitlab']['gitlab-rails']['analytics_devops_adoption_create_all_snapshots_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['ldap_sync_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['ldap_group_sync_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['geo_file_download_dispatch_worker_cron'] = nil
@@ -341,6 +342,10 @@ default['gitlab']['gitlab-rails']['forti_authenticator_host'] = nil
 default['gitlab']['gitlab-rails']['forti_authenticator_port'] = 443
 default['gitlab']['gitlab-rails']['forti_authenticator_username'] = nil
 default['gitlab']['gitlab-rails']['forti_authenticator_access_token'] = nil
+
+default['gitlab']['gitlab-rails']['forti_token_cloud_enabled'] = false
+default['gitlab']['gitlab-rails']['forti_token_cloud_client_id'] = nil
+default['gitlab']['gitlab-rails']['forti_token_cloud_client_secret'] = nil
 
 default['gitlab']['gitlab-rails']['shared_path'] = "/var/opt/gitlab/gitlab-rails/shared"
 
@@ -665,58 +670,6 @@ default['gitlab']['mailroom']['enable'] = false
 default['gitlab']['mailroom']['ha'] = false
 default['gitlab']['mailroom']['log_directory'] = "/var/log/gitlab/mailroom"
 default['gitlab']['mailroom']['exit_log_format'] = "plain" # If mail_room crashes, the structure of the final exception message
-
-####
-# GitLab Pages Daemon
-####
-default['gitlab']['gitlab-pages']['enable'] = false
-default['gitlab']['gitlab-pages']['external_http'] = nil
-default['gitlab']['gitlab-pages']['external_https'] = nil
-default['gitlab']['gitlab-pages']['external_https_proxyv2'] = nil
-default['gitlab']['gitlab-pages']['listen_proxy'] = "localhost:8090"
-default['gitlab']['gitlab-pages']['gitlab_server'] = nil
-default['gitlab']['gitlab-pages']['internal_gitlab_server'] = nil
-default['gitlab']['gitlab-pages']['http_proxy'] = nil
-default['gitlab']['gitlab-pages']['metrics_address'] = nil
-default['gitlab']['gitlab-pages']['pages_path'] = nil
-default['gitlab']['gitlab-pages']['domain'] = nil
-default['gitlab']['gitlab-pages']['cert'] = nil
-default['gitlab']['gitlab-pages']['cert_key'] = nil
-default['gitlab']['gitlab-pages']['redirect_http'] = false
-default['gitlab']['gitlab-pages']['use_http2'] = true
-default['gitlab']['gitlab-pages']['dir'] = "/var/opt/gitlab/gitlab-pages"
-default['gitlab']['gitlab-pages']['log_directory'] = "/var/log/gitlab/gitlab-pages"
-default['gitlab']['gitlab-pages']['status_uri'] = nil
-default['gitlab']['gitlab-pages']['max_connections'] = nil
-default['gitlab']['gitlab-pages']['log_format'] = "json"
-default['gitlab']['gitlab-pages']['artifacts_server'] = true
-default['gitlab']['gitlab-pages']['artifacts_server_url'] = nil
-default['gitlab']['gitlab-pages']['artifacts_server_timeout'] = 10
-default['gitlab']['gitlab-pages']['inplace_chroot'] = false
-default['gitlab']['gitlab-pages']['log_verbose'] = false
-default['gitlab']['gitlab-pages']['access_control'] = false
-default['gitlab']['gitlab-pages']['gitlab_id'] = nil
-default['gitlab']['gitlab-pages']['gitlab_secret'] = nil
-default['gitlab']['gitlab-pages']['auth_redirect_uri'] = nil
-default['gitlab']['gitlab-pages']['auth_secret'] = nil
-default['gitlab']['gitlab-pages']['insecure_ciphers'] = false
-default['gitlab']['gitlab-pages']['tls_min_version'] = nil
-default['gitlab']['gitlab-pages']['tls_max_version'] = nil
-default['gitlab']['gitlab-pages']['sentry_enabled'] = false
-default['gitlab']['gitlab-pages']['sentry_dsn'] = nil
-default['gitlab']['gitlab-pages']['sentry_environment'] = nil
-default['gitlab']['gitlab-pages']['headers'] = nil
-default['gitlab']['gitlab-pages']['api_secret_key'] = nil
-default['gitlab']['gitlab-pages']['gitlab_client_http_timeout'] = nil
-default['gitlab']['gitlab-pages']['gitlab_client_jwt_expiry'] = nil
-default['gitlab']['gitlab-pages']['domain_config_source'] = nil
-default['gitlab']['gitlab-pages']['env_directory'] = '/opt/gitlab/etc/gitlab-pages/env'
-# Serving from zip archives fine grained configuration.
-# The recommended default values are set inside GitLab Pages.
-default['gitlab']['gitlab-pages']['zip_cache_expiration'] = nil
-default['gitlab']['gitlab-pages']['zip_cache_cleanup'] = nil
-default['gitlab']['gitlab-pages']['zip_cache_refresh'] = nil
-default['gitlab']['gitlab-pages']['zip_open_timeout'] = nil
 
 ####
 # Nginx

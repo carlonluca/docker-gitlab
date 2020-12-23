@@ -29,7 +29,7 @@ See [Joe Damato's from Packagecloud comment](https://gitlab.com/gitlab-org/omnib
 Another workaround is to download the package manually by selecting the correct package from the [CE packages](https://packages.gitlab.com/gitlab/gitlab-ce) or [EE packages](https://packages.gitlab.com/gitlab/gitlab-ee) repository:
 
 ```shell
-curl -LJO https://packages.gitlab.com/gitlab/gitlab-ce/packages/ubuntu/trusty/gitlab-ce_8.1.0-ce.0_amd64.deb/download
+curl -LJO "https://packages.gitlab.com/gitlab/gitlab-ce/packages/ubuntu/trusty/gitlab-ce_8.1.0-ce.0_amd64.deb/download"
 dpkg -i gitlab-ce_8.1.0-ce.0_amd64.deb
 ```
 
@@ -121,7 +121,7 @@ registry_external_url "https://registry.example.com"
 mattermost_external_url "https://mattermost.example.com"
 ```
 
-NOTE: **Note:**
+NOTE:
 Don't add the equal sign (`=`) between `external_url` and the value.
 
 ## Emails are not being delivered
@@ -740,7 +740,7 @@ If using this configuration, runit service must be started before running
 
 ## `gitlab-ctl reconfigure` hangs while using AWS Cloudformation
 
-GitLab's systemd unit file by default uses `multi-user.target` for both `After`
+The GitLab systemd unit file by default uses `multi-user.target` for both `After`
 and `WantedBy` fields. This is done to ensure service runs after `remote-fs` and
 `network` targets, and thus GitLab will function properly.
 

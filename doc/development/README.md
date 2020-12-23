@@ -52,7 +52,7 @@ bundle exec rspec
 ## Merge Request Guidelines
 
 If you are working on a new feature or an issue which doesn't have an entry on
-Omnibus GitLab's issue tracker, it is always a better idea to create an issue
+the Omnibus GitLab issue tracker, it is always a better idea to create an issue
 and mention that you will be working on it as this will help to prevent
 duplication of work. Also, others may be able to provide input regarding the
 issue, which can help you in your task.
@@ -71,7 +71,7 @@ their applicability:
 1. If Merge Request introduces change in user facing configuration, update to [`gitlab.rb.template`](https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/files/gitlab-config-template/gitlab.rb.template)
 1. [Changelog entry](https://docs.gitlab.com/ee/development/changelog.html) to inform about the change, if necessary.
 
-NOTE: **Note:**
+NOTE:
 Ensure shared runners are enabled for your fork in order for our automated tests to run:
 
 1. Go to Settings -> CI/CD

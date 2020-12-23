@@ -6,7 +6,7 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 
 # Manually download and install a GitLab package
 
-NOTE: **Note:**
+NOTE:
 The [package repository](https://about.gitlab.com/install/) is recommended over
 a manual installation.
 
@@ -23,7 +23,7 @@ additional requirements to support GitLab.
 
 ## Download a GitLab Package
 
-All GitLab packages are posted to GitLab's [package server](https://packages.gitlab.com/gitlab/)
+All GitLab packages are posted to the GitLab [package server](https://packages.gitlab.com/gitlab/)
 and can be downloaded. Five repositories are maintained:
 
 - [GitLab EE](https://packages.gitlab.com/gitlab/gitlab-ee): for official
@@ -70,7 +70,7 @@ After the GitLab package is downloaded, install it using the following commands:
   rpm -Uvh gitlab-ee-<version>.rpm
   ```
 
-TIP: **Tip:**
+NOTE:
 If you are installing for the first time, you can pass the
 `EXTERNAL_URL="<GitLab URL>"` variable to set your preferred domain name. Installation will
 automatically configure and start GitLab at that URL. Enabling HTTPS requires

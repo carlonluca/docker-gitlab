@@ -6,7 +6,7 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 
 # GitLab Mattermost
 
-NOTE: **Note:**
+NOTE:
 This document applies to GitLab 11.0 and later.
 
 You can run a [GitLab Mattermost](https://gitlab.com/gitlab-org/gitlab-mattermost)
@@ -231,7 +231,7 @@ For more details see [Mattermost Command Line Tools (CLI)](https://docs.mattermo
 As of 12.3, the Mattermost GitLab plugin is shipped with Omnibus GitLab: [Mattermost Plugin for GitLab documentation](https://github.com/mattermost/mattermost-plugin-gitlab).
 
 You can use the plugin to subscribe Mattermost to receive notifications about issues, merge requests, and pull requests as well as personal notifications regarding merge request reviews, unread messages, and task assignments. If you want to use slash commands to perform actions
-such as creating and viewing issues, or to trigger deployments use GitLab's [Mattermost slash commands](https://docs.gitlab.com/ee/user/project/integrations/mattermost_slash_commands.html).
+such as creating and viewing issues, or to trigger deployments use GitLab [Mattermost slash commands](https://docs.gitlab.com/ee/user/project/integrations/mattermost_slash_commands.html).
 
 The plugin and slash commands can be used together or individually.
 
@@ -392,7 +392,7 @@ There are a few exceptions to this rule:
 |`mattermost['webrtc_gateway_turn_username']`|`MM_WEBRTCSETTINGS_TURN_USERNAME`|
 |`mattermost['webrtc_gateway_turn_sharedkey']`|`MM_WEBRTCSETTINGS_TURN_SHAREDKEY`|
 
-> Please note:
+NOTE:
 GitLab 11.0 no longer generates `config.json` file from the configuration specified
 in `gitlab.rb`. Users are responsible for managing this file which can be done via the
 Mattermost System Console or manually.
@@ -403,7 +403,7 @@ If you encounter any issues [visit the GitLab Mattermost troubleshooting forum](
 
 ### Upgrading GitLab Mattermost outside of GitLab
 
-If you choose to upgrade Mattermost outside of GitLab's Omnibus automation, [follow this guide](https://docs.mattermost.com/administration/upgrade.html).
+If you choose to upgrade Mattermost outside of the Omnibus GitLab automation, [follow this guide](https://docs.mattermost.com/administration/upgrade.html).
 
 ## OAuth2 sequence diagram
 

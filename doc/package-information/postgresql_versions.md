@@ -6,7 +6,7 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 
 # PostgreSQL versions shipped with Omnibus GitLab
 
-NOTE: **Note:**
+NOTE:
 This table lists only GitLab versions where a significant change happened in the
 package regarding PostgreSQL versions, not all.
 
@@ -26,6 +26,7 @@ Read more about update policies and warnings in the PostgreSQL
 
 | GitLab version | PostgreSQL versions | Default version for fresh installs | Default version for upgrades | Notes |
 | -------------- | --------------------- | ---------------------------------- | ---------------------------- | ----- |
+| 13.7 | 11.9, 12.4 | 12.4 | 11.9 | For upgrades users can manually upgrade to 12.4 following the [upgrade docs](../settings/database.md#gitlab-133-and-later). |
 | 13.4 | 11.9, 12.4 | 11.9 | 11.9 | Package upgrades aborted if users not running PostgreSQL 11 already |
 | 13.3 | 11.7, 12.3 | 11.7 | 11.7 | Package upgrades aborted if users not running PostgreSQL 11 already |
 | 13.0 | 11.7 | 11.7 | 11.7 | Package upgrades aborted if users not running PostgreSQL 11 already |

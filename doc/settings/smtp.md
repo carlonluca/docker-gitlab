@@ -10,7 +10,7 @@ If you would rather send application email via an SMTP server instead of via
 Sendmail, add the following configuration information to
 `/etc/gitlab/gitlab.rb` and run `gitlab-ctl reconfigure`.
 
-CAUTION: **Caution:**
+WARNING:
 Your `smtp_password` should not contain any String delimiters used in
 Ruby or YAML (f.e. `'`) to avoid unexpected behavior during the processing of
 config settings.
@@ -62,7 +62,7 @@ gitlab_rails['smtp_force_ssl'] = false
 
 ### Gmail
 
-NOTE: **Note:**
+NOTE:
 Gmail has [strict sending limits](https://support.google.com/a/answer/166852)
 that can impair functionality as your organization grows. We strongly recommend using a
 transactional service like [SendGrid](https://sendgrid.com/) or [Mailgun](https://www.mailgun.com/)
@@ -1023,7 +1023,7 @@ Request to save other people time.
 
 ## Testing the SMTP configuration
 
-You can verify GitLab's ability to send emails properly using the Rails console.
+You can verify that GitLab can send emails properly using the Rails console.
 On the GitLab server, execute `gitlab-rails console` to enter the console. Then,
 you can enter the following command at the console prompt to cause GitLab to
 send a test email:
@@ -1064,7 +1064,7 @@ For more details, read [about the confusion over SMTP ports, TLS, and STARTTLS](
 
 ## Disable all outgoing email
 
-NOTE: **Note:**
+NOTE:
 This will disable **all** outgoing email from your GitLab instance, including but not limited to notification emails, direct mentions, and password reset emails.
 
 In order to disable **all** outgoing email, you can edit or add the following line to `/etc/gitlab/gitlab.rb`:

@@ -6,7 +6,7 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 
 # GitLab 13 specific changes
 
-NOTE: **Note:**
+NOTE:
 When upgrading to a new major version, remember to first [check for background migrations](https://docs.gitlab.com/ee/update/README.html#checking-for-background-migrations-before-upgrading).
 
 ## 13.0
@@ -46,3 +46,16 @@ If you use SELinux and have set `gitlab_workhorse['listen_addr']` to a custom so
 If you are using a custom listen address but you are not using SELinux, you will not be affected by this change.
 
 If you are using your own NGINX rather than the bundled version, and are proxying to the workhorse socket, you will need to update your NGINX config.
+
+## 13.7
+
+### PostgreSQL 12.4 support
+
+PostgreSQL 12.4 is being shipped as the default version for fresh installs.
+Users can manually upgrade to 12.4 following the  [upgrade docs](../settings/database.md#gitlab-133-and-later).
+
+### New encrypted_settings_key_base secret added to the GitLab secrets
+
+In 13.7, a new secret is generated in `/etc/gitlab/gitlab-secrets.json`. In an HA GitLab environment, secrets need to
+be the same on all nodes. Ensure this new secret is also accounted for if you are manually syncing the file across
+nodes, or manually specifying secrets in `/etc/gitlab/gitlab.rb`.

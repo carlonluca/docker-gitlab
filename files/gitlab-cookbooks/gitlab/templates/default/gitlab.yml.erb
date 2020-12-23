@@ -418,6 +418,12 @@ production: &base
     ##
     # GitLab EE only jobs:
 
+    # Snapshot Devops Adoption statistics
+    <% unless @analytics_devops_adoption_create_all_snapshots_worker.nil? %>
+    analytics_devops_adoption_create_all_snapshots_worker:
+      cron: "<%= @analytics_devops_adoption_create_all_snapshots_worker %>"
+    <% end %>
+
     # Snapshot active users statistics
     <% unless @historical_data_worker_cron.nil? %>
     historical_data_worker:
@@ -738,6 +744,15 @@ production: &base
 
     # Access token for FortiAuthenticator API
     access_token: <%= quote(@forti_authenticator_access_token) %>
+
+  # FortiToken Cloud settings
+  forti_token_cloud:
+    # Allow using FortiToken Cloud as OTP provider
+    enabled: <%= @forti_token_cloud_enabled %>
+
+    # Client ID and Secret to access FortiToken Cloud API
+    client_id: <%= quote(@forti_token_cloud_client_id) %>
+    client_secret: <%= quote(@forti_token_cloud_client_secret) %>
 
   # Shared file storage settings
   shared:
