@@ -54,7 +54,9 @@
     # These jobs will not be run on dev, so we set ALTERNATIVE_SOURCES to true
     # so tests run fine on forks
     - export ALTERNATIVE_SOURCES="true";
-    - bundle install -j $(nproc) --binstubs --path gems
+    - bundle config set --local path 'gems'
+    - bundle install -j $(nproc)
+    - bundle binstubs --all
   script:
     - JOB_NAME=( $CI_JOB_NAME )
     - export DISTRO_NAME=${JOB_NAME[0]}
@@ -100,7 +102,7 @@
       - $CI_COMMIT_REF_NAME =~ /^[0-9]+-[0-9]+-auto-deploy-[0-9]+$/
 
 .review-docs:
-  image: ruby:2.6-alpine
+  image: ruby:2.7-alpine
   stage: post-test
   cache: {}
   dependencies: []
@@ -138,7 +140,9 @@ rubocop:
   stage: check
   image: "${RUBY_IMAGE}"
   before_script:
-    - bundle install -j $(nproc) --binstubs --path gems --without default test
+    - bundle config set --local without 'default test'
+    - bundle config set --local path 'gems'
+    - bundle install -j $(nproc)
   script:
     - bundle exec rubocop --parallel
   <<: *com-except-triggers
@@ -147,8 +151,9 @@ rubocop:
     paths:
     - gems
 
-docs-lint:
-  image: "registry.gitlab.com/gitlab-org/gitlab-docs/lint:ruby-2.7.2-alpine-3.12-vale-2.4.3-markdownlint-0.24.0"
+# Perform documentation linting on Markdown files
+docs-lint markdown:
+  image: "registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.12-vale-2.8.0-markdownlint-0.26.0"
   stage: check
   cache: {}
   dependencies: []
@@ -158,6 +163,24 @@ docs-lint:
     - vale --minAlertLevel error doc
     # Lint Markdown
     - markdownlint --config .markdownlint.json 'doc/**/*.md'
+  except:
+    refs:
+      - /./@gitlab/omnibus-gitlab
+      - triggers
+      - /^deps/
+      - /./@gitlab-org/build/omnibus-gitlab-mirror
+    variables:
+      - $DEPS_PIPELINE
+      - $CI_COMMIT_REF_NAME =~ /^[0-9]+-[0-9]+-auto-deploy-[0-9]+$/
+
+# Perform link checks on published HTML files
+docs-lint links:
+  image: "registry.gitlab.com/gitlab-org/gitlab-docs/lint-html:alpine-3.12-ruby-2.7.2"
+  stage: check
+  cache: {}
+  dependencies: []
+  before_script: []
+  script:
     # Prepare docs for build
     - mv doc/ /tmp/gitlab-docs/content/omnibus
     - cd /tmp/gitlab-docs
@@ -213,6 +236,7 @@ danger-review:
     refs:
       - schedules@gitlab-org/omnibus-gitlab
       - /^[\d-]+-stable(-patch-[\d]+)?$/
+      - master
     variables:
       - $DEPS_PIPELINE
       - $CI_COMMIT_REF_NAME =~ /^[0-9]+-[0-9]+-auto-deploy-[0-9]+$/

@@ -14,10 +14,46 @@ RSpec.describe 'patroni cookbook' do
     expect(chef_run).to include_recipe('patroni::disable')
   end
 
+  context 'when postgres_role is enabled' do
+    before do
+      stub_gitlab_rb(roles: %w(postgres_role))
+    end
+
+    it 'should be disabled while repmgr is enabled' do
+      expect(chef_run).to include_recipe('repmgr::enable')
+      expect(chef_run).to include_recipe('patroni::disable')
+    end
+  end
+
+  context 'when patroni_role is enabled' do
+    before do
+      stub_gitlab_rb(roles: %w(patroni_role))
+    end
+
+    it 'should be enabled while repmgr is disabled' do
+      expect(chef_run).to include_recipe('repmgr::disable')
+      expect(chef_run).to include_recipe('patroni::enable')
+    end
+  end
+
+  context 'when patroni_role and postgres_role is enabled' do
+    before do
+      stub_gitlab_rb(roles: %w(postgres_role patroni_role))
+    end
+
+    it 'should be enabled while repmgr is disabled' do
+      expect(chef_run).to include_recipe('repmgr::disable')
+      expect(chef_run).to include_recipe('patroni::enable')
+    end
+  end
+
   context 'when repmgr is enabled' do
     before do
       stub_gitlab_rb(
-        roles: %w(postgres_role)
+        roles: %w(postgres_role),
+        repmgr: {
+          enable: true
+        }
       )
     end
 
@@ -30,10 +66,7 @@ RSpec.describe 'patroni cookbook' do
   context 'when enabled with default config' do
     before do
       stub_gitlab_rb(
-        roles: %w(postgres_role),
-        patroni: {
-          enable: true
-        },
+        roles: %w(patroni_role),
         postgresql: {
           pgbouncer_user_password: ''
         }
@@ -92,13 +125,15 @@ RSpec.describe 'patroni cookbook' do
               parameters: {
                 wal_level: 'replica',
                 hot_standby: 'on',
-                wal_keep_segments: 8,
+                wal_keep_segments: 10,
                 max_replication_slots: 5,
                 max_connections: 200,
                 max_locks_per_transaction: 128,
                 max_worker_processes: 8,
                 max_wal_senders: 5,
                 checkpoint_timeout: 30,
+                max_prepared_transactions: 0,
+                track_commit_timestamp: 'off',
                 wal_log_hints: 'off'
               },
             },
@@ -409,7 +444,7 @@ RSpec.describe 'patroni cookbook' do
         )
       end
 
-      it 'should use default values from postgresql cookbook' do
+      it 'should use default values from postgresql cookbook and handle corner cases' do
         expect(chef_run).to render_file('/var/opt/gitlab/patroni/dcs.yaml').with_content { |content|
           cfg = YAML.safe_load(content, permitted_classes: [Symbol], symbolize_names: true)
 
@@ -418,7 +453,13 @@ RSpec.describe 'patroni cookbook' do
             max_connections: 200,
             max_locks_per_transaction: 128,
             max_worker_processes: 8,
-            wal_log_hints: 'off'
+            max_prepared_transactions: 0,
+            track_commit_timestamp: 'off',
+            wal_log_hints: 'off',
+            max_wal_senders: 5,
+            max_replication_slots: 5,
+            wal_keep_segments: 10,
+            checkpoint_timeout: 30
           )
         }
       end
@@ -435,7 +476,9 @@ RSpec.describe 'patroni cookbook' do
             max_connections: 123,
             max_locks_per_transaction: 321,
             max_worker_processes: 12,
-            wal_log_hints: 'foo'
+            wal_log_hints: 'foo',
+            max_wal_senders: 11,
+            max_replication_slots: 13,
           }
         )
       end
@@ -449,7 +492,13 @@ RSpec.describe 'patroni cookbook' do
             max_connections: 123,
             max_locks_per_transaction: 321,
             max_worker_processes: 12,
-            wal_log_hints: 'foo'
+            max_prepared_transactions: 0,
+            track_commit_timestamp: 'off',
+            wal_log_hints: 'foo',
+            max_wal_senders: 11,
+            max_replication_slots: 13,
+            wal_keep_segments: 10,
+            checkpoint_timeout: 30
           )
         }
       end
@@ -465,7 +514,10 @@ RSpec.describe 'patroni cookbook' do
               max_connections: 100,
               max_locks_per_transaction: 64,
               max_worker_processes: 4,
-              wal_log_hints: 'on'
+              wal_log_hints: 'on',
+              max_wal_senders: 0,
+              max_replication_slots: 0,
+              checkpoint_timeout: '5min'
             }
           }
         )
@@ -480,6 +532,8 @@ RSpec.describe 'patroni cookbook' do
             max_connections: 100,
             max_locks_per_transaction: 64,
             max_worker_processes: 4,
+            max_wal_senders: 0,
+            max_replication_slots: 0,
             wal_log_hints: 'on'
           )
         }

@@ -64,7 +64,7 @@ variables:
   AUTO_DEPLOY_TAG_REGEX: '^\d+\.\d+\.\d+\+[^ ]{7,}\.[^ ]{7,}$'
   # Default environment for auto-deploy
   AUTO_DEPLOY_ENVIRONMENT: 'pre'
-  MAX_PACKAGE_SIZE_MB: "890"
+  MAX_PACKAGE_SIZE_MB: "900"
   OMNIBUS_GITLAB_MIRROR_ID: "14588374"
 
 ### For services that need a docker daemon
@@ -74,7 +74,7 @@ variables:
     DOCKER_DRIVER: overlay2
     DOCKER_HOST: tcp://docker:2375
   services:
-    - docker:19.03.0-dind
+    - docker:20.10.2-dind
   tags:
     - gitlab-org-docker
 
@@ -119,7 +119,13 @@ before_script:
       cp support/known_hosts ~/.ssh/known_hosts;
       chmod -R 0600 ~/.ssh/;
     fi
-  - bundle install -j $(nproc) --binstubs --path gems --without rubocop
+  - bundle config set --local path 'gems'
+  - bundle config set --local without 'rubocop'
+  - if [ "$INCLUDE_PACKAGECLOUD" = "true" ]; then
+      bundle config set --local with 'packagecloud';
+    fi
+  - bundle install -j $(nproc)
+  - bundle binstubs --all
   # If ALTERNATIVE_SOURCES are used, the public mirror for omnibus will be used.
   # This will alter Gemfile.lock file. As part of the build pipeline, we are
   # checking whether the state of the repository is unchanged during the build
@@ -138,8 +144,9 @@ before_script:
 fetch-assets:
   extends: .docker_job
   stage: prepare-assets
+  before_script: []
   script:
-    - export VERSION=${GITLAB_REF_SLUG-$(bundle exec rake build:version)}
+    - export VERSION=${GITLAB_REF_SLUG-$(ruby -I. -e 'require "lib/gitlab/version"; puts Gitlab::Version.new("gitlab-rails").print')}
     - support/fetch_assets "${VERSION}"
   artifacts:
     paths:

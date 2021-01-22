@@ -26,6 +26,30 @@ PostgreSQL 9.6 and 10 [have been removed from](https://gitlab.com/gitlab-org/omn
 the package. Follow [the documentation](../settings/database.md#upgrade-packaged-postgresql-server)
 on how to upgrade the packaged PostgreSQL server to required version.
 
+### Alertmanager moved from the `gitlab` namespace to `monitoring`
+
+In `/etc/gitlab/gitlab.rb`, change:
+
+```ruby
+alertmanager['flags'] = {
+  'cluster.advertise-address' => "127.0.0.1:9093",
+  'web.listen-address' => "#{node['gitlab']['alertmanager']['listen_address']}",
+  'storage.path' => "#{node['gitlab']['alertmanager']['home']}/data",
+  'config.file' => "#{node['gitlab']['alertmanager']['home']}/alertmanager.yml"
+}
+```
+
+to:
+
+```ruby
+alertmanager['flags'] = {
+  'cluster.advertise-address' => "127.0.0.1:9093",
+  'web.listen-address' => "#{node['monitoring']['alertmanager']['listen_address']}",
+  'storage.path' => "#{node['monitoring']['alertmanager']['home']}/data",
+  'config.file' => "#{node['monitoring']['alertmanager']['home']}/alertmanager.yml"
+}
+```
+
 ## 13.3
 
 ### PostgreSQL 12.3 support
@@ -52,6 +76,7 @@ If you are using your own NGINX rather than the bundled version, and are proxyin
 ### PostgreSQL 12.4 support
 
 PostgreSQL 12.4 is being shipped as the default version for fresh installs.
+
 Users can manually upgrade to 12.4 following the  [upgrade docs](../settings/database.md#gitlab-133-and-later).
 
 ### New encrypted_settings_key_base secret added to the GitLab secrets
@@ -59,3 +84,35 @@ Users can manually upgrade to 12.4 following the  [upgrade docs](../settings/dat
 In 13.7, a new secret is generated in `/etc/gitlab/gitlab-secrets.json`. In an HA GitLab environment, secrets need to
 be the same on all nodes. Ensure this new secret is also accounted for if you are manually syncing the file across
 nodes, or manually specifying secrets in `/etc/gitlab/gitlab.rb`.
+
+## 13.8
+
+### PostgreSQL 12.4 upgrades
+
+PostgreSQL will automatically be upgraded to 12.x except for the following cases:
+
+- you are running the database in high_availability using Repmgr or Patroni.
+- your database nodes are part of GitLab Geo configuration.
+- you have specifically opted out using the `/etc/gitlab/disable-postgresql-upgrade` file outlined below.
+
+To opt out you must execute the following before performing the upgrade of GitLab.
+
+```shell
+sudo touch /etc/gitlab/disable-postgresql-upgrade
+```
+
+<!-- disabling this rule because it fails on gitlab-exporter -->
+<!-- markdownlint-disable MD044 -->
+### Removal of process metrics from gitlab-exporter
+
+Process-related metrics emitted from gitlab-exporter have been retired. These metrics are now exported
+from application processes directly.
+Similarly, process metrics for particular git processes such as `git upload-pack`,
+`git fetch`, `git cat-file`, `git gc` emitted from gitlab-exporter have been removed.
+Git-related process metrics are already being exported by Gitaly.
+No further action is required, unless an installation is purely
+ingesting metrics from gitlab-exporter, which is not the default behavior. In that case,
+[change your scrape configuration](https://docs.gitlab.com/ee/administration/monitoring/prometheus/#adding-custom-scrape-configurations)
+to ingest metrics from the [application's own metrics endpoints](https://docs.gitlab.com/ee/administration/monitoring/prometheus/gitlab_metrics.html)
+instead.
+<!-- markdownlint-enable MD044 -->

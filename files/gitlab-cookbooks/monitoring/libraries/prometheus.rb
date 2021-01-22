@@ -25,7 +25,7 @@ require 'json'
 module Prometheus
   class << self
     def services
-      Services.find_by_group('monitoring').map { |name, _| name.tr('_', '-') }
+      Services.find_by_group('monitoring').map { |name| name.tr('_', '-') }
     end
 
     def parse_variables
@@ -45,8 +45,8 @@ module Prometheus
 
     def parse_exporter_enabled
       # Disable exporters by default if their service is not managed on this node
-      Services.set_enable('postgres_exporter', Postgresql.postgresql_managed?) if Gitlab['postgres_exporter']['enable'].nil?
-      Services.set_enable('redis_exporter', Redis.redis_managed?) if Gitlab['redis_exporter']['enable'].nil?
+      Services.set_status('postgres_exporter', Postgresql.postgresql_managed?) if Gitlab['postgres_exporter']['enable'].nil?
+      Services.set_status('redis_exporter', Redis.redis_managed?) if Gitlab['redis_exporter']['enable'].nil?
     end
 
     def parse_flags
@@ -292,15 +292,8 @@ module Prometheus
           'targets' => [prometheus_target],
         ]
       }
-      process = {
-        'job_name' => 'gitlab_exporter_process',
-        'metrics_path' => '/process',
-        'static_configs' => [
-          'targets' => [prometheus_target],
-        ]
-      }
 
-      default_scrape_configs = [] << database << sidekiq << process << Gitlab['prometheus']['scrape_configs']
+      default_scrape_configs = [] << database << sidekiq << Gitlab['prometheus']['scrape_configs']
       Gitlab['prometheus']['scrape_configs'] = default_scrape_configs.compact.flatten
     end
 

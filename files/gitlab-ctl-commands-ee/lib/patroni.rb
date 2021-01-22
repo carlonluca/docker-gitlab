@@ -16,6 +16,7 @@ module Patroni
       bootstrap              Bootstraps the node
       check-leader           Check if the current node is the Patroni leader
       check-replica          Check if the current node is a Patroni replica
+      check-standby-leader    Check if the current node is the Patroni leader in a standby cluster
       members                List the cluster members
       pause                  Disable auto failover
       resume                 Resume auto failover
@@ -68,6 +69,11 @@ module Patroni
         end
       end,
       'check-replica' => OptionParser.new do |opts|
+        opts.on('-h', '--help', 'Prints this help') do
+          Utils.warn_and_exit opts
+        end
+      end,
+      'check-standby-leader' => OptionParser.new do |opts|
         opts.on('-h', '--help', 'Prints this help') do
           Utils.warn_and_exit opts
         end
@@ -173,6 +179,10 @@ module Patroni
     Client.new.replica?
   end
 
+  def self.standby_leader?(options)
+    Client.new.standby_leader?
+  end
+
   def self.members(options)
     Utils.patronictl('list')
   end
@@ -191,6 +201,7 @@ module Patroni
 
   def self.failover(options)
     command = %w(failover)
+    command << "--force"
     command << "--master #{options[:master]}" if options[:master]
     command << "--candidate #{options[:candidate]}" if options[:candidate]
     Utils.patronictl(command)
@@ -198,6 +209,7 @@ module Patroni
 
   def self.switchover(options)
     command = %w(switchover)
+    command << "--force"
     command << "--master #{options[:master]}" if options[:master]
     command << "--candidate #{options[:candidate]}" if options[:candidate]
     command << "--scheduled #{options[:scheduled]}" if options[:scheduled]
@@ -264,6 +276,12 @@ module Patroni
 
     def replica?
       get('/replica') do |response|
+        response.code == '200'
+      end
+    end
+
+    def standby_leader?
+      get('/standby-leader') do |response|
         response.code == '200'
       end
     end

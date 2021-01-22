@@ -6,18 +6,12 @@ db_common: &db_common
 
 # Web server config
 server:
+  name: <%= node['monitoring']['gitlab-exporter']['server_name'] %>
   listen_address: <%= node['monitoring']['gitlab-exporter']['listen_address'] %>
   listen_port: <%= node['monitoring']['gitlab-exporter']['listen_port'] %>
 
 # Probes config
 probes:
-  git_process: &git_process
-    class_name: GitProcessProber # `class_name` is redundant here
-    methods:
-    - probe_git
-    opts:
-      quantiles: true
-
 <% if node['gitlab']['gitlab-rails']['db_adapter'] == 'postgresql' -%>
   # We can group multiple probes under a single endpoint by setting the `multiple` key to `true`, followed
   # by probe definitions as usual.
@@ -37,21 +31,6 @@ probes:
     <<: *db_common
 <% end -%>
 
-  process: &process
-    methods:
-      - probe_stat
-      - probe_count
-    opts:
-      - pid_or_pattern: "sidekiq .* \\[.*?\\]"
-        name: sidekiq
-      - pid_or_pattern: "gitlab-puma-worker"
-        name: puma
-      - pid_or_pattern: "unicorn.* worker\\[.*?\\]"
-        name: unicorn
-      - pid_or_pattern: "git-upload-pack --stateless-rpc"
-        name: git_upload_pack
-        quantiles: true
-
 <% if @probe_sidekiq %>
   sidekiq: &sidekiq
     methods:
@@ -66,10 +45,6 @@ probes:
 
   metrics:
     multiple: true
-    git_process:
-      <<: *git_process
-    process:
-      <<: *process
 <% if @probe_sidekiq %>
     sidekiq:
       <<: *sidekiq

@@ -38,6 +38,7 @@ module Gitlab
   role('monitoring').use { MonitoringRole }
   role('postgres').use { PostgresRole }
   role('pgbouncer').use { PgbouncerRole }
+  role('patroni').use { PatroniRole }
   role('consul').use { ConsulRole }
   role('pages').use { PagesRole }
 
@@ -65,13 +66,14 @@ module Gitlab
 
   # Attributes under node['monitoring']
   attribute_block 'monitoring' do
-    attribute('prometheus',        priority: 20).use { Prometheus }
-    attribute('grafana',           priority: 30).use { Grafana }
-    attribute('alertmanager',      priority: 30)
-    attribute('node_exporter',     priority: 30)
-    attribute('redis_exporter',    priority: 30)
-    attribute('postgres_exporter', priority: 30)
-    attribute('gitlab_exporter',   priority: 30).use { GitlabExporter }
+    attribute('prometheus',         priority: 20).use { Prometheus }
+    attribute('grafana',            priority: 30).use { Grafana }
+    attribute('alertmanager',       priority: 30)
+    attribute('node_exporter',      priority: 30)
+    attribute('redis_exporter',     priority: 30)
+    attribute('postgres_exporter',  priority: 30)
+    attribute('pgbouncer_exporter', priority: 30)
+    attribute('gitlab_exporter',    priority: 30).use { GitlabExporter }
   end
 
   ## Attributes under node['gitlab']
@@ -115,6 +117,5 @@ module Gitlab
     attribute('web_server')
     attribute('prometheus_monitoring')
     attribute('pgbouncer')
-    attribute('pgbouncer_exporter')
   end
 end

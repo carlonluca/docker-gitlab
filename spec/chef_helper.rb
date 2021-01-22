@@ -6,7 +6,7 @@ require 'chefspec'
 require 'ohai'
 
 # Load our cookbook libraries so we can stub them in our tests
-cookbooks = %w(package gitlab gitaly mattermost gitlab-ee letsencrypt monitoring patroni gitlab-kas)
+cookbooks = %w(package gitlab gitaly mattermost gitlab-ee letsencrypt monitoring patroni gitlab-kas gitlab-pages)
 cookbooks.each do |cookbook|
   Dir[File.join(__dir__, "../files/gitlab-cookbooks/#{cookbook}/libraries/**/*.rb")].each { |f| require f }
 end
@@ -86,6 +86,6 @@ RSpec.configure do |config|
     Gitlab['geo_postgresql']['dir'] = '/var/opt/gitlab/geo-postgresql'
 
     # Clear services list before each test
-    Services.reset_list
+    Services.reset_list!
   end
 end

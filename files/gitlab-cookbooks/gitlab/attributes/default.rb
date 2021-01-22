@@ -21,7 +21,7 @@
 ####
 default['gitlab']['bootstrap']['enable'] = true
 default['gitlab']['omnibus-gitconfig']['system'] = {
-  "pack" => ["threads = 1", "useSparse = true"],
+  "pack" => ["threads = 1"],
   "receive" => ["fsckObjects = true", "advertisePushOptions = true"],
   "repack" => ["writeBitmaps = true"],
   "transfer" => ["hideRefs=^refs/tmp/", "hideRefs=^refs/keep-around/", "hideRefs=^refs/remotes/"],
@@ -348,6 +348,7 @@ default['gitlab']['gitlab-rails']['forti_token_cloud_client_id'] = nil
 default['gitlab']['gitlab-rails']['forti_token_cloud_client_secret'] = nil
 
 default['gitlab']['gitlab-rails']['shared_path'] = "/var/opt/gitlab/gitlab-rails/shared"
+default['gitlab']['gitlab-rails']['encrypted_settings_path'] = nil
 
 default['gitlab']['gitlab-rails']['backup_path'] = "/var/opt/gitlab/backups"
 default['gitlab']['gitlab-rails']['manage_backup_path'] = true
@@ -636,6 +637,7 @@ default['gitlab']['web-server']['external_users'] = []
 
 default['gitlab']['gitlab-workhorse']['enable'] = false
 default['gitlab']['gitlab-workhorse']['ha'] = false
+default['gitlab']['gitlab-workhorse']['alt_document_root'] = nil
 default['gitlab']['gitlab-workhorse']['listen_network'] = "unix"
 default['gitlab']['gitlab-workhorse']['listen_umask'] = 000
 default['gitlab']['gitlab-workhorse']['sockets_directory'] = nil

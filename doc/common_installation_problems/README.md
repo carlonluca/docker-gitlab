@@ -363,7 +363,8 @@ net.core.somaxconn = 1024
 kernel.shmmax = 17179869184
 ```
 
-Tip: You may find it easier to look at the line in the Chef output than to find the file (since the file is different for each error). See the last line of this snippet.
+You may find it easier to look at the line in the Chef output than to find the file (since the file
+is different for each error). See the last line of this snippet.
 
 ```plaintext
 * file[create /opt/gitlab/embedded/etc/90-omnibus-gitlab-kernel.shmall.conf kernel.shmall] action create
@@ -755,3 +756,39 @@ completed, restart `gitlab-runsvdir` service for changes to take effect.
 ```shell
 sudo systemctl restart gitlab-runsvdir
 ```
+
+## Errno::EAFNOSUPPORT: Address family not supported by protocol - socket(2)
+
+When starting up GitLab, if an error similar to the following is observed:
+
+```ruby
+FATAL: Errno::EAFNOSUPPORT: Address family not supported by protocol - socket(2)
+```
+
+Check if the hostnames in use are resolvable and **IPv4**
+addresses are returned:
+
+```shell
+getent hosts gitlab.example.com
+# Example IPv4 output: 192.168.1.1 gitlab.example.com
+# Example IPv6 output: 2002:c0a8:0101::c0a8:0101 gitlab.example.com
+
+getent hosts localhost
+# Example IPv4 output: 127.0.0.1 localhost
+# Example IPv6 output: ::1 localhost
+```
+
+If an **IPv6** address format is returned, further check if
+**IPv6** protocol support (keyword `ipv6`) is enabled on the
+network interface:
+
+```shell
+ip addr # or 'ifconfig' on older operating systems
+```
+
+When **IPv6** network protocol support is absent or disabled,
+but the DNS configuration resolves the hostnames as **IPv6** addresses,
+GitLab services will be unable to establish network connections.
+
+This can be resolved by fixing the DNS configurations (or `/etc/hosts`) to
+resolve the hosts to an **IPv4** address instead of **IPv6**.
