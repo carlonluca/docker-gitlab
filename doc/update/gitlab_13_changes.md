@@ -73,6 +73,12 @@ If you are using your own NGINX rather than the bundled version, and are proxyin
 
 ## 13.7
 
+### CentOS/RHEL 6 packages no longer provided
+
+With these operating systems reaching their end-of-life for support, we are no longer providing packages for them. See the [supported operating systems](../package-information/deprecated_os.md) page for details.
+
+This change also impacts [the packages available for Amazon Linux 2](README.md#gitlab-137-and-later-unavailable-on-amazon-linux-2).
+
 ### PostgreSQL 12.4 support
 
 PostgreSQL 12.4 is being shipped as the default version for fresh installs.
@@ -116,3 +122,22 @@ ingesting metrics from gitlab-exporter, which is not the default behavior. In th
 to ingest metrics from the [application's own metrics endpoints](https://docs.gitlab.com/ee/administration/monitoring/prometheus/gitlab_metrics.html)
 instead.
 <!-- markdownlint-enable MD044 -->
+
+## 13.9
+
+### Redis 6.0.10
+
+In 13.9, we are upgrading Redis from 5.0.9 to 6.0.10. This upgrade is expected
+to be fully backwards compatible.
+
+One of the new features it introduces, is threaded I/O. That can be enabled by
+setting the following values:
+
+```ruby
+redis['io_threads'] = 4
+redis['io_threads_do_reads'] = true
+```
+
+If your instance has Redis HA with Sentinel, follow the upgrade steps documented
+in [Update GitLab installed with the Omnibus GitLab package to avoid
+downtime](https://gitlab.com/gitlab-org/omnibus-gitlab/-/blob/master/doc/update/README.md#use-redis-ha-using-sentinel).

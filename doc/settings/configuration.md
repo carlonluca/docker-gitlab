@@ -576,7 +576,7 @@ Learn how to [configure Rack Attack](https://docs.gitlab.com/ee/security/rack_at
 
 ## Disabling automatic cache cleaning during installation
 
-If you have large GitLab installation, you might not want to run a `rake cache:clean` task.
+If you have large GitLab installation, you might not want to run a `rake cache:clear` task.
 As it can take a long time to finish. By default, the cache clear task will run automatically
 during reconfigure.
 
@@ -679,7 +679,7 @@ properly. Before rolling out a policy, you may also want to change
 
 ## Setting initial root password on installation
 
-The initial password for the user `root` can be set at the installation time with the environment variable `GITLAB_ROOT_PASSWORD.
+The initial password for the user `root` can be set at the installation time with the environment variable `GITLAB_ROOT_PASSWORD`.
 
 For example:
 

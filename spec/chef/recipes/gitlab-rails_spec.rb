@@ -392,6 +392,50 @@ RSpec.describe 'gitlab::gitlab-rails' do
       end
     end
 
+    context 'matomo_disable_cookies' do
+      context 'when true' do
+        before do
+          stub_gitlab_rb(
+            gitlab_rails: { extra_matomo_disable_cookies: true }
+          )
+        end
+
+        it 'should set matomo_disable_cookies to true' do
+          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
+            hash_including(
+              'extra_matomo_disable_cookies' => true
+            )
+          )
+        end
+      end
+
+      context 'when false' do
+        before do
+          stub_gitlab_rb(
+            gitlab_rails: { extra_matomo_disable_cookies: false }
+          )
+        end
+
+        it 'should set matomo_disable_cookies to false' do
+          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
+            hash_including(
+              'extra_matomo_disable_cookies' => false
+            )
+          )
+        end
+      end
+
+      context 'when absent' do
+        it 'should set matomo_disable_cookies to nil' do
+          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
+            hash_including(
+              'extra_matomo_disable_cookies' => nil
+            )
+          )
+        end
+      end
+    end
+
     context 'when sentry is disabled' do
       it 'should set sentry variable to nil' do
         expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
@@ -1136,77 +1180,33 @@ RSpec.describe 'gitlab::gitlab-rails' do
       end
     end
 
-    context 'FortiAuthenticator settings' do
-      context 'FortiAuthenticator is configured' do
-        it 'exposes the FortiAuthenticator settings' do
+    context 'Application settings cache expiry' do
+      context 'when a value is set' do
+        it 'exposes the set value' do
           stub_gitlab_rb(
             gitlab_rails: {
-              forti_authenticator_enabled: true,
-              forti_authenticator_host: 'forti_authenticator.example.com',
-              forti_authenticator_port: 444,
-              forti_authenticator_username: 'janedoe',
-              forti_authenticator_access_token: '123s3cr3t456'
+              application_settings_cache_seconds: 30
             }
           )
 
           expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
             hash_including(
-              'forti_authenticator_enabled' => true,
-              'forti_authenticator_host' => 'forti_authenticator.example.com',
-              'forti_authenticator_port' => 444,
-              'forti_authenticator_username' => 'janedoe',
-              'forti_authenticator_access_token' => '123s3cr3t456'
+              'application_settings_cache_seconds' => 30
             )
           )
         end
       end
-
-      context 'FortiAuthenticator is disabled' do
-        context 'FortiAuthenticator is not configured' do
-          it 'does not expose FortiAuthenticator settings' do
-            expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-              hash_including(
-                'forti_authenticator_enabled' => false
-              )
-            )
-          end
-        end
-      end
-    end
-
-    context 'FortiToken Cloud settings' do
-      context 'FortiToken Cloud is configured' do
-        it 'exposes the FortiToken Cloud settings' do
-          stub_gitlab_rb(
-            gitlab_rails: {
-              forti_token_cloud_enabled: true,
-              forti_token_cloud_client_id: 'forti_token_cloud_client_id',
-              forti_token_cloud_client_secret: '123s3cr3t456'
-            }
-          )
-
+      context 'when a value is not set' do
+        it 'exposes the default (nil) value' do
           expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
             hash_including(
-              'forti_token_cloud_enabled' => true,
-              'forti_token_cloud_client_id' => 'forti_token_cloud_client_id',
-              'forti_token_cloud_client_secret' => '123s3cr3t456'
+              'application_settings_cache_seconds' => nil
             )
           )
         end
       end
-
-      context 'FortiToken Cloud is disabled' do
-        context 'FortiToken Cloud is not configured' do
-          it 'does not expose FortiToken Cloud settings' do
-            expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-              hash_including(
-                'forti_token_cloud_enabled' => false
-              )
-            )
-          end
-        end
-      end
     end
+
     context 'Sidekiq log_format' do
       context 'json' do
         it 'sets the Sidekiq log_format to json' do
@@ -1524,56 +1524,6 @@ RSpec.describe 'gitlab::gitlab-rails' do
 
         expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
           hash_including('geo_registry_replication_primary_api_url' => true)
-        )
-      end
-    end
-
-    context 'Unleash settings' do
-      it 'defaults the feature_flags_unleash_enabled variable to false' do
-        expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-          hash_including(
-            'feature_flags_unleash_enabled' => false
-          )
-        )
-      end
-
-      it 'sets the feature_flags_unleash_enabled variable' do
-        stub_gitlab_rb(gitlab_rails: { feature_flags_unleash_enabled: true })
-
-        expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-          hash_including(
-            'feature_flags_unleash_enabled' => true
-          )
-        )
-      end
-
-      it 'sets the feature_flags_unleash_url variable' do
-        stub_gitlab_rb(gitlab_rails: { feature_flags_unleash_url: 'some url' })
-
-        expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-          hash_including(
-            'feature_flags_unleash_url' => 'some url'
-          )
-        )
-      end
-
-      it 'sets the feature_flags_unleash_app_name variable' do
-        stub_gitlab_rb(gitlab_rails: { feature_flags_unleash_app_name: 'production' })
-
-        expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-          hash_including(
-            'feature_flags_unleash_app_name' => 'production'
-          )
-        )
-      end
-
-      it 'sets the feature_flags_unleash_instance_id variable' do
-        stub_gitlab_rb(gitlab_rails: { feature_flags_unleash_instance_id: 'instance_id' })
-
-        expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-          hash_including(
-            'feature_flags_unleash_instance_id' => 'instance_id'
-          )
         )
       end
     end
@@ -2426,67 +2376,6 @@ RSpec.describe 'gitlab::gitlab-rails' do
             )
           )
         end
-      end
-    end
-  end
-
-  shared_examples 'exposes the correct mail_room log file location' do |mail_config_key, mail_logfile_path, mailroom_log_directory, result|
-    before do
-      stub_gitlab_rb(
-        gitlab_rails: {
-          mail_config_key => mail_logfile_path,
-        },
-        mailroom: {
-          log_directory: mailroom_log_directory
-        }
-      )
-    end
-
-    it 'exposes the mail_room email log file location' do
-      expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-        hash_including(
-          mail_config_key => result
-        )
-      )
-    end
-  end
-
-  context 'incoming email settings' do
-    context 'Structured logging is enabled' do
-      context 'uses the default if nothing is specified' do
-        it_behaves_like 'exposes the correct mail_room log file location', 'incoming_email_log_file', nil, nil, '/var/log/gitlab/mailroom/mail_room_json.log'
-      end
-
-      context 'uses the default log file name if it is not provided' do
-        it_behaves_like 'exposes the correct mail_room log file location', 'incoming_email_log_file', nil, '/var/log/some_other_directory', '/var/log/some_other_directory/mail_room_json.log'
-      end
-
-      context 'uses a relative filename if mailroom log directory is not provided' do
-        it_behaves_like 'exposes the correct mail_room log file location', 'incoming_email_log_file', '/var/log/gitlab/mailroom/mail_room_json.log', nil, '/var/log/gitlab/mailroom/mail_room_json.log'
-      end
-
-      context "uses the specified pathname for the logfile even if it's different from the mail_room directory" do
-        it_behaves_like 'exposes the correct mail_room log file location', 'incoming_email_log_file', '/var/log/gitlab/mailroom/some_file.log', '/var/log/custom_directory/for_mailroom', '/var/log/gitlab/mailroom/some_file.log'
-      end
-    end
-  end
-
-  context 'service desk email settings' do
-    context 'Structured logging is enabled' do
-      context 'uses the default if nothing is specified' do
-        it_behaves_like 'exposes the correct mail_room log file location', 'service_desk_email_log_file', nil, nil, '/var/log/gitlab/mailroom/mail_room_json.log'
-      end
-
-      context 'uses the default log file name if it is not provided' do
-        it_behaves_like 'exposes the correct mail_room log file location', 'service_desk_email_log_file', nil, '/var/log/some_other_directory', '/var/log/some_other_directory/mail_room_json.log'
-      end
-
-      context 'uses a relative filename if mailroom log directory is not provided' do
-        it_behaves_like 'exposes the correct mail_room log file location', 'service_desk_email_log_file', '/var/log/gitlab/mailroom/mail_room_json.log', nil, '/var/log/gitlab/mailroom/mail_room_json.log'
-      end
-
-      context "uses the specified pathname for the logfile even if it's different from the mail_room directory" do
-        it_behaves_like 'exposes the correct mail_room log file location', 'service_desk_email_log_file', '/var/log/gitlab/mailroom/some_file.log', '/var/log/custom_directory/for_mailroom', '/var/log/gitlab/mailroom/some_file.log'
       end
     end
   end

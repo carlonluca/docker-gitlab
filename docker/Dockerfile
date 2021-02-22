@@ -18,8 +18,7 @@ RUN apt-get update -q \
       nano \
       less \
       libatomic1 \
-    && rm -rf /var/lib/apt/lists/* \
-    && sed 's/session\s*required\s*pam_loginuid.so/session optional pam_loginuid.so/g' -i /etc/pam.d/sshd
+    && rm -rf /var/lib/apt/lists/*
 
 # Remove MOTD
 RUN rm -rf /etc/update-motd.d /etc/motd /etc/motd.dynamic

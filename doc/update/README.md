@@ -27,7 +27,7 @@ before upgrading to a new major version. Upgrading before background migrations 
 finished may lead to data corruption.
 
 To see the current size of the `background_migration` queue,
-[check for background migrations before upgrading](https://docs.gitlab.com/ee/update/README.html#checking-for-background-migrations-before-upgrading).
+[check for background migrations before upgrading](https://docs.gitlab.com/ee/update/index.html#checking-for-background-migrations-before-upgrading).
 
 ## Version-specific changes
 
@@ -54,7 +54,7 @@ From GitLab 10.8, upgrade paths are enforced for version upgrades by
 default. This restricts performing direct upgrades that skip major versions (for
 example 10.3 to 12.7 in one jump) that **can break GitLab
 installations** due to multiple reasons like deprecated or removed configuration
-settings, upgrade of internal tools and libraries etc. Users will have to follow
+settings, upgrade of internal tools and libraries, and so on. Users must follow
 the [official upgrade paths](https://docs.gitlab.com/ee/update/README.html#upgrade-paths)
 while upgrading their GitLab instances.
 
@@ -1267,6 +1267,20 @@ Where `url` is the URL to the GitLab instance.
 Make sure to run `sudo gitlab-ctl reconfigure` after saving the configuration.
 
 ## Troubleshooting
+
+### GitLab 13.7 and later unavailable on Amazon Linux 2
+
+Amazon Linux 2 is not an [officially supported operating system](../package-information/deprecated_os.md#supported-operating-systems).
+However, in past the [official package installation script](https://packages.gitlab.com/gitlab/gitlab-ee/install)
+installed the `el/6` package repository if run on Amazon Linux. From GitLab 13.7, we no longer
+provide `el/6` packages so administrators must run the [installation script](https://packages.gitlab.com/gitlab/gitlab-ee/install)
+again to update the repository to `el/7`:
+
+```shell
+curl -s "https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.rpm.sh" | sudo bash
+```
+
+See the [epic on support for GitLab on Amazon Linux 2](https://gitlab.com/groups/gitlab-org/-/epics/2195) for the latest details on official Amazon Linux 2 support.
 
 ### Get the status of a GitLab installation
 

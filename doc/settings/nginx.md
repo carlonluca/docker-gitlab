@@ -43,7 +43,7 @@ By default, Omnibus GitLab does not use HTTPS. If you want to enable HTTPS for
 ### Warning
 
 The NGINX configuration will tell browsers and clients to only communicate with your
-GitLab instance over a secure connection for the next 24 months. By enabling
+GitLab instance over a secure connection for the next 365 days using [HSTS](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security). See [Setting HTTP Strict Transport Security](#setting-http-strict-transport-security) for more configuration options. By enabling
 HTTPS you'll need to provide a secure connection to your instance for at least
 the next 24 months.
 
@@ -866,6 +866,8 @@ sudo gitlab-ctl hup nginx
 If you see `Request Entity Too Large` in the [NGINX logs](https://docs.gitlab.com/ee/administration/logs.html#nginx-logs),
 you will need to increase the [Client Max Body Size](http://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size).
 You may encounter this error if you have increased the [Max import size](https://docs.gitlab.com/ee/user/admin_area/settings/account_and_limit_settings.html#max-import-size).
+In a Kubernetes-based GitLab installation, this setting is
+[named differently](https://docs.gitlab.com/charts/charts/gitlab/webservice/#proxybodysize).
 
 To increase the `client_max_body_size`, you will need to set the value in your `/etc/gitlab/gitlab.rb`:
 

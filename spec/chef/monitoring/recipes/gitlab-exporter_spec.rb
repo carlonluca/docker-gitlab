@@ -2,6 +2,15 @@ require 'chef_helper'
 
 RSpec.describe 'monitoring::gitlab-exporter' do
   let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service)).converge('gitlab::default') }
+  let(:default_env_vars) do
+    {
+      'LD_PRELOAD' => '/opt/gitlab/embedded/lib/libjemalloc.so',
+      'MALLOC_CONF' => 'dirty_decay_ms:0,muzzy_decay_ms:0',
+      'RUBY_GC_HEAP_INIT_SLOTS' => 80000,
+      'RUBY_GC_HEAP_FREE_SLOTS_MIN_RATIO' => 0.055,
+      'RUBY_GC_HEAP_FREE_SLOTS_MAX_RATIO' => 0.111
+    }
+  end
 
   before do
     allow(Gitlab).to receive(:[]).and_call_original
@@ -27,6 +36,10 @@ RSpec.describe 'monitoring::gitlab-exporter' do
 
     it_behaves_like 'enabled runit service', 'gitlab-exporter', 'root', 'root'
 
+    it 'creates necessary env variable files' do
+      expect(chef_run).to create_env_dir('/opt/gitlab/etc/gitlab-exporter/env').with_variables(default_env_vars)
+    end
+
     it 'populates the files with expected configuration' do
       expect(config_template).to notify('ruby_block[reload_log_service]')
 
@@ -43,6 +56,7 @@ RSpec.describe 'monitoring::gitlab-exporter' do
           settings = YAML.load(content) # rubocop:disable Security/YAMLLoad
           expect(settings.dig('server', 'name')).to eq('webrick')
           expect(settings.dig('probes', 'database')).not_to be_nil
+          expect(settings.dig('probes', 'ruby')).not_to be_nil
           expect(settings.dig('probes', 'metrics', 'rows_count')).not_to be_nil
 
           expect(content).to match(/host=\/var\/opt\/gitlab\/postgresql/)

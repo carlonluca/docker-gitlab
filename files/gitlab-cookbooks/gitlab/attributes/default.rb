@@ -277,6 +277,7 @@ default['gitlab']['gitlab-rails']['registry_path'] = nil
 default['gitlab']['gitlab-rails']['registry_issuer'] = "omnibus-gitlab-issuer"
 default['gitlab']['gitlab-rails']['registry_notification_secret'] = nil
 default['gitlab']['gitlab-rails']['impersonation_enabled'] = nil
+default['gitlab']['gitlab-rails']['application_settings_cache_seconds'] = nil
 default['gitlab']['gitlab-rails']['seat_link_enabled'] = true
 default['gitlab']['gitlab-rails']['sentry_enabled'] = false
 default['gitlab']['gitlab-rails']['sentry_dsn'] = nil
@@ -383,6 +384,7 @@ default['gitlab']['gitlab-rails']['extra_google_analytics_id'] = nil
 default['gitlab']['gitlab-rails']['extra_google_tag_manager_id'] = nil
 default['gitlab']['gitlab-rails']['extra_matomo_url'] = nil
 default['gitlab']['gitlab-rails']['extra_matomo_site_id'] = nil
+default['gitlab']['gitlab-rails']['extra_matomo_disable_cookies'] = nil
 default['gitlab']['gitlab-rails']['rack_attack_git_basic_auth'] = nil
 
 default['gitlab']['gitlab-rails']['db_adapter'] = "postgresql"

@@ -1,6 +1,6 @@
 #
 # Copyright:: Copyright (c) 2012 Opscode, Inc.
-# Copyright:: Copyright (c) 2014 GitLab.com
+# Copyright:: Copyright (c) 2014-2021 GitLab Inc.
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,8 +35,7 @@ license_file 'LICENSE'
 license_file combined_licenses_file
 
 dependency 'pkg-config-lite'
-dependency 'ruby'
-dependency 'bundler'
+dependency 'rubygems'
 dependency 'libxml2'
 dependency 'libxslt'
 dependency 'curl'
@@ -47,7 +46,6 @@ dependency 'postgresql_new'
 dependency 'python-docutils'
 dependency 'krb5'
 dependency 'registry'
-dependency 'gitlab-pages'
 dependency 'unzip'
 dependency 'libre2'
 dependency 'gpgme'
@@ -80,6 +78,8 @@ build do
 
     env['PATH'] = "/opt/rh/devtoolset-7/root/usr/bin:#{env['PATH']}"
   end
+
+  make "install -C workhorse PREFIX=#{install_dir}/embedded"
 
   bundle_without = %w(development test)
   bundle_without << 'mysql'
@@ -122,7 +122,7 @@ build do
 
   # Copy asset cache and node modules from cache location to source directory
   move "#{Omnibus::Config.project_root}/assets_cache", "#{Omnibus::Config.source_dir}/gitlab-rails/tmp/cache"
-  move "#{Omnibus::Config.project_root}/.yarn-cache", "#{Omnibus::Config.source_dir}/gitlab-rails"
+  move "#{Omnibus::Config.project_root}/node_modules", "#{Omnibus::Config.source_dir}/gitlab-rails"
 
   assets_compile_env = {
     'NODE_ENV' => 'production',
@@ -133,7 +133,7 @@ build do
     'NODE_OPTIONS' => '--max_old_space_size=3584'
   }
   assets_compile_env['NO_SOURCEMAPS'] = 'true' if Gitlab::Util.get_env('NO_SOURCEMAPS')
-  command 'yarn install --pure-lockfile --production --cache-folder .yarn-cache'
+  command 'yarn install --pure-lockfile --production'
 
   # process PO files and generate MO and JSON files
   bundle 'exec rake gettext:compile', env: assets_compile_env
@@ -152,13 +152,13 @@ build do
   # Move folders for caching. GitLab CI permits only relative path for Cache
   # and Artifacts. So we need these folder in the root directory.
   move "#{Omnibus::Config.source_dir}/gitlab-rails/tmp/cache", "#{Omnibus::Config.project_root}/assets_cache"
-  move "#{Omnibus::Config.source_dir}/gitlab-rails/.yarn-cache", Omnibus::Config.project_root.to_s
+  move "#{Omnibus::Config.source_dir}/gitlab-rails/node_modules", Omnibus::Config.project_root.to_s
 
   bundle "exec license_finder report --decisions-file=config/dependency_decisions.yml --format=csv --save=licenses.csv", env: env
-  copy 'licenses.csv', "#{install_dir}/licenses/gitlab-rails.csv"
+  command "license_finder report --decisions-file=#{Omnibus::Config.project_root}/support/dependency_decisions.yml --format=csv --save=license.csv", cwd: "#{Omnibus::Config.source_dir}/gitlab-rails/workhorse"
+  command "sort -u licenses.csv workhorse/license.csv > #{install_dir}/licenses/gitlab-rails.csv"
 
   # Tear down now that gitlab:assets:compile is done.
-  delete 'node_modules'
   delete 'config/gitlab.yml'
   delete 'config/database.yml'
   delete 'config/secrets.yml'
@@ -201,6 +201,7 @@ build do
     app/assets
     vendor/assets
     ee/app/assets
+    workhorse
   )
 
   # Create a wrapper for the rake tasks of the Rails app
@@ -220,6 +221,12 @@ build do
       source: 'rake_backup_wrapper.erb',
       mode: 0755,
       vars: { install_dir: install_dir }
+
+  # Create a wrapper for the ruby command, useful for e.g. `ruby -e 'command'`
+  erb dest: "#{install_dir}/bin/gitlab-ruby",
+      source: 'bundle_exec_wrapper.erb',
+      mode: 0755,
+      vars: { command: 'ruby "$@"', install_dir: install_dir }
 
   # Generate the combined license file for all gems GitLab is using
   erb dest: "#{install_dir}/embedded/bin/gitlab-gem-license-generator",
