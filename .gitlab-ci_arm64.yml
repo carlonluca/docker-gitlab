@@ -10,6 +10,7 @@ docker-build:
     - docker login -u "$CI_DOCKER_HUB_USER" -p "$CI_DOCKER_HUB_PASSWORD" docker.io
   script:
     - cd docker
+    - export VERSION=$(cat lcarlon_RELEASE)
     - docker build -t carlonluca/gitlab:"$VERSION" -t carlonluca/gitlab:latest .
     - docker push carlonluca/gitlab:"$VERSION"
     - docker push carlonluca/gitlab:latest
