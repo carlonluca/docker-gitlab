@@ -32,6 +32,9 @@ gitlab_rails['smtp_openssl_verify_mode'] = 'peer'
 # can change the 'From' with this setting.
 gitlab_rails['gitlab_email_from'] = 'gitlab@example.com'
 gitlab_rails['gitlab_email_reply_to'] = 'noreply@example.com'
+
+# If your SMTP server is using self signed certificates you can specify a custom ca file
+gitlab_rails['smtp_ca_file'] = '/path/to/your/cacert.pem'
 ```
 
 ## Example configurations
@@ -96,7 +99,7 @@ gitlab_rails['smtp_port'] = 587
 gitlab_rails['smtp_authentication'] = "plain"
 gitlab_rails['smtp_enable_starttls_auto'] = true
 gitlab_rails['smtp_user_name'] = "postmaster@mg.gitlab.com"
-gitlab_rails['smtp_password'] = "8b6ffrmle180"
+gitlab_rails['smtp_password'] = "password"
 gitlab_rails['smtp_domain'] = "mg.gitlab.com"
 ```
 
@@ -566,7 +569,7 @@ gitlab_rails['smtp_tls'] = true
 ### FastMail
 
 FastMail requires an
-[App Password](https://www.fastmail.com/help/clients/apppassword.html?u=ca68414c.oui-14827457)
+[App Password](https://www.fastmail.help/hc/en-us/articles/360058752854)
 even when two-step verification is not enabled.
 
 ```ruby
@@ -1072,7 +1075,7 @@ following settings are set:
   gitlab_rails['smtp_tls'] = true
   ```
 
-For more details, read [about the confusion over SMTP ports, TLS, and STARTTLS](https://www.fastmail.com/help/technical/ssltlsstarttls.html).
+For more details, read [about the confusion over SMTP ports, TLS, and STARTTLS](https://www.fastmail.help/hc/en-us/articles/360058753834).
 
 ## Disable all outgoing email
 

@@ -141,7 +141,9 @@ default['gitlab']['gitlab-rails']['geo_prune_event_log_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['geo_repository_verification_primary_batch_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['geo_repository_verification_secondary_scheduler_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['analytics_instance_statistics_count_job_trigger_worker_cron'] = nil
+default['gitlab']['gitlab-rails']['analytics_usage_trends_count_job_trigger_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['member_invitation_reminder_emails_worker_cron'] = nil
+default['gitlab']['gitlab-rails']['user_status_cleanup_batch_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['pseudonymizer_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['elastic_index_bulk_cron'] = nil
 default['gitlab']['gitlab-rails']['incoming_email_enabled'] = false
@@ -470,6 +472,7 @@ default['gitlab']['gitlab-rails']['initial_license_file'] = nil
 default['gitlab']['gitlab-rails']['initial_shared_runners_registration_token'] = nil
 default['gitlab']['gitlab-rails']['trusted_proxies'] = []
 default['gitlab']['gitlab-rails']['content_security_policy'] = nil
+default['gitlab']['gitlab-rails']['allowed_hosts'] = []
 
 # List of ips and subnets that are allowed to access Gitlab monitoring endpoints
 default['gitlab']['gitlab-rails']['monitoring_whitelist'] = ['127.0.0.0/8', '::1/128']
@@ -490,6 +493,13 @@ default['gitlab']['gitlab-rails']['feature_flags_unleash_instance_id'] = nil
 # Prometheus
 ###
 default['gitlab']['gitlab-rails']['prometheus_address'] = nil
+
+###
+# GitLab KAS
+###
+default['gitlab']['gitlab-rails']['gitlab_kas_enabled'] = nil
+default['gitlab']['gitlab-rails']['gitlab_kas_external_url'] = nil
+default['gitlab']['gitlab-rails']['gitlab_kas_internal_url'] = nil
 
 ####
 # Unicorn

@@ -17,7 +17,7 @@ Omnibus GitLab is a way to package different services and tools required to run 
 - [Deprecated Operating Systems](package-information/deprecated_os.md)
 - [Signed Packages](package-information/signed_packages.md)
 - [Deprecation Policy](package-information/deprecation_policy.md)
-- [Licenses of bundled dependencies](http://gitlab-org.gitlab.io/omnibus-gitlab/licenses.html)
+- [Licenses of bundled dependencies](https://gitlab-org.gitlab.io/omnibus-gitlab/licenses.html)
 
 ## Installation
 
@@ -69,7 +69,7 @@ to work best with the available resources. Check out the [documentation](setting
 
 ## Updating
 
-- [Upgrade guidance](https://docs.gitlab.com/ee/update/README.html), including [supported upgrade paths](https://docs.gitlab.com/ee/update/README.html#upgrade-paths).
+- [Upgrade guidance](https://docs.gitlab.com/ee/update/index.html), including [supported upgrade paths](https://docs.gitlab.com/ee/update/index.html#upgrade-paths).
 - [Upgrade from Community Edition to Enterprise Edition](update/README.md#update-community-edition-to-enterprise-edition)
 - [Update to the latest version](update/README.md#update-using-the-official-repositories)
 - [Downgrade to an earlier version](update/README.md#downgrade)

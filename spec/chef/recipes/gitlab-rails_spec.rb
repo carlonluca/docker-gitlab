@@ -111,7 +111,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
     end
 
     it 'does not create the ci builds directory' do
-      expect(chef_run).not_to run_ruby_block('directory resource: /tmp/uploads_storage')
+      expect(chef_run).not_to run_ruby_block('directory resource: /tmp/builds')
     end
 
     it 'does not create the uploads storage directory' do
@@ -137,7 +137,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
     end
 
     it 'creates the git-data directory' do
-      expect(chef_run).to create_storage_directory('/tmp/git-data').with(owner: 'git', mode: '0700')
+      expect(chef_run).to create_storage_directory('/tmp/git-data').with(owner: 'git', group: 'git', mode: '0700')
     end
 
     it 'creates the repositories directory' do
@@ -149,31 +149,31 @@ RSpec.describe 'gitlab::gitlab-rails' do
     end
 
     it 'creates the artifacts directory' do
-      expect(chef_run).to create_storage_directory('/tmp/shared/artifacts').with(owner: 'git', mode: '0700')
+      expect(chef_run).to create_storage_directory('/tmp/shared/artifacts').with(owner: 'git', group: 'git', mode: '0700')
     end
 
     it 'creates the external-diffs directory' do
-      expect(chef_run).to create_storage_directory('/tmp/shared/external-diffs').with(owner: 'git', mode: '0700')
+      expect(chef_run).to create_storage_directory('/tmp/shared/external-diffs').with(owner: 'git', group: 'git', mode: '0700')
     end
 
     it 'creates the lfs storage directory' do
-      expect(chef_run).to create_storage_directory('/tmp/shared/lfs-objects').with(owner: 'git', mode: '0700')
+      expect(chef_run).to create_storage_directory('/tmp/shared/lfs-objects').with(owner: 'git', group: 'git', mode: '0700')
     end
 
     it 'creates the packages directory' do
-      expect(chef_run).to create_storage_directory('/tmp/shared/packages').with(owner: 'git', mode: '0700')
+      expect(chef_run).to create_storage_directory('/tmp/shared/packages').with(owner: 'git', group: 'git', mode: '0700')
     end
 
     it 'creates the dependency_proxy directory' do
-      expect(chef_run).to create_storage_directory('/tmp/shared/dependency_proxy').with(owner: 'git', mode: '0700')
+      expect(chef_run).to create_storage_directory('/tmp/shared/dependency_proxy').with(owner: 'git', group: 'git', mode: '0700')
     end
 
     it 'creates the terraform_state directory' do
-      expect(chef_run).to create_storage_directory('/tmp/shared/terraform_state').with(owner: 'git', mode: '0700')
+      expect(chef_run).to create_storage_directory('/tmp/shared/terraform_state').with(owner: 'git', group: 'git', mode: '0700')
     end
 
     it 'creates the encrypted_settings directory' do
-      expect(chef_run).to create_storage_directory('/tmp/shared/encrypted_settings').with(owner: 'git', mode: '0700')
+      expect(chef_run).to create_storage_directory('/tmp/shared/encrypted_settings').with(owner: 'git', group: 'git', mode: '0700')
     end
 
     it 'creates the GitLab pages directory' do
@@ -181,23 +181,23 @@ RSpec.describe 'gitlab::gitlab-rails' do
     end
 
     it 'creates the shared tmp directory' do
-      expect(chef_run).to create_storage_directory('/tmp/shared/tmp').with(owner: 'git', mode: '0700')
+      expect(chef_run).to create_storage_directory('/tmp/shared/tmp').with(owner: 'git', group: 'git', mode: '0700')
     end
 
     it 'creates the shared cache directory' do
-      expect(chef_run).to create_storage_directory('/tmp/shared/cache').with(owner: 'git', mode: '0700')
+      expect(chef_run).to create_storage_directory('/tmp/shared/cache').with(owner: 'git', group: 'git', mode: '0700')
     end
 
     it 'creates the uploads directory' do
-      expect(chef_run).to create_storage_directory('/tmp/uploads').with(owner: 'git', mode: '0700')
+      expect(chef_run).to create_storage_directory('/tmp/uploads').with(owner: 'git', group: 'git', mode: '0700')
     end
 
     it 'creates the ci builds directory' do
-      expect(chef_run).to create_storage_directory('/tmp/builds').with(owner: 'git', mode: '0700')
+      expect(chef_run).to create_storage_directory('/tmp/builds').with(owner: 'git', group: 'git', mode: '0700')
     end
 
     it 'creates the uploads storage directory' do
-      expect(chef_run).to create_storage_directory('/tmp/uploads_storage').with(owner: 'git', mode: '0700')
+      expect(chef_run).to create_storage_directory('/tmp/uploads_storage').with(owner: 'git', group: 'git', mode: '0700')
     end
   end
 
@@ -626,99 +626,26 @@ RSpec.describe 'gitlab::gitlab-rails' do
       end
     end
 
-    context 'pages settings' do
-      using RSpec::Parameterized::TableSyntax
+    describe 'Allowed hosts' do
+      include_context 'gitlab-rails'
 
-      where(:external_http, :result) do
-        nil | false
-        []  | false
-        ['localhost:9000'] | true
-      end
-
-      with_them do
-        it 'properly converts external_http to bool' do
-          stub_gitlab_rb(
-            external_url: 'https://gitlab.example.com',
-            pages_external_url: 'https://pages.example.com',
-            gitlab_pages: {
-              external_http: external_http
-            }
-          )
-
-          expect(chef_run).to render_file(gitlab_yml_path).with_content { |content|
-            yaml_data = YAML.safe_load(content, [], [], true)
-            expect(yaml_data['production']['pages']['external_http']).to eq(result)
-          }
+      context 'with default values' do
+        it 'do not render allowed_hosts in gitlab.yml' do
+          expect(gitlab_yml[:production][:gitlab][:allowed_hosts]).to be nil
         end
       end
 
-      where(:external_https, :external_https_proxyv2, :result) do
-        nil | nil | false
-        []  | nil | false
-        nil | []  | false
-        []  | []  | false
-        ['localhost:9000'] | nil | true
-        nil | ['localhost:9000'] | true
-        ['localhost:9000'] | []  | true
-        [] | ['localhost:9000']  | true
-      end
-
-      with_them do
-        it 'properly converts external_https to bool' do
+      context 'with user specified values' do
+        before do
           stub_gitlab_rb(
-            external_url: 'https://gitlab.example.com',
-            pages_external_url: 'https://pages.example.com',
-            gitlab_pages: {
-              external_https: external_https,
-              external_https_proxyv2: external_https_proxyv2
+            gitlab_rails: {
+              allowed_hosts: ['example.com', 'foobar.com']
             }
-          )
-
-          expect(chef_run).to render_file(gitlab_yml_path).with_content { |content|
-            yaml_data = YAML.safe_load(content, [], [], true)
-            expect(yaml_data['production']['pages']['external_https']).to eq(result)
-          }
-        end
-      end
-
-      context 'pages access control is enabled' do
-        it 'sets the hint true' do
-          stub_gitlab_rb(
-            external_url: 'https://gitlab.example.com',
-            pages_external_url: 'https://pages.example.com',
-            gitlab_pages: {
-              external_http: ['external_pages.example.com', 'localhost:9000'],
-              external_https: ['external_pages.example.com', 'localhost:9001'],
-              access_control: true
-            }
-          )
-
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              'pages_enabled' => true,
-              pages_access_control: true
-            )
           )
         end
-      end
 
-      context 'pages access control is disabled' do
-        it 'sets the hint false' do
-          stub_gitlab_rb(
-            external_url: 'https://gitlab.example.com',
-            pages_external_url: 'https://pages.example.com',
-            gitlab_pages: {
-              external_http: ['external_pages.example.com', 'localhost:9000'],
-              external_https: ['external_pages.example.com', 'localhost:9001'],
-              access_control: false
-            }
-          )
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              'pages_enabled' => true,
-              pages_access_control: false
-            )
-          )
+        it 'renders allowed_hosts in gitlab.yml' do
+          expect(gitlab_yml[:production][:gitlab][:allowed_hosts]).to eq(['example.com', 'foobar.com'])
         end
       end
     end

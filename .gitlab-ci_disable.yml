@@ -51,7 +51,7 @@ variables:
   # will use images from that registry and not depend on GitLab.com
   BUILDER_IMAGE_REGISTRY: "registry.gitlab.com/gitlab-org/gitlab-omnibus-builder"
   PUBLIC_BUILDER_IMAGE_REGISTRY: "registry.gitlab.com/gitlab-org/gitlab-omnibus-builder"
-  BUILDER_IMAGE_REVISION: "1.0.1"
+  BUILDER_IMAGE_REVISION: "1.2.0"
   # The registry to pull the assets image from
   ASSET_REGISTRY: "${CI_REGISTRY}"
   ASSET_SYNC_EXISTING_REMOTE_FILES: "keep"
@@ -65,7 +65,7 @@ variables:
   AUTO_DEPLOY_TAG_REGEX: '^\d+\.\d+\.\d+\+[^ ]{7,}\.[^ ]{7,}$'
   # Default environment for auto-deploy
   AUTO_DEPLOY_ENVIRONMENT: 'pre'
-  MAX_PACKAGE_SIZE_MB: "940"
+  MAX_PACKAGE_SIZE_MB: "960"
   OMNIBUS_GITLAB_MIRROR_ID: "14588374"
 
 ### For services that need a docker daemon
@@ -147,6 +147,7 @@ before_script:
 fetch-assets:
   extends: .docker_job
   stage: prepare-assets
+  timeout: 1 hour
   before_script: []
   script:
     - export VERSION=${GITLAB_REF_SLUG-$(ruby -I. -e 'require "lib/gitlab/version"; puts Gitlab::Version.new("gitlab-rails").print')}

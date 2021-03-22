@@ -4,7 +4,9 @@ require 'gitlab/build/gitlab_image'
 
 RSpec.describe Build::Info do
   before do
-    allow(ENV).to receive(:[]).and_call_original
+    stub_default_package_version
+    stub_env_var('GITLAB_ALTERNATIVE_REPO', nil)
+    stub_env_var('ALTERNATIVE_PRIVATE_TOKEN', nil)
   end
 
   describe '.package' do
@@ -37,6 +39,16 @@ RSpec.describe Build::Info do
 
     it 'returns build version and iteration' do
       expect(described_class.release_version).to eq('12.121.12-ce.1')
+    end
+
+    it 'defaults to an initial build version when there are no matching tags' do
+      allow(Build::Check).to receive(:on_tag?).and_return(false)
+      allow(Build::Check).to receive(:is_nightly?).and_return(false)
+      allow(Build::Info).to receive(:latest_tag).and_return('')
+      allow(Build::Info).to receive(:commit_sha).and_return('ffffffff')
+      stub_env_var('CI_PIPELINE_ID', '5555')
+
+      expect(described_class.release_version).to eq('0.0.1+rfbranch.5555.ffffffff-ce.1')
     end
 
     describe 'with env variables' do
@@ -185,7 +197,7 @@ RSpec.describe Build::Info do
     describe 'with security sources channel selected' do
       before do
         allow(::Gitlab::Version).to receive(:sources_channel).and_return('security')
-        allow(ENV).to receive(:[]).with('CI_JOB_TOKEN').and_return('CJT')
+        stub_env_var('CI_JOB_TOKEN', 'CJT')
       end
 
       it 'returns security mirror for GitLab CE with attached credential' do

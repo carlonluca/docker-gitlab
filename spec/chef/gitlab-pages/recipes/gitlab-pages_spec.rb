@@ -155,6 +155,23 @@ RSpec.describe 'gitlab::gitlab-pages' do
       end
     end
 
+    context 'with custom port' do
+      before do
+        stub_gitlab_rb(
+          pages_external_url: 'https://pages.example.com:8443',
+          gitlab_pages: {
+            access_control: true
+          }
+        )
+      end
+
+      it 'sets the correct port number' do
+        expect(chef_run).to render_file("/var/opt/gitlab/gitlab-pages/gitlab-pages-config").with_content { |content|
+          expect(content).to match(%r{auth-redirect-uri=https://projects.pages.example.com:8443/auth})
+        }
+      end
+    end
+
     context 'with custom values' do
       before do
         stub_gitlab_rb(
@@ -173,6 +190,7 @@ RSpec.describe 'gitlab::gitlab-pages' do
             status_uri: '/@status',
             max_connections: 7500,
             inplace_chroot: true,
+            propagate_correlation_id: true,
             log_format: 'text',
             log_verbose: true,
             gitlab_id: 'app_id',
@@ -196,6 +214,12 @@ RSpec.describe 'gitlab::gitlab-pages' do
             zip_cache_refresh: "60s",
             zip_open_timeout: "45s",
             internal_gitlab_server: "https://int.gitlab.example.com",
+            gitlab_cache_expiry: "1m",
+            gitlab_cache_refresh: "500ms",
+            gitlab_cache_cleanup: "100ms",
+            gitlab_retrieval_timeout: "3s",
+            gitlab_retrieval_interval: "500ms",
+            gitlab_retrieval_retries: 5,
             env: {
               GITLAB_CONTINUOUS_PROFILING: "stackdriver?service=gitlab-pages",
             },
@@ -224,6 +248,7 @@ RSpec.describe 'gitlab::gitlab-pages' do
             metrics-address=localhost:1234
             pages-status=/@status
             max-conns=7500
+            propagate-correlation-id=true
             log-format=text
             log-verbose
             sentry-dsn=https://b44a0828b72421a6d8e99efd68d44fa8@example.com/40
@@ -244,6 +269,12 @@ RSpec.describe 'gitlab::gitlab-pages' do
             listen-https-proxyv2=external_pages.example.com,localhost:9002
             root-cert=/etc/gitlab/pages.crt
             root-key=/etc/gitlab/ssl/pages.example.com.key
+            gitlab-cache-expiry=1m
+            gitlab-cache-refresh=500ms
+            gitlab-cache-cleanup=100ms
+            gitlab-retrieval-timeout=3s
+            gitlab-retrieval-timeout=500ms
+            gitlab-retrieval-retries=5
         EOS
 
         expect(chef_run).to render_file("/var/opt/gitlab/pages/gitlab-pages-config").with_content(expected_content)

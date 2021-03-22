@@ -8,7 +8,7 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 
 Before following these instructions, note the following:
 
-- [Supported upgrade paths](https://docs.gitlab.com/ee/update/README.html#upgrade-paths)
+- [Supported upgrade paths](https://docs.gitlab.com/ee/update/index.html#upgrade-paths)
   has suggestions on when to upgrade.
 - If you are upgrading from a non-Omnibus installation to an Omnibus installation, see
   [Upgrading from a non-Omnibus installation to an Omnibus installation](convert_to_omnibus.md).
@@ -16,7 +16,7 @@ Before following these instructions, note the following:
 WARNING:
 If you aren't [using the current major version](#mandatory-upgrade-paths-for-version-upgrades),
 you **must** follow the
-[supported upgrade paths](https://docs.gitlab.com/ee/update/README.html#upgrade-paths)
+[supported upgrade paths](https://docs.gitlab.com/ee/update/index.html#upgrade-paths)
 when updating to the current version.
 
 ## Background migrations
@@ -55,7 +55,7 @@ default. This restricts performing direct upgrades that skip major versions (for
 example 10.3 to 12.7 in one jump) that **can break GitLab
 installations** due to multiple reasons like deprecated or removed configuration
 settings, upgrade of internal tools and libraries, and so on. Users must follow
-the [official upgrade paths](https://docs.gitlab.com/ee/update/README.html#upgrade-paths)
+the [official upgrade paths](https://docs.gitlab.com/ee/update/index.html#upgrade-paths)
 while upgrading their GitLab instances.
 
 ## Updating methods
@@ -75,7 +75,7 @@ sudo touch /etc/gitlab/skip-auto-backup
 
 For safety reasons, you should maintain an up-to-date backup on your own if you plan to use this flag.
 
-When upgrading to a new major version, remember to first [check for background migrations](https://docs.gitlab.com/ee/update/README.html#checking-for-background-migrations-before-upgrading).
+When upgrading to a new major version, remember to first [check for background migrations](https://docs.gitlab.com/ee/update/index.html#checking-for-background-migrations-before-upgrading).
 
 Unless you are following the steps in [Zero downtime updates](#zero-downtime-updates), your GitLab application will not be available to users while an update is in progress. They will either see a "Deploy in progress" message or a "502" error in their web browser.
 
@@ -116,7 +116,7 @@ package for installation and upgrades. Upgrading directly to the latest major
 version can be problematic for older GitLab versions that require a multi-stage
 upgrade path.
 
-When following an [upgrade path](https://docs.gitlab.com/ee/update/README.html#upgrade-paths)
+When following an [upgrade path](https://docs.gitlab.com/ee/update/index.html#upgrade-paths)
 spanning multiple versions, for each upgrade, specify the intended GitLab version
 number in your package manager's install or upgrade command:
 
@@ -268,7 +268,7 @@ It's possible to upgrade to a newer version of GitLab without having to take
 your GitLab instance offline.
 
 Verify that you can upgrade with no downtime by checking the
-[Upgrading without downtime section](https://docs.gitlab.com/ee/update/README.html#upgrading-without-downtime) of the update document.
+[Upgrading without downtime section](https://docs.gitlab.com/ee/update/index.html#upgrading-without-downtime) of the update document.
 
 If you meet all the requirements above, follow these instructions in order. There are three sets of steps, depending on your deployment type:
 
@@ -290,7 +290,9 @@ to re-read any database changes that have been made by post-deployment migration
 
 Before following these instructions, note the following **important** information:
 
-- On single-node Omnibus deployments, zero down-time updates are not possible when
+- You can only upgrade 1 minor release at a time. So from 13.6 to 13.7, not to 13.8.
+  If you attempt more than one minor release, the upgrade may fail.
+- On single-node Omnibus deployments, updates with no downtime are not possible when
   using Puma because Puma always requires a complete restart (Puma replaced Unicorn as
   the default in GitLab 13.0 unless
   [specifically disabled](../settings/unicorn.md#enabling-unicorn)). This is because the
@@ -358,6 +360,9 @@ sure you remove `/etc/gitlab/skip-auto-reconfigure` after
 you've completed these steps.
 
 ### Multi-node / HA deployment
+
+You can only upgrade 1 minor release at a time. So from 13.6 to 13.7, not to 13.8.
+If you attempt more than one minor release, the upgrade may fail.
 
 #### Use a load balancer in front of web (Puma/Unicorn) nodes
 

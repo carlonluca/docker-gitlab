@@ -23,6 +23,9 @@
 .if-ee-tag: &if-ee-tag
   if: '$CI_COMMIT_TAG =~ /^.*ee\.\d.*$/'
 
+.if-skip-release: &if-skip-release
+  if: '$SKIP_RELEASE == "true"'
+
 .if-ee-branch: &if-ee-branch
   if: '$CI_COMMIT_BRANCH =~ /^.*-ee$/'
 
@@ -38,20 +41,29 @@
 .unless-nightly: &unless-nightly
   if: '$CI_PIPELINE_SOURCE != "schedule" || $NIGHTLY != "true"'
 
+.if-skip-job: &if-skip-job
+  if: '$SKIP_JOB_REGEX && $CI_JOB_NAME =~ $SKIP_JOB_REGEX'
+
 .dev-branches-only: &dev-branches-only
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-branch
 
 .dev-tag-only: &dev-tag-only
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-tag
 
 .dev-tag-only-manual: &dev-tag-only-manual
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-tag
@@ -60,7 +72,21 @@
 
 .dev-tag-only-except-auto-deploy: &dev-tag-only-except-auto-deploy
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
+      when: never
+    - <<: *if-auto-deploy-tag
+      when: never
+    - <<: *if-tag
+
+.dev-public-release-only: &dev-public-release-only
+  rules:
+    - <<: *if-skip-job
+      when: never
+    - <<: *unless-dev
+      when: never
+    - <<: *if-skip-release
       when: never
     - <<: *if-auto-deploy-tag
       when: never
@@ -68,9 +94,13 @@
 
 .dev-tag-only-except-auto-deploy-manual: &dev-tag-only-except-auto-deploy-manual
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-auto-deploy-tag
+      when: never
+    - <<: *if-skip-release
       when: never
     - <<: *if-tag
       when: manual
@@ -78,9 +108,13 @@
 
 .dev-tag-only-except-auto-deploy-or-rc: &dev-tag-only-except-auto-deploy-or-rc
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-rc-tag
+      when: never
+    - <<: *if-skip-release
       when: never
     - <<: *if-auto-deploy-tag
       when: never
@@ -88,6 +122,8 @@
 
 .dev-ee-tag-only-except-auto-deploy-or-rc: &dev-ee-tag-only-except-auto-deploy-or-rc
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-rc-tag
@@ -98,6 +134,8 @@
 
 .dev-ce-tag-only-except-auto-deploy-or-rc: &dev-ce-tag-only-except-auto-deploy-or-rc
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-rc-tag
@@ -108,11 +146,15 @@
 
 .dev-tag-only-except-auto-deploy-or-rc-manual: &dev-tag-only-except-auto-deploy-or-rc-manual
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-rc-tag
       when: never
     - <<: *if-auto-deploy-tag
+      when: never
+    - <<: *if-skip-release
       when: never
     - <<: *if-tag
       when: manual
@@ -120,6 +162,8 @@
 
 .dev-ce-tag-only-except-rc-manual: &dev-ce-tag-only-except-rc-manual
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-rc-tag
@@ -130,6 +174,8 @@
 
 .dev-ee-tag-only-except-auto-deploy-or-rc-manual: &dev-ee-tag-only-except-auto-deploy-or-rc-manual
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-rc-tag
@@ -142,6 +188,8 @@
 
 .dev-ce-branch-only-except-nightly: &dev-ce-branch-only-except-nightly
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-ee-var
@@ -156,6 +204,8 @@
 
 .dev-ee-branch-only: &dev-ee-branch-only
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - if: '$CI_COMMIT_BRANCH == ""'
@@ -165,12 +215,16 @@
 
 .dev-ce-tag-only: &dev-ce-tag-only
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-ce-tag
 
 .dev-ce-tag-only-manual: &dev-ce-tag-only-manual
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-ce-tag
@@ -179,12 +233,16 @@
 
 .dev-ee-tag-only: &dev-ee-tag-only
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-ee-tag
 
 .dev-ee-tag-only-manual: &dev-ee-tag-only-manual
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-ee-tag
@@ -193,6 +251,8 @@
 
 .dev-tag-and-nightly: &dev-tag-and-nightly
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-tag
@@ -200,6 +260,8 @@
 
 .dev-nightly-and-tag-except-auto-deploy: &dev-nightly-and-tag-except-auto-deploy
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-auto-deploy-tag
@@ -209,6 +271,8 @@
 
 .dev-nightly-only-manual: &dev-nightly-only-manual
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *if-nightly
@@ -217,6 +281,8 @@
 
 .dev-ee-nightly-only: &dev-ee-nightly-only
   rules:
+    - <<: *if-skip-job
+      when: never
     - <<: *unless-dev
       when: never
     - <<: *unless-nightly
@@ -338,7 +404,7 @@
   retry: 2
   tags:
   - promotion
-  <<: *dev-tag-only-except-auto-deploy
+  <<: *dev-public-release-only
 
 ### This stage is ran only on tag:
 ### 1. It is a manual action
@@ -387,21 +453,6 @@
   stage: aws-marketplace-release
   allow_failure: true
   script:
-    - curl --request POST
-      --form "token=$AWS_RELEASE_TRIGGER_TOKEN"
-      --form ref=master
-      --form "variables[GITLAB_VERSION]=$CI_COMMIT_TAG"
-      --form "variables[AWS_LISTING_NAME]=$AWS_LISTING_NAME"
-      https://dev.gitlab.org/api/v4/projects/1035/trigger/pipeline
-  <<: *dev-ee-tag-only-except-auto-deploy-or-rc-manual
-  dependencies:
-    - AWS
-
-.aws_marketplace_release-automatic: &aws_marketplace_release-automatic
-  image: "${BUILDER_IMAGE_REGISTRY}/ruby_docker:${BUILDER_IMAGE_REVISION}"
-  stage: aws-marketplace-release
-  allow_failure: true
-  script:
     - export AWS_ACCESS_KEY_ID=$AWS_AMI_ACCESS_KEY_ID
     - export AWS_SECRET_ACCESS_KEY=$AWS_AMI_SECRET_ACCESS_KEY
     - bundle exec rake aws:marketplace:release
@@ -436,6 +487,11 @@ Debian-9-branch:
 Debian-10-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/debian_10:${BUILDER_IMAGE_REVISION}"
   <<: *branch_build
+Debian-10-arm-branch:
+  image: "${BUILDER_IMAGE_REGISTRY}/debian_10_arm64:${BUILDER_IMAGE_REVISION}"
+  <<: *branch_build
+  tags:
+  - docker-arm-builder
 Ubuntu-20.04-arm-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04_arm64:${BUILDER_IMAGE_REVISION}"
   <<: *branch_build
@@ -550,6 +606,8 @@ Ubuntu-18.04:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_18.04:${BUILDER_IMAGE_REVISION}"
   stage: gitlab_com:package
   extends: .tag_template
+  # Also build for auto-deploy tags
+  <<: *dev-tag-only
 
 Ubuntu-20.04:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04:${BUILDER_IMAGE_REVISION}"
@@ -605,7 +663,7 @@ Ubuntu-18.04-staging:
   dependencies:
     - Ubuntu-18.04
     - Ubuntu-18.04-branch
-  <<: *dev-nightly-and-tag-except-auto-deploy
+  <<: *dev-tag-and-nightly
 
 Ubuntu-20.04-staging:
   stage: gitlab_com:upload_deploy
@@ -622,6 +680,11 @@ Debian-9:
 Debian-10:
   image: "${BUILDER_IMAGE_REGISTRY}/debian_10:${BUILDER_IMAGE_REVISION}"
   <<: *tag_build
+Debian-10-arm:
+  image: "${BUILDER_IMAGE_REGISTRY}/debian_10_arm64:${BUILDER_IMAGE_REVISION}"
+  <<: *tag_build
+  tags:
+  - docker-arm-builder
 Ubuntu-20.04-arm:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04_arm64:${BUILDER_IMAGE_REVISION}"
   <<: *tag_build
@@ -724,6 +787,11 @@ Debian-10-staging:
     - Debian-10
     - Debian-10-branch
   <<: *staging_upload
+Debian-10-arm-staging:
+  dependencies:
+    - Debian-10-arm
+    - Debian-10-arm-branch
+  <<: *staging_upload
 Ubuntu-20.04-arm-staging:
   dependencies:
     - Ubuntu-20.04-arm
@@ -792,6 +860,10 @@ Debian-10-release:
   dependencies:
     - Debian-10
   <<: *production_release
+Debian-10-arm-release:
+  dependencies:
+    - Debian-10-arm
+  <<: *production_release
 CentOS-7-release:
   dependencies:
     - CentOS-7
@@ -834,6 +906,7 @@ Docker-Release:
 
 AWS:
   <<: *aws_ami_build
+  <<: *dev-ce-tag-only-except-rc-manual
 
 AWS-Ultimate:
   variables:
@@ -917,36 +990,20 @@ AWS-CE-Release:
   variables:
     AWS_LISTING_NAME: "GitLab Community Edition"
   extends: .aws_marketplace_release
-  <<: *dev-ce-tag-only-except-rc-manual
+  needs:
+    - AWS
+  <<: *dev-ce-tag-only-except-auto-deploy-or-rc
 
 AWS-EE-Ultimate-Release:
   variables:
     AWS_LISTING_NAME: "GitLab Ultimate"
   extends: .aws_marketplace_release
+  needs:
+    - AWS-Ultimate
 
 AWS-EE-Premium-Release:
   variables:
     AWS_LISTING_NAME: "GitLab Premium"
   extends: .aws_marketplace_release
-
-AWS-CE-Release-automatic:
-  variables:
-    AWS_LISTING_NAME: "GitLab Community Edition"
-  extends: .aws_marketplace_release-automatic
-  needs:
-    - AWS
-  <<: *dev-ce-tag-only-except-auto-deploy-or-rc
-
-AWS-EE-Ultimate-Release-automatic:
-  variables:
-    AWS_LISTING_NAME: "GitLab Ultimate"
-  extends: .aws_marketplace_release-automatic
-  needs:
-    - AWS-Ultimate
-
-AWS-EE-Premium-Release-automatic:
-  variables:
-    AWS_LISTING_NAME: "GitLab Premium"
-  extends: .aws_marketplace_release-automatic
   needs:
     - AWS-Premium

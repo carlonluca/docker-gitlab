@@ -33,6 +33,12 @@ external_url = if Gitlab['external_url']
                  'http://localhost'
                end
 
+grafana_reporting_enabled = if Gitlab['gitlab_rails']['usage_ping_enabled'].nil?
+                              node['monitoring']['grafana']['reporting_enabled']
+                            else
+                              node['monitoring']['grafana']['reporting_enabled'] && Gitlab['gitlab_rails']['usage_ping_enabled']
+                            end
+
 # grafana runs under the prometheus user account. If prometheus is
 # disabled, it's up to this recipe to create the account
 include_recipe 'monitoring::user'
@@ -114,12 +120,21 @@ env_dir grafana_static_etc_dir do
   notifies :restart, 'runit_service[grafana]'
 end
 
+smtp_settings = node['monitoring']['grafana']['smtp']
+smtp_vars =
+  if smtp_settings.is_a?(Hash)
+    smtp_settings.slice(%w[enabled host user password cert_file key_file skip_verify from_address from_name ehlo_identity startTLS_policy])
+  end
+
 template grafana_config do
   source 'grafana_ini.erb'
   variables lazy {
     {
       'external_url' => external_url,
       'data_path' => File.join(node['monitoring']['grafana']['home'], 'data'),
+      'grafana_reporting_enabled' => grafana_reporting_enabled,
+      'auth_scope' => node['monitoring']['grafana']['allowed_groups'].empty? ? 'read_user' : 'read_api',
+      'smtp' => smtp_vars
     }.merge(node['monitoring']['grafana'])
   }
   owner prometheus_user

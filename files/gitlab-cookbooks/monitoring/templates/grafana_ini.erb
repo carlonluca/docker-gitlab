@@ -136,7 +136,9 @@ log_queries =
 # No ip addresses are being tracked, only simple counters to track
 # running instances, dashboard and error counts. It is very helpful to us.
 # Change this option to false to disable reporting.
-reporting_enabled = false
+reporting_enabled = <%= @grafana_reporting_enabled %>
+
+reporting_distributor = GitLab-Omnibus
 
 # Set to false to disable all checks to https://grafana.net
 # for new vesions (grafana itself and plugins), check is used
@@ -250,7 +252,7 @@ enabled = true
 allow_sign_up = <%= @gitlab_auth_sign_up %>
 client_id = <%= @gitlab_application_id %>
 client_secret = <%= @gitlab_secret %>
-scopes = api
+scopes = <%= @auth_scope %>
 auth_url = <%= @external_url %>/oauth/authorize
 token_url = <%= @external_url %>/oauth/token
 api_url = <%= @external_url %>/api/v4
@@ -280,18 +282,11 @@ disable_login_form = <%= @disable_login_form %>
 
 #################################### SMTP / Emailing ##########################
 [smtp]
-;enabled = false
-;host = localhost:25
-;user =
-# If the password contains # or ; you have to wrap it with trippel quotes. Ex """#password;"""
-;password =
-;cert_file =
-;key_file =
-;skip_verify = false
-;from_address = admin@grafana.localhost
-;from_name = Grafana
-# EHLO identity in SMTP dialog (defaults to instance_name)
-;ehlo_identity = dashboard.example.com
+<% if @smtp.is_a?(Hash) -%>
+<% @smtp.each do |key, value| -%>
+<%= key %> = <%= value %>
+<% end -%>
+<% end -%>
 
 [emails]
 ;welcome_email_on_sign_up = false
@@ -410,4 +405,3 @@ basic_auth_password = """<%= @metrics_basic_auth_password %>"""
 [enterprise]
 # Path to a valid Grafana Enterprise license.jwt file
 ;license_path =
-

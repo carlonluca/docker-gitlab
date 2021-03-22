@@ -47,6 +47,10 @@ production: &base
     content_security_policy: <%= @content_security_policy.to_json %>
     <%- end -%>
 
+    <%- unless @allowed_hosts.empty? %>
+    allowed_hosts: <%= @allowed_hosts.to_json %>
+    <% end %>
+
     # Uncomment and customize if you can't use the default user to run GitLab (default: 'git')
     user: <%= node['gitlab']['user']['username'] %>
 
@@ -317,6 +321,12 @@ production: &base
     issuer: <%= @registry_issuer %>
     notification_secret: <%= @registry_notification_secret %>
 
+  ## Kubernetes Agent Server
+  gitlab_kas:
+    enabled: <%= @gitlab_kas_enabled %>
+    internal_url: <%= @gitlab_kas_internal_url %>
+    external_url: <%= @gitlab_kas_external_url %>
+
   ## Error Reporting and Logging with Sentry
   sentry:
     enabled: <%= @sentry_enabled %>
@@ -547,16 +557,22 @@ production: &base
       cron: "<%= @elastic_index_bulk_cron %>"
     <% end %>
 
-    # Worker for triggering counter jobs for instance statistics
-    <% unless @analytics_instance_statistics_count_job_trigger_worker_cron.nil? %>
-    analytics_instance_statistics_count_job_trigger_worker:
-      cron: "<%= @analytics_instance_statistics_count_job_trigger_worker_cron %>"
+    # Worker for triggering counter jobs for usage trends and keep backward compatibiltity with analytics_instance_statistics_count_job_trigger_worker_cron until 14.0
+    <% unless @analytics_usage_trends_count_job_trigger_worker_cron.nil? && @analytics_instance_statistics_count_job_trigger_worker_cron.nil? %>
+    analytics_usage_trends_count_job_trigger_worker:
+      cron: "<%= @analytics_usage_trends_count_job_trigger_worker_cron || @analytics_instance_statistics_count_job_trigger_worker_cron %>"
     <% end %>
 
     # Worker for triggering member invitation reminder emails
     <% unless @member_invitation_reminder_emails_worker_cron.nil? %>
     member_invitation_reminder_emails_worker:
       cron: "<%= @member_invitation_reminder_emails_worker_cron %>"
+    <% end %>
+
+    # Worker for the scheduled user status cleanup
+    <% unless @user_status_cleanup_batch_worker_cron.nil? %>
+    user_status_cleanup_batch_worker:
+      cron: "<%= @user_status_cleanup_batch_worker_cron %>"
     <% end %>
 
   ## Geo

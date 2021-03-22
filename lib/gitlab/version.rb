@@ -9,6 +9,28 @@ module Gitlab
     ALTERNATIVE_SOURCE = 'alternative'.freeze
     SECURITY_SOURCE = 'security'.freeze
 
+    COMPONENTS_ENV_VARS = {
+      'gitlab-rails' => 'GITLAB_VERSION',
+      'gitlab-rails-ee' => 'GITLAB_VERSION',
+      'gitlab-shell' => 'GITLAB_SHELL_VERSION',
+      'gitlab-workhorse' => 'GITLAB_WORKHORSE_VERSION',
+      'gitlab-pages' => 'GITLAB_PAGES_VERSION',
+      'gitaly' => 'GITALY_SERVER_VERSION',
+      'gitlab-elasticsearch-indexer' => 'GITLAB_ELASTICSEARCH_INDEXER_VERSION',
+      'gitlab-kas' => 'GITLAB_KAS_VERSION',
+    }.freeze
+
+    COMPONENTS_FILES = {
+      "gitlab-rails" => "VERSION",
+      "gitlab-rails-ee" => "VERSION",
+      "gitlab-shell" => "GITLAB_SHELL_VERSION",
+      "gitlab-workhorse" => "GITLAB_WORKHORSE_VERSION",
+      "gitlab-pages" => "GITLAB_PAGES_VERSION",
+      "gitaly" => "GITALY_SERVER_VERSION",
+      "gitlab-elasticsearch-indexer" => "GITLAB_ELASTICSEARCH_INDEXER_VERSION",
+      "gitlab-kas" => "GITLAB_KAS_VERSION"
+    }.freeze
+
     # Return which remote sources channel we are using
     #
     # Channels can be selected based on ENVIRONMENTAL variables
@@ -54,26 +76,11 @@ module Gitlab
     end
 
     def read_version_from_env
-      case @software
-      when "gitlab-rails", "gitlab-rails-ee"
-        Gitlab::Util.get_env("GITLAB_VERSION")
-      when "gitlab-shell"
-        Gitlab::Util.get_env("GITLAB_SHELL_VERSION")
-      when "gitlab-workhorse"
-        Gitlab::Util.get_env("GITLAB_WORKHORSE_VERSION")
-      when "gitlab-pages"
-        Gitlab::Util.get_env("GITLAB_PAGES_VERSION")
-      when "gitaly"
-        Gitlab::Util.get_env("GITALY_SERVER_VERSION")
-      when "gitlab-elasticsearch-indexer"
-        Gitlab::Util.get_env("GITLAB_ELASTICSEARCH_INDEXER_VERSION")
-      when "gitlab-kas"
-        Gitlab::Util.get_env("GITLAB_KAS_VERSION")
-      end
+      Gitlab::Util.get_env(COMPONENTS_ENV_VARS[@software]) if COMPONENTS_ENV_VARS.include?(@software)
     end
 
     def read_version_from_file
-      path_to_version_file = components_files[@software]
+      path_to_version_file = COMPONENTS_FILES[@software]
       if path_to_version_file
         filepath = File.expand_path(path_to_version_file, @project_root)
         File.read(filepath).chomp
@@ -83,19 +90,6 @@ module Gitlab
     rescue Errno::ENOENT
       # Didn't find the file
       @read_version = ""
-    end
-
-    def components_files
-      {
-        "gitlab-rails" => "VERSION",
-        "gitlab-rails-ee" => "VERSION",
-        "gitlab-shell" => "GITLAB_SHELL_VERSION",
-        "gitlab-workhorse" => "GITLAB_WORKHORSE_VERSION",
-        "gitlab-pages" => "GITLAB_PAGES_VERSION",
-        "gitaly" => "GITALY_SERVER_VERSION",
-        "gitlab-elasticsearch-indexer" => "GITLAB_ELASTICSEARCH_INDEXER_VERSION",
-        "gitlab-kas" => "GITLAB_KAS_VERSION"
-      }
     end
 
     def print(prepend_version = true)
@@ -109,7 +103,7 @@ module Gitlab
         # 2. Not a valid version string following SemVer
         # If it satisfy both, it is probably a branch name or a SHA
         # commit of one of our own component so it doesn't need `v` prepended
-        if components_files.key?(@software)
+        if COMPONENTS_FILES.key?(@software)
           return @read_version unless /^\d+\.\d+\.\d+(-rc\d+)?(-ee)?$/.match?(@read_version)
         end
         v = "v" if prepend_version
@@ -120,27 +114,56 @@ module Gitlab
       end
     end
 
-    def remote
+    def read_remote_from_env
+      remote = case @software
+               when "gitlab-rails", "gitlab-rails-ee"
+                 Gitlab::Util.get_env("GITLAB_ALTERNATIVE_REPO")
+               when "gitlab-shell"
+                 Gitlab::Util.get_env("GITLAB_SHELL_ALTERNATIVE_REPO")
+               when "gitlab-workhorse"
+                 Gitlab::Util.get_env("GITLAB_WORKHORSE_ALTERNATIVE_REPO")
+               when "gitlab-pages"
+                 Gitlab::Util.get_env("GITLAB_PAGES_ALTERNATIVE_REPO")
+               when "gitaly"
+                 Gitlab::Util.get_env("GITALY_SERVER_ALTERNATIVE_REPO")
+               when "gitlab-elasticsearch-indexer"
+                 Gitlab::Util.get_env("GITLAB_ELASTICSEARCH_INDEXER_ALTERNATIVE_REPO")
+               when "gitlab-kas"
+                 Gitlab::Util.get_env("GITLAB_KAS_ALTERNATIVE_REPO")
+               end
+
+      if remote && Gitlab::Util.get_env("ALTERNATIVE_PRIVATE_TOKEN")
+        attach_remote_credential(remote, Gitlab::Util.get_env("ALTERNATIVE_PRIVATE_TOKEN"))
+      else
+        remote
+      end
+    end
+
+    def read_remote_from_file
       filepath = File.expand_path(".custom_sources.yml", @project_root)
       sources = YAML.load_file(filepath)[@software]
 
       return "" unless sources
 
       if ::Gitlab::Version.security_channel?
-        attach_remote_credential(sources[::Gitlab::Version.sources_channel]) || sources[::Gitlab::Version.fallback_sources_channel]
+        attach_remote_credential(sources[::Gitlab::Version.sources_channel], Gitlab::Util.get_env("CI_JOB_TOKEN")) || sources[::Gitlab::Version.fallback_sources_channel]
       else
         sources[::Gitlab::Version.sources_channel]
       end
     end
 
+    def remote
+      read_remote_from_env || read_remote_from_file || ""
+    end
+
     private
 
-    def attach_remote_credential(url)
+    def attach_remote_credential(url, token)
       return unless url
 
       uri = URI.parse(url)
       uri.user = "gitlab-ci-token"
-      uri.password = Gitlab::Util.get_env("CI_JOB_TOKEN")
+      uri.password = token
       uri.to_s
     rescue URI::InvalidURIError
       # Git may use scp address which is not valid URI. Ignore it

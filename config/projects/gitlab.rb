@@ -22,24 +22,20 @@ require "#{Omnibus::Config.project_root}/lib/gitlab/version"
 require "#{Omnibus::Config.project_root}/lib/gitlab/util"
 require "#{Omnibus::Config.project_root}/lib/gitlab/ohai_helper.rb"
 
-ee = system("#{Omnibus::Config.project_root}/support/is_gitlab_ee.sh")
+gitlab_package_name = Build::Info.package
+gitlab_package_file = File.join(Omnibus::Config.project_dir, 'gitlab', "#{gitlab_package_name}.rb")
 
-if ee
-  name 'gitlab-ee'
-  description 'GitLab Enterprise Edition '\
-    '(including NGINX, Postgres, Redis)'
-  replace 'gitlab-ce'
-  conflict 'gitlab-ce'
-else
-  name 'gitlab-ce'
-  description 'GitLab Community Edition '\
-    '(including NGINX, Postgres, Redis)'
-  replace 'gitlab-ee'
-  conflict 'gitlab-ee'
+# Include package specific details like package name and descrption (for gitlab-ee/gitlab-ce/etc)
+instance_eval(IO.read(gitlab_package_file), gitlab_package_file, 1)
+
+# Include all other known gitlab packages in our replace/conflict list to allow transitioning between packages
+Dir.glob(File.join(Omnibus::Config.project_dir, 'gitlab', '*.rb')).each do |filename|
+  other_package = File.basename(filename, '.rb')
+  next if other_package == gitlab_package_name
+
+  replace other_package
+  conflict other_package
 end
-
-maintainer 'GitLab, Inc. <support@gitlab.com>'
-homepage 'https://about.gitlab.com/'
 
 license 'MIT'
 license_compiled_output true
@@ -92,7 +88,6 @@ dependency 'redis'
 dependency 'nginx'
 dependency 'mixlib-log'
 dependency 'chef-zero'
-dependency 'awesome_print'
 dependency 'ohai'
 dependency 'chef-gem'
 dependency 'chef-bin'
@@ -102,13 +97,14 @@ dependency 'runit'
 dependency 'go-crond'
 dependency 'docker-distribution-pruner'
 
-if ee
+if Build::Check.include_ee?
   dependency 'consul'
   dependency 'gitlab-ctl-ee'
   dependency 'gitlab-geo-psql'
   dependency 'gitlab-pg-ctl'
   dependency 'pgbouncer-exporter'
 end
+
 dependency 'mattermost'
 dependency 'prometheus'
 dependency 'alertmanager'
@@ -231,10 +227,12 @@ exclude 'embedded/lib/python*/**/*.exe'
 
 # Enable signing packages
 package :rpm do
+  vendor 'GitLab, Inc. <support@gitlab.com>'
   signing_passphrase Gitlab::Util.get_env('GPG_PASSPHRASE')
 end
 
 package :deb do
+  vendor 'GitLab, Inc. <support@gitlab.com>'
   signing_passphrase Gitlab::Util.get_env('GPG_PASSPHRASE')
 end
 

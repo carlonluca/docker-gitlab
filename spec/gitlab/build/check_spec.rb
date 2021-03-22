@@ -3,7 +3,7 @@ require 'gitlab/build/check'
 
 RSpec.describe Build::Check do
   before do
-    allow(ENV).to receive(:[]).and_call_original
+    stub_default_package_version
   end
 
   describe 'is_ee?' do
@@ -63,6 +63,19 @@ RSpec.describe Build::Check do
       end
     end
   end
+
+  describe 'include_ee?' do
+    it 'returns true when is_ee? is true' do
+      allow(described_class).to receive(:is_ee?).and_return(true)
+      expect(described_class.include_ee?).to be_truthy
+    end
+
+    it 'returns false when we are building a ce package' do
+      allow(described_class).to receive(:is_ee?).and_return(false)
+      expect(described_class.include_ee?).to be_falsey
+    end
+  end
+
   describe 'add tag methods' do
     describe 'is_nightly?' do
       it 'returns true if it is a nightly build' do
