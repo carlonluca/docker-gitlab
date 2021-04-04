@@ -6,6 +6,13 @@ omnibus-gitlab repository.
 ## 13.9.4 (2021-03-17)
 
 - No changes.
+## 13.10.2 (2021-04-01)
+
+### Fixed (1 change)
+
+- Update gitlab-exporter to avoid query failures. !5123
+
+
 ## 13.10.1 (2021-03-31)
 
 ### Security (1 change)
