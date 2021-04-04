@@ -6,6 +6,13 @@ omnibus-gitlab repository.
 ## 13.9.4 (2021-03-17)
 
 - No changes.
+## 13.10.1 (2021-03-31)
+
+### Security (1 change)
+
+- Bump PostgreSQL versions to 11.11 and 12.6.
+
+
 ## 13.10.0 (2021-03-22)
 
 ### Removed (2 changes)
