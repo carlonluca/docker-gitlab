@@ -56,6 +56,7 @@ RSpec.describe 'gitaly' do
   let(:daily_maintenance_start_minute) { 9 }
   let(:daily_maintenance_duration) { '45m' }
   let(:daily_maintenance_storages) { ["default"] }
+  let(:daily_maintenance_disabled) { false }
   let(:cgroups_count) { 10 }
   let(:cgroups_mountpoint) { '/sys/fs/cgroup' }
   let(:cgroups_hierarchy_root) { 'gitaly' }
@@ -63,6 +64,9 @@ RSpec.describe 'gitaly' do
   let(:cgroups_memory_limit) { 1048576 }
   let(:cgroups_cpu_enabled) { true }
   let(:cgroups_cpu_shares) { 512 }
+  let(:pack_objects_cache_enabled) { true }
+  let(:pack_objects_cache_dir) { '/pack-objects-cache' }
+  let(:pack_objects_cache_max_age) { '10m' }
   before do
     allow(Gitlab).to receive(:[]).and_call_original
   end
@@ -136,9 +140,9 @@ RSpec.describe 'gitaly' do
       expect(chef_run).not_to render_file(config_path)
         .with_content(%r{catfile_cache_size})
       expect(chef_run).not_to render_file(config_path)
-        .with_content(%r{\[daily_maintenance\]})
-      expect(chef_run).not_to render_file(config_path)
         .with_content('bin_path = ')
+      expect(chef_run).not_to render_file(config_path)
+        .with_content('[pack_objects_cache]')
     end
 
     it 'populates gitaly config.toml with default storages' do
@@ -199,13 +203,17 @@ RSpec.describe 'gitaly' do
           daily_maintenance_start_minute: daily_maintenance_start_minute,
           daily_maintenance_duration: daily_maintenance_duration,
           daily_maintenance_storages: daily_maintenance_storages,
+          daily_maintenance_disabled: daily_maintenance_disabled,
           cgroups_count: cgroups_count,
           cgroups_mountpoint: cgroups_mountpoint,
           cgroups_hierarchy_root: cgroups_hierarchy_root,
           cgroups_memory_enabled: cgroups_memory_enabled,
           cgroups_memory_limit: cgroups_memory_limit,
           cgroups_cpu_enabled: cgroups_cpu_enabled,
-          cgroups_cpu_shares: cgroups_cpu_shares
+          cgroups_cpu_shares: cgroups_cpu_shares,
+          pack_objects_cache_enabled: pack_objects_cache_enabled,
+          pack_objects_cache_dir: pack_objects_cache_dir,
+          pack_objects_cache_max_age: pack_objects_cache_max_age,
         },
         gitlab_rails: {
           internal_api_url: gitlab_url
@@ -319,6 +327,12 @@ RSpec.describe 'gitaly' do
         %r{shares = #{cgroups_cpu_shares}},
       ].map(&:to_s).join('\s+'))
 
+      pack_objects_cache_section = Regexp.new([
+        %r{\[pack_objects_cache\]\nenabled = true},
+        %r{dir = '#{pack_objects_cache_dir}'},
+        %r{max_age = '#{pack_objects_cache_max_age}'},
+      ].map(&:to_s).join('\s+'))
+
       expect(chef_run).to render_file(config_path).with_content { |content|
         expect(content).to include("tls_listen_addr = 'localhost:8888'")
         expect(content).to include("certificate_path = '/path/to/cert.pem'")
@@ -337,6 +351,7 @@ RSpec.describe 'gitaly' do
         expect(content).to match(cgroups_section)
         expect(content).to match(cgroups_memory_section)
         expect(content).to match(cgroups_cpu_section)
+        expect(content).to match(pack_objects_cache_section)
       }
     end
 
@@ -356,6 +371,16 @@ RSpec.describe 'gitaly' do
       it 'renders daily_maintenance with multiple storage entries' do
         expect(chef_run).to render_file(config_path).with_content { |content|
           expect(content).to include("storages = #{daily_maintenance_storages}")
+        }
+      end
+    end
+
+    context 'when maintenance is disabled' do
+      let(:daily_maintenance_disabled) { true }
+
+      it 'renders daily_maintenance with disabled set to true' do
+        expect(chef_run).to render_file(config_path).with_content { |content|
+          expect(content).to include("[daily_maintenance]\ndisabled = true\n\n")
         }
       end
     end

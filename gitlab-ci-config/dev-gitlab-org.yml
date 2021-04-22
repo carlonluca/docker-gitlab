@@ -106,6 +106,29 @@
       when: manual
       allow_failure: true
 
+.dev-ee-tag-only-except-auto-deploy: &dev-ee-tag-only-except-auto-deploy
+  rules:
+    - <<: *if-skip-job
+      when: never
+    - <<: *unless-dev
+      when: never
+    - <<: *if-auto-deploy-tag
+      when: never
+    - <<: *if-ee-tag
+
+.dev-ee-tag-only-except-auto-deploy-manual: &dev-ee-tag-only-except-auto-deploy-manual
+  rules:
+    - <<: *if-skip-job
+      when: never
+    - <<: *unless-dev
+      when: never
+    - <<: *if-auto-deploy-tag
+      when: never
+    - <<: *if-skip-release
+      when: never
+    - <<: *if-ee-tag
+      when: manual
+
 .dev-tag-only-except-auto-deploy-or-rc: &dev-tag-only-except-auto-deploy-or-rc
   rules:
     - <<: *if-skip-job
@@ -314,10 +337,7 @@
 .branch_template: &branch_build
   stage: package-and-image
   script:
-    - echo -e "[default]\naws_access_key_id = $AWS_ACCESS_KEY_ID \naws_secret_access_key = $AWS_SECRET_ACCESS_KEY" > ~/.aws/config
-    # GPG key for package signing
-    - AWS_ACCESS_KEY_ID="$SECRET_AWS_ACCESS_KEY_ID" AWS_SECRET_ACCESS_KEY="$SECRET_AWS_SECRET_ACCESS_KEY" aws s3 cp s3://omnibus-sig/package.sig.key .
-    - gpg --batch --no-tty --allow-secret-key-import --import package.sig.key
+    - support/import_gpg_secrets.sh
     - bundle exec rake cache:populate
     - bundle exec rake cache:restore
     - bundle exec rake build:project build:package:sync
@@ -362,10 +382,7 @@
         echo "Setting COMPILE_ASSETS env variable for auto-deploy"
         export COMPILE_ASSETS='true';
       fi
-    - echo -e "[default]\naws_access_key_id = $AWS_ACCESS_KEY_ID \naws_secret_access_key = $AWS_SECRET_ACCESS_KEY" > ~/.aws/config
-    # GPG key for package signing
-    - AWS_ACCESS_KEY_ID="$SECRET_AWS_ACCESS_KEY_ID" AWS_SECRET_ACCESS_KEY="$SECRET_AWS_SECRET_ACCESS_KEY" aws s3 cp s3://omnibus-sig/package.sig.key .
-    - gpg --batch --no-tty --allow-secret-key-import --import package.sig.key
+    - support/import_gpg_secrets.sh
     - bundle exec rake cache:populate
     - bundle exec rake cache:restore
     - bundle exec rake release:package
@@ -513,6 +530,14 @@ OpenSUSE-15.1-branch:
   <<: *branch_build
 OpenSUSE-15.1-arm64-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.1_arm64:${BUILDER_IMAGE_REVISION}"
+  <<: *branch_build
+  tags:
+  - docker-arm-builder
+OpenSUSE-15.2-branch:
+  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.2:${BUILDER_IMAGE_REVISION}"
+  <<: *branch_build
+OpenSUSE-15.2-arm64-branch:
+  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.2_arm64:${BUILDER_IMAGE_REVISION}"
   <<: *branch_build
   tags:
   - docker-arm-builder
@@ -710,14 +735,22 @@ OpenSUSE-15.1-arm64:
   <<: *tag_build
   tags:
   - docker-arm-builder
+OpenSUSE-15.2:
+  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.2:${BUILDER_IMAGE_REVISION}"
+  <<: *tag_build
+OpenSUSE-15.2-arm64:
+  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.2_arm64:${BUILDER_IMAGE_REVISION}"
+  <<: *tag_build
+  tags:
+  - docker-arm-builder
 SLES-12.2:
   image: "${BUILDER_IMAGE_REGISTRY}/sles_12sp2:${BUILDER_IMAGE_REVISION}"
   <<: *tag_build
-  <<: *dev-ee-tag-only
+  <<: *dev-ee-tag-only-except-auto-deploy
 SLES-12.5:
   image: "${BUILDER_IMAGE_REGISTRY}/sles_12sp5:${BUILDER_IMAGE_REVISION}"
   <<: *tag_build
-  <<: *dev-ee-tag-only
+  <<: *dev-ee-tag-only-except-auto-deploy
 
 create_omnibus_manifest:
   image: "${BUILDER_IMAGE_REGISTRY}/debian_10:${BUILDER_IMAGE_REVISION}"
@@ -822,18 +855,28 @@ OpenSUSE-15.1-arm64-staging:
     - OpenSUSE-15.1-arm64
     - OpenSUSE-15.1-arm64-branch
   <<: *staging_upload
+OpenSUSE-15.2-staging:
+  dependencies:
+    - OpenSUSE-15.2
+    - OpenSUSE-15.2-branch
+  <<: *staging_upload
+OpenSUSE-15.2-arm64-staging:
+  dependencies:
+    - OpenSUSE-15.2-arm64
+    - OpenSUSE-15.2-arm64-branch
+  <<: *staging_upload
 SLES-12.2-staging:
   dependencies:
     - SLES-12.2
     - SLES-12.2-branch
   <<: *staging_upload
-  <<: *dev-ee-tag-only
+  <<: *dev-ee-tag-only-except-auto-deploy
 SLES-12.5-staging:
   dependencies:
     - SLES-12.5
     - SLES-12.5-branch
   <<: *staging_upload
-  <<: *dev-ee-tag-only
+  <<: *dev-ee-tag-only-except-auto-deploy
 
 ### Package releases
 Ubuntu-16.04-release:
@@ -884,16 +927,24 @@ OpenSUSE-15.1-arm64-release:
   dependencies:
     - OpenSUSE-15.1-arm64
   <<: *production_release
-SLES-12.2-release:
+OpenSUSE-15.2-release:
+  dependencies:
+    - OpenSUSE-15.2
   <<: *production_release
+OpenSUSE-15.2-arm64-release:
+  dependencies:
+    - OpenSUSE-15.2-arm64
+  <<: *production_release
+SLES-12.2-release:
   dependencies:
     - SLES-12.2
-  <<: *dev-ee-tag-only-except-auto-deploy-or-rc-manual
-SLES-12.5-release:
   <<: *production_release
+  <<: *dev-ee-tag-only-except-auto-deploy-manual
+SLES-12.5-release:
   dependencies:
     - SLES-12.5
-  <<: *dev-ee-tag-only-except-auto-deploy-or-rc-manual
+  <<: *production_release
+  <<: *dev-ee-tag-only-except-auto-deploy-manual
 
 Docker-Release:
   extends: .docker_job
@@ -906,7 +957,6 @@ Docker-Release:
 
 AWS:
   <<: *aws_ami_build
-  <<: *dev-ce-tag-only-except-rc-manual
 
 AWS-Ultimate:
   variables:

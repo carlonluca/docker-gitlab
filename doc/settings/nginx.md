@@ -40,6 +40,10 @@ By default, Omnibus GitLab does not use HTTPS. If you want to enable HTTPS for
 1. [Free and automated HTTPS with Let's Encrypt](ssl.md#lets-encrypt-integration)
 1. [Manually configuring HTTPS with your own certificates](#manually-configuring-https)
 
+NOTE:
+If you use a proxy, load balancer or some other external device to terminate SSL for the GitLab host name,
+see [External, proxy, and load balancer SSL termination](#external-proxy-and-load-balancer-ssl-termination).
+
 ### Warning
 
 The NGINX configuration will tell browsers and clients to only communicate with your
@@ -354,13 +358,13 @@ something else. For example, to use port 8081:
 nginx['listen_port'] = 8081
 ```
 
-## Supporting proxied SSL
+## External, proxy, and load balancer SSL termination
 
-By default NGINX will auto-detect whether to use SSL if `external_url`
-contains `https://`. If you are running GitLab behind a reverse proxy, you
-may wish to terminate SSL at another proxy server or load balancer. To do this,
-be sure the `external_url` contains `https://` and apply the following
-configuration to `gitlab.rb`:
+By default, Omnibus GitLab auto-detects whether to use SSL if `external_url`
+contains `https://` and configures NGINX for SSL termination. 
+However, if configuring GitLab to run behind a reverse proxy or an external load balancer,
+some environments may want to terminate SSL outside the GitLab application. To do this,
+edit `/etc/gitlab/gitlab.rb` to prevent the bundled NGINX from handling SSL termination:
 
 ```ruby
 nginx['listen_port'] = 80
@@ -389,6 +393,7 @@ you forget this step. For more information, see:
 
 - <https://stackoverflow.com/questions/16042647/whats-the-de-facto-standard-for-a-reverse-proxy-to-tell-the-backend-ssl-is-used>
 - <https://websiteforstudents.com/setup-apache2-reverse-proxy-nginx-ubuntu-17-04-17-10/>
+Some cloud provider services, such as AWS Certificate Manager (ACM), do not allow the download of certificates. This prevents them from being used to terminate on the GitLab instance. If SSL is desired between such a cloud service and the GitLab instance, another certificate must be used on the GitLab instance.
 
 ## Setting HTTP Strict Transport Security
 
@@ -485,6 +490,22 @@ These additional options NGINX supports for configuring SSL client authenticatio
 ```
 
 After making the changes run `sudo gitlab-ctl reconfigure`.
+
+## Configure `robots.txt`
+
+To configure [`robots.txt`](https://www.robotstxt.org/robotstxt.html) for your instance, specify a custom `robots.txt` file by adding a [custom NGINX configuration](#inserting-custom-nginx-settings-into-the-gitlab-server-block):
+
+1. Edit `/etc/gitlab/gitlab.rb`:
+
+   ```ruby
+   nginx['custom_gitlab_server_config'] = "rewrite ^/robots.txt /var/opt/gitlab/robots.txt last;"
+   ```
+
+1. Reconfigure GitLab:
+
+   ```shell
+   sudo gitlab-ctl reconfigure
+   ```
 
 ## Inserting custom NGINX settings into the GitLab server block
 
@@ -823,7 +844,7 @@ systems `sudo service nginx restart`).
 
 Make sure you don't have the `proxy_set_header` configuration in
 `nginx['custom_gitlab_server_config']` settings and instead use the
-['proxy_set_headers'](#supporting-proxied-ssl) configuration in your `gitlab.rb` file.
+['proxy_set_headers'](#external-proxy-and-load-balancer-ssl-termination) configuration in your `gitlab.rb` file.
 
 ### `javax.net.ssl.SSLHandshakeException: Received fatal alert: handshake_failure`
 

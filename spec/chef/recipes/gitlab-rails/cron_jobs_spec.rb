@@ -29,6 +29,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
         'geo_repository_verification_primary_batch_worker'       | 'geo_repository_verification_primary_batch_worker_cron'
         'geo_repository_verification_secondary_scheduler_worker' | 'geo_repository_verification_secondary_scheduler_worker_cron'
         'geo_secondary_registry_consistency_worker'              | 'geo_secondary_registry_consistency_worker'
+        'geo_secondary_usage_data_cron_worker'                   | 'geo_secondary_usage_data_cron_worker'
         'historical_data_worker'                                 | 'historical_data_worker_cron'
         'ldap_group_sync_worker'                                 | 'ldap_group_sync_worker_cron'
         'ldap_sync_worker'                                       | 'ldap_sync_worker_cron'
@@ -46,6 +47,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
         'schedule_migrate_external_diffs_worker'                 | 'schedule_migrate_external_diffs_worker_cron'
         'stuck_ci_jobs_worker'                                   | 'stuck_ci_jobs_worker_cron'
         'user_status_cleanup_batch_worker'                       | 'user_status_cleanup_batch_worker_cron'
+        'namespaces_in_product_marketing_emails_worker'          | 'namespaces_in_product_marketing_emails_worker_cron'
       end
 
       with_them do

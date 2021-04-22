@@ -436,76 +436,6 @@ RSpec.describe 'gitlab::gitlab-rails' do
       end
     end
 
-    context 'when sentry is disabled' do
-      it 'should set sentry variable to nil' do
-        expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-          hash_including(
-            'sentry_enabled' => false,
-            'sentry_dsn' => nil,
-            'sentry_clientside_dsn' => nil,
-            'sentry_environment' => nil
-          )
-        )
-      end
-    end
-
-    context 'when sentry is enabled' do
-      before do
-        stub_gitlab_rb(
-          gitlab_rails:
-          {
-            sentry_enabled: true,
-            sentry_dsn: 'https://708cd0ca88972f04d5c836a395b8db63@example.com/76',
-            sentry_clientside_dsn: 'https://708cd0ca88972f04d5c836a395b8db63@example.com/77',
-            sentry_environment: 'testing'
-          }
-        )
-      end
-
-      it "sets the sentry configuration" do
-        expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-          hash_including(
-            'sentry_enabled' => true,
-            'sentry_dsn' => 'https://708cd0ca88972f04d5c836a395b8db63@example.com/76',
-            'sentry_clientside_dsn' => 'https://708cd0ca88972f04d5c836a395b8db63@example.com/77',
-            'sentry_environment' => 'testing'
-          )
-        )
-      end
-    end
-
-    describe 'pseudonymizer settings' do
-      it 'allows not setting any values' do
-        expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-          hash_including(
-            'pseudonymizer_manifest' => nil,
-            'pseudonymizer_upload_connection' => {},
-            'pseudonymizer_upload_remote_directory' => nil
-          )
-        )
-      end
-
-      context 'with values' do
-        before do
-          stub_gitlab_rb(gitlab_rails: {
-                           pseudonymizer_manifest: 'another/path/manifest.yml',
-                           pseudonymizer_upload_remote_directory: 'gitlab-pseudo',
-                           pseudonymizer_upload_connection: aws_connection_hash,
-                         })
-        end
-
-        it "sets the object storage values" do
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              'pseudonymizer_manifest' => 'another/path/manifest.yml',
-              'pseudonymizer_upload_connection' => aws_connection_hash,
-              'pseudonymizer_upload_remote_directory' => 'gitlab-pseudo'
-            )
-          )
-        end
-      end
-    end
-
     describe 'repositories storages' do
       it 'sets specified properties' do
         stub_gitlab_rb(
@@ -648,102 +578,64 @@ RSpec.describe 'gitlab::gitlab-rails' do
           expect(gitlab_yml[:production][:gitlab][:allowed_hosts]).to eq(['example.com', 'foobar.com'])
         end
       end
-    end
 
-    context 'mattermost settings' do
-      context 'mattermost is configured' do
-        it 'exposes the mattermost host' do
-          stub_gitlab_rb(mattermost: { enable: true },
-                         mattermost_external_url: 'http://mattermost.domain.com')
+      context 'pages local store is not specified' do
+        it 'sets pages_local_store_enabled to true and return default path' do
+          stub_gitlab_rb(
+            external_url: 'https://gitlab.example.com',
+            pages_external_url: 'https://pages.example.com'
+          )
 
           expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
             hash_including(
-              mattermost_host: 'http://mattermost.domain.com'
+              'pages_path' => '/var/opt/gitlab/gitlab-rails/shared/pages',
+              'pages_local_store_enabled' => true,
+              'pages_local_store_path' => '/var/opt/gitlab/gitlab-rails/shared/pages'
             )
           )
         end
       end
 
-      context 'mattermost is not configured' do
-        it 'has empty values' do
+      context 'when pages_path is specified but not local store path' do
+        it 'returns pages_local_store path with the same value as pages_path' do
+          stub_gitlab_rb(
+            external_url: 'https://gitlab.example.com',
+            pages_external_url: 'https://pages.example.com',
+            gitlab_rails: {
+              pages_path: '/tmp/test',
+              pages_local_store_enabled: false
+            }
+          )
+
           expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
             hash_including(
-              mattermost_enabled: false,
-              mattermost_host: nil
+              'pages_path' => '/tmp/test',
+              'pages_local_store_enabled' => false,
+              'pages_local_store_path' => '/tmp/test'
             )
           )
         end
       end
 
-      context 'mattermost on another server' do
-        it 'sets the mattermost host' do
-          stub_gitlab_rb(gitlab_rails: { mattermost_host: 'http://my.host.com' })
+      context 'when pages local store path and enabled are custom' do
+        it 'returns pages_local_store path and enabled with these custom values' do
+          stub_gitlab_rb(
+            external_url: 'https://gitlab.example.com',
+            pages_external_url: 'https://pages.example.com',
+            gitlab_rails: {
+              pages_path: '/tmp/test',
+              pages_local_store_enabled: false,
+              pages_local_store_path: '/another/path'
+            }
+          )
 
           expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
             hash_including(
-              mattermost_enabled: true,
-              mattermost_host: 'http://my.host.com'
+              'pages_path' => '/tmp/test',
+              'pages_local_store_enabled' => false,
+              'pages_local_store_path' => '/another/path'
             )
           )
-        end
-
-        context 'values set twice' do
-          it 'sets the mattermost external url' do
-            stub_gitlab_rb(mattermost: { enable: true },
-                           mattermost_external_url: 'http://my.url.com',
-                           gitlab_rails: { mattermost_host: 'http://do.not/setme' })
-
-            expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-              hash_including(
-                mattermost_enabled: true,
-                mattermost_host: 'http://my.url.com'
-              )
-            )
-          end
-        end
-      end
-    end
-
-    context 'gitlab shell settings' do
-      it 'sets default for gitlab shell authorized keys file' do
-        expect(chef_run)
-          .to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root')
-          .with_variables(
-            hash_including(
-              gitlab_shell_authorized_keys_file: '/var/opt/gitlab/.ssh/authorized_keys'
-            )
-          )
-      end
-
-      context 'gitlab_shell auth_file setting is set' do
-        before do
-          stub_gitlab_rb(gitlab_shell: { auth_file: '/tmp/authorized_keys' })
-        end
-
-        it 'sets the gitlab shell authorized keys file based on gitlab-shell auth_file config' do
-          expect(chef_run)
-            .to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root')
-            .with_variables(
-              hash_including(
-                gitlab_shell_authorized_keys_file: '/tmp/authorized_keys'
-              )
-            )
-        end
-      end
-
-      context 'gitlab_shell auth_file setting is set' do
-        before do
-          stub_gitlab_rb(user: { home: '/tmp/user' })
-        end
-
-        it 'defaults to the auth_file within the user home directory' do
-          expect(chef_run)
-            .to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root')
-            .with_variables(
-              hash_including(
-                gitlab_shell_authorized_keys_file: '/tmp/user/.ssh/authorized_keys'
-              )
-            )
         end
       end
     end
@@ -1134,38 +1026,6 @@ RSpec.describe 'gitlab::gitlab-rails' do
       end
     end
 
-    context 'Sidekiq log_format' do
-      context 'json' do
-        it 'sets the Sidekiq log_format to json' do
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              sidekiq: hash_including(
-                'log_format' => 'json'
-              )
-            )
-          )
-          expect(chef_run).not_to render_file("/opt/gitlab/sv/sidekiq/log/run").with_content(/-tt/)
-        end
-      end
-
-      context 'default' do
-        let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(templatesymlink sidekiq_service runit_service)).converge('gitlab::default') }
-
-        it 'sets the Sidekiq log_format to default' do
-          stub_gitlab_rb(sidekiq: { log_format: 'default' })
-
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              sidekiq: hash_including(
-                'log_format' => 'default'
-              )
-            )
-          )
-          expect(chef_run).to render_file("/opt/gitlab/sv/sidekiq/log/run").with_content(/svlogd -tt/)
-        end
-      end
-    end
-
     context 'sidekiq-cluster' do
       let(:chef_run) do
         ChefSpec::SoloRunner.new.converge('gitlab-ee::default')
@@ -1349,46 +1209,6 @@ RSpec.describe 'gitlab::gitlab-rails' do
             yaml_data = YAML.safe_load(content, [], [], true)
             expect(yaml_data['production']['shutdown']).to include('blackout_seconds' => 20)
           }
-        end
-      end
-    end
-
-    context 'Gitaly settings' do
-      context 'when a global token is set' do
-        let(:token) { '123secret456gitaly' }
-
-        it 'renders the token in the gitaly section' do
-          stub_gitlab_rb(gitlab_rails: { gitaly_token: token })
-
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              'gitaly_token' => '123secret456gitaly'
-            )
-          )
-        end
-      end
-    end
-
-    context 'GitLab Shell settings' do
-      context 'when git_timeout is configured' do
-        it 'sets the git_timeout value' do
-          stub_gitlab_rb(gitlab_rails: { gitlab_shell_git_timeout: 1000 })
-
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              'gitlab_shell_git_timeout' => 1000
-            )
-          )
-        end
-      end
-
-      context 'when git_timeout is not configured' do
-        it 'sets git_timeout value to default' do
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              'gitlab_shell_git_timeout' => 10800
-            )
-          )
         end
       end
     end

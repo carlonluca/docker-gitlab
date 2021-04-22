@@ -155,6 +155,12 @@ production: &base
     # Whether the IMAP server uses StartTLS
     start_tls: <%= @incoming_email_start_tls %>
 
+    # Inbox configuration (for Microsoft Graph)
+    inbox_method: <%= @incoming_email_inbox_method %>
+    <%- if @incoming_email_inbox_options %>
+    inbox_options: <%= @incoming_email_inbox_options.to_json %>
+    <%- end %>
+
     # The mailbox where incoming mail will end up. Usually "inbox".
     mailbox: <%= quote(@incoming_email_mailbox_name) %>
     # The IDLE command timeout.
@@ -206,6 +212,12 @@ production: &base
     ssl: <%= @service_desk_email_ssl %>
     # Whether the IMAP server uses StartTLS
     start_tls: <%= @service_desk_email_start_tls %>
+
+    # Inbox configuration (for Microsoft Graph)
+    inbox_method: <%= @service_desk_email_inbox_method %>
+    <%- if @service_desk_email_inbox_options %>
+    inbox_options: <%= @service_desk_email_inbox_options.to_json %>
+    <%- end %>
 
     # The mailbox where incoming mail will end up. Usually "inbox".
     mailbox: <%= quote(@service_desk_email_mailbox_name) %>
@@ -353,6 +365,9 @@ production: &base
       enabled: <%= @pages_object_store_enabled %>
       remote_directory: <%= quote(@pages_object_store_remote_directory) %>
       connection: <%= @pages_object_store_connection.to_json %>
+    local_store:
+      enabled: <%= @pages_local_store_enabled %>
+      path: <%= @pages_local_store_path %>
 
   ## Gravatar
   ## For Libravatar see: https://docs.gitlab.com/ee/customization/libravatar.html
@@ -517,6 +532,13 @@ production: &base
       cron: "<%= @geo_secondary_registry_consistency_worker %>"
     <% end %>
 
+    # GitLab Geo Secondary Usage Data worker
+    # NOTE: This will only take effect if Geo and Usage Data are enabled (secondary nodes only)
+    <% unless @geo_secondary_usage_data_cron_worker.nil? %>
+    geo_secondary_usage_data_cron_worker:
+      cron: "<%= @geo_secondary_usage_data_cron_worker %>"
+    <% end %>
+
     # GitLab Geo file download dispatch worker
     # NOTE: This will only take effect if Geo is enabled
     <% unless @geo_file_download_dispatch_worker_cron.nil? %>
@@ -573,6 +595,12 @@ production: &base
     <% unless @user_status_cleanup_batch_worker_cron.nil? %>
     user_status_cleanup_batch_worker:
       cron: "<%= @user_status_cleanup_batch_worker_cron %>"
+    <% end %>
+
+    # Worker for triggering in-product marketing emails
+    <% unless @namespaces_in_product_marketing_emails_worker_cron.nil? %>
+    namespaces_in_product_marketing_emails_worker:
+      cron: "<%= @namespaces_in_product_marketing_emails_worker_cron %>"
     <% end %>
 
   ## Geo

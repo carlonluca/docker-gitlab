@@ -589,7 +589,8 @@ node throughout the process.
 - To get the regular database migrations and latest code in place, run
 
   ```shell
-  sudo SKIP_POST_DEPLOYMENT_MIGRATIONS=true gitlab-ctl reconfigure
+  sudo gitlab-ctl reconfigure
+  sudo SKIP_POST_DEPLOYMENT_MIGRATIONS=true gitlab-rake db:migrate
   ```
 
 **All other nodes (not the Deploy node)**
@@ -885,7 +886,7 @@ installation only, this will prevent the upgrade from running
 sudo touch /etc/gitlab/skip-auto-reconfigure
 ```
 
-**On all other nodes _excluding_ the primary "deploy node"**
+**On all other nodes _including_ the primary "deploy node"**
 
 1. Ensure that `gitlab_rails['auto_migrate'] = false` is set in `/etc/gitlab/gitlab.rb`.
 
@@ -949,7 +950,8 @@ sudo touch /etc/gitlab/skip-auto-reconfigure
 1. To get the regular database migrations and latest code in place, run
 
    ```shell
-   sudo SKIP_POST_DEPLOYMENT_MIGRATIONS=true gitlab-ctl reconfigure
+   sudo gitlab-ctl reconfigure
+   sudo SKIP_POST_DEPLOYMENT_MIGRATIONS=true gitlab-rake db:migrate
    ```
 
 1. If this deploy node is normally used to serve requests or process jobs,
@@ -1003,7 +1005,7 @@ installation only, this will prevent the upgrade from running
 sudo touch /etc/gitlab/skip-auto-reconfigure
 ```
 
-**On all other nodes _excluding_ the secondary "deploy node"**
+**On all other nodes _including_ the secondary "deploy node"**
 
 1. Ensure that `geo_secondary['auto_migrate'] = false` is set in `/etc/gitlab/gitlab.rb`
 
@@ -1046,7 +1048,8 @@ sudo touch /etc/gitlab/skip-auto-reconfigure
 1. To get the regular database migrations and latest code in place, run
 
    ```shell
-   sudo SKIP_POST_DEPLOYMENT_MIGRATIONS=true gitlab-ctl reconfigure
+   sudo gitlab-ctl reconfigure
+   sudo SKIP_POST_DEPLOYMENT_MIGRATIONS=true gitlab-rake db:migrate
    ```
 
 1. If this deploy node is normally used to serve requests or perform
@@ -1226,26 +1229,8 @@ Steps:
    sudo gitlab-ctl reconfigure
    ```
 
-1. Restore your backup:
-
-   ```shell
-   # Restore your backup and reconfigure
-   sudo gitlab-backup restore BACKUP=XXXXXXXXXX_2020_XX_XX_13.0.5-ee
-   sudo gitlab-ctl reconfigure
-   ```
-
-1. Restart GitLab:
-
-   ```shell
-   sudo gitlab-ctl restart
-   ```
-
-1. Check GitLab:
-
-   ```shell
-   # It may take a few seconds for Sidekiq and gitlab-shell to start
-   sudo gitlab-rake gitlab:check SANITIZE=true
-   ```
+1. Follow the instructions in the [Restore for Omnibus GitLab installations](https://docs.gitlab.com/ee/raketasks/backup_restore.html#restore-for-omnibus-gitlab-installations)
+page to complete the downgrade.
 
 ## Update GitLab CI from prior `5.4.0` to version `7.14` via Omnibus GitLab
 

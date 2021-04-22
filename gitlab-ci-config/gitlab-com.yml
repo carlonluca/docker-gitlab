@@ -126,7 +126,7 @@
       - $CI_COMMIT_REF_NAME =~ /^[0-9]+-[0-9]+-auto-deploy-[0-9]+$/
 
 .review-docs:
-  image: ruby:2.7-alpine
+  image: "${RUBY_IMAGE}-alpine"
   stage: post-test
   cache: {}
   dependencies: []
@@ -141,6 +141,8 @@
   variables:
     GIT_STRATEGY: none
     DOCS_REVIEW_APPS_DOMAIN: 178.62.207.141.nip.io
+    # By default, deploy the Review App using the `master` branch of the `gitlab-org/gitlab-docs` project
+    DOCS_BRANCH: master
   when: manual
   only:
     refs:
@@ -270,8 +272,11 @@ review-docs-deploy:
   extends:
     - .review-docs
   environment:
-    name: review-docs/$CI_COMMIT_REF_SLUG
-    url: http://docs-preview-omnibus-$CI_COMMIT_REF_SLUG.$DOCS_REVIEW_APPS_DOMAIN/omnibus
+    name: review-docs/branch-${CI_COMMIT_REF_SLUG}
+    # DOCS_REVIEW_APPS_DOMAIN and DOCS_GITLAB_REPO_SUFFIX are CI variables
+    # Discussion: https://gitlab.com/gitlab-org/gitlab-foss/merge_requests/14236/diffs#note_40140693
+    auto_stop_in: 2 weeks
+    url: http://${DOCS_BRANCH}-${DOCS_GITLAB_REPO_SUFFIX}-${CI_COMMIT_REF_SLUG}.${DOCS_REVIEW_APPS_DOMAIN}/${DOCS_GITLAB_REPO_SUFFIX}
     on_stop: review-docs-cleanup
   script:
     - ./trigger-build docs deploy
@@ -281,7 +286,7 @@ review-docs-cleanup:
   extends:
     - .review-docs
   environment:
-    name: review-docs/$CI_COMMIT_REF_SLUG
+    name: review-docs/branch-${CI_COMMIT_REF_SLUG}
     action: stop
   script:
     - ./trigger-build docs cleanup
@@ -311,6 +316,7 @@ Centos 8 knapsack: *prepare_knapsack
 Debian 9 knapsack: *prepare_knapsack
 Debian 10 knapsack: *prepare_knapsack
 OpenSUSE 15.1 knapsack: *prepare_knapsack
+OpenSUSE 15.2 knapsack: *prepare_knapsack
 Ubuntu 16.04 knapsack: *prepare_knapsack
 Ubuntu 18.04 knapsack: *prepare_knapsack
 Ubuntu 20.04 knapsack: *prepare_knapsack
@@ -363,6 +369,12 @@ OpenSUSE 15.1 specs :
   parallel: 6
   dependencies:
   - OpenSUSE 15.1 knapsack
+OpenSUSE 15.2 specs :
+  image: "registry.gitlab.com/gitlab-org/gitlab-build-images:omnibus-gitlab-opensuse15.2"
+  extends: .spec_template
+  parallel: 6
+  dependencies:
+  - OpenSUSE 15.2 knapsack
 
 update-knapsack:
   extends: .knapsack-state
@@ -429,6 +441,9 @@ Trigger:qa-docker:
     - bundle exec rake qa:build
     - bundle exec rake qa:push:triggered
   <<: *com-trigger-only
+  except:
+    variables:
+      - $SKIP_QA_DOCKER == "true"
   dependencies:
     - Trigger:package
 
@@ -450,6 +465,15 @@ Trigger:ha-validate:
   <<: *com-trigger-only
   dependencies:
     - Trigger:ee-package
+
+Trigger:RAT:
+  stage: trigger-ha-validate
+  image: "${RUBY_IMAGE}"
+  when: manual
+  script:
+    - bundle exec rake qa:rat:trigger
+  <<: *com-trigger-only
+  dependencies: []
 
 dependency_update:
   image: "${BUILDER_IMAGE_REGISTRY}/ruby_docker:${BUILDER_IMAGE_REVISION}"

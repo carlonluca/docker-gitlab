@@ -137,6 +137,7 @@ default['gitlab']['gitlab-rails']['ldap_group_sync_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['geo_file_download_dispatch_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['geo_repository_sync_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['geo_secondary_registry_consistency_worker'] = nil
+default['gitlab']['gitlab-rails']['geo_secondary_usage_data_cron_worker'] = nil
 default['gitlab']['gitlab-rails']['geo_prune_event_log_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['geo_repository_verification_primary_batch_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['geo_repository_verification_secondary_scheduler_worker_cron'] = nil
@@ -158,6 +159,9 @@ default['gitlab']['gitlab-rails']['incoming_email_mailbox_name'] = "inbox"
 default['gitlab']['gitlab-rails']['incoming_email_idle_timeout'] = nil
 default['gitlab']['gitlab-rails']['incoming_email_log_file'] = "/var/log/gitlab/mailroom/mail_room_json.log" # file path of internal `mail_room` JSON logs
 default['gitlab']['gitlab-rails']['incoming_email_expunge_deleted'] = nil
+default['gitlab']['gitlab-rails']['incoming_email_inbox_method'] = "imap"
+default['gitlab']['gitlab-rails']['incoming_email_inbox_options'] = nil
+
 default['gitlab']['gitlab-rails']['service_desk_email_enabled'] = false
 default['gitlab']['gitlab-rails']['service_desk_email_address'] = nil
 default['gitlab']['gitlab-rails']['service_desk_email_host'] = nil
@@ -169,6 +173,9 @@ default['gitlab']['gitlab-rails']['service_desk_email_password'] = nil
 default['gitlab']['gitlab-rails']['service_desk_email_mailbox_name'] = "inbox"
 default['gitlab']['gitlab-rails']['service_desk_email_idle_timeout'] = nil
 default['gitlab']['gitlab-rails']['service_desk_email_log_file'] = "/var/log/gitlab/mailroom/mail_room_json.log" # file path of internal `mail_room` JSON logs
+default['gitlab']['gitlab-rails']['service_desk_email_inbox_method'] = "imap"
+default['gitlab']['gitlab-rails']['service_desk_email_inbox_inbox_options'] = nil
+default['gitlab']['gitlab-rails']['namespaces_in_product_marketing_emails_worker_cron'] = nil
 
 # Consolidated object storage config
 default['gitlab']['gitlab-rails']['object_store']['enabled'] = false
@@ -270,6 +277,8 @@ default['gitlab']['gitlab-rails']['pages_path'] = nil
 default['gitlab']['gitlab-rails']['pages_object_store_enabled'] = false
 default['gitlab']['gitlab-rails']['pages_object_store_remote_directory'] = 'pages'
 default['gitlab']['gitlab-rails']['pages_object_store_connection'] = {}
+default['gitlab']['gitlab-rails']['pages_local_store_enabled'] = true
+default['gitlab']['gitlab-rails']['pages_local_store_path'] = nil
 default['gitlab']['gitlab-rails']['registry_enabled'] = false
 default['gitlab']['gitlab-rails']['registry_host'] = nil
 default['gitlab']['gitlab-rails']['registry_port'] = nil

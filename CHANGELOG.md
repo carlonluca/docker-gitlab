@@ -6,6 +6,58 @@ omnibus-gitlab repository.
 ## 13.9.4 (2021-03-17)
 
 - No changes.
+## 13.11.0+ee.0 (2021-04-21)
+
+### Added (9 changes)
+
+- [Add in-product marketing emails cron worker](gitlab-org/omnibus-gitlab@3930fad0ec906d6a61b44f1470f2638542faff17) ([merge request](gitlab-org/omnibus-gitlab!5096))
+- [Allow config for geo_secondary_usage_data_cron](gitlab-org/omnibus-gitlab@92026ace7583a0563682b8a27e18506248b23e75) ([merge request](gitlab-org/omnibus-gitlab!5165))
+- [Add summarized gitaly apdex for usage ping](gitlab-org/omnibus-gitlab@bc8880331a03dad963461045f0b1b86a55e3802e) ([merge request](gitlab-org/omnibus-gitlab!5148))
+- [Added new local_store config for Pages](gitlab-org/omnibus-gitlab@09801f4a99709074d7c19543c6c9b66805c0218a) ([merge request](gitlab-org/omnibus-gitlab!5058))
+- [Render Gitaly pack_objects_cache settings](gitlab-org/omnibus-gitlab@4d20f64edb46fe3a69f71bc5310e63480601337e) ([merge request](gitlab-org/omnibus-gitlab!5120))
+- [Build openSUSE Leap 15.2 packages](gitlab-org/omnibus-gitlab@6868ce60edfcc883f769154e1761293623bfce4a) ([merge request](gitlab-org/omnibus-gitlab!5134))
+- [Use git provided by Gitaly](gitlab-org/omnibus-gitlab@d7db53d06f149a0aa34d982edc034e62837596f3) ([merge request](gitlab-org/omnibus-gitlab!5113))
+- [Gitaly default maintenance override](gitlab-org/omnibus-gitlab@13de4d226be5de0b29a596e9a1fef076a2a9e3c6) ([merge request](gitlab-org/omnibus-gitlab!5089))
+- [Add net-protocol BSD-2 license](gitlab-org/omnibus-gitlab@baa4f138e03bf9ed3d74666a3ba98fe1b3a75c5a) ([merge request](gitlab-org/omnibus-gitlab!5118))
+
+### Fixed (7 changes)
+
+- [Fix grafana for RPi](gitlab-org/omnibus-gitlab@6c460d41a15737f5ebd13ebf250827a38eec963e) ([merge request](gitlab-org/omnibus-gitlab!5162))
+- [Update AWS Marketplace Release code to match new API requirements](gitlab-org/omnibus-gitlab@9cffb5bd967bf32dc57437e8e09c3406c8398f38) ([merge request](gitlab-org/omnibus-gitlab!5146))
+- [Run AWS jobs on both CE and EE non-RC-or-auto-deploy tags](gitlab-org/omnibus-gitlab@cf4b73b40d5634b8d7fad13d89b5abde2e749e18) ([merge request](gitlab-org/omnibus-gitlab!5147))
+- [Update gitlab-exporter to 10.1.0 to avoid query failures](gitlab-org/omnibus-gitlab@301afe78fc9e6620d5eb4578be62d1d161ba9639) ([merge request](gitlab-org/omnibus-gitlab!5123))
+- [Use specified key size for self-signed certificate also](gitlab-org/omnibus-gitlab@fad9c0441b309cf1aa1ae5911d1039fd62c4614d) ([merge request](gitlab-org/omnibus-gitlab!5083))
+- [Fix use_http2 & redirect_http GitLab Pages settings](gitlab-org/omnibus-gitlab@5afa8c3ed302f78e0688b4ffcda123f9c113aa42) ([merge request](gitlab-org/omnibus-gitlab!5116))
+- [Update Gitaly log permissions in Docker image](gitlab-org/omnibus-gitlab@cd0d3666f8d0a6503466f91847029a02afb3e209) ([merge request](https://gitlab.com/gitlab-org/omnibus-gitlab/-/merge_requests/5117))
+
+### Changed (6 changes)
+
+- [Change devops adoption update to be weekly](gitlab-org/omnibus-gitlab@abbd439e1c64cee4637cd9bf6623caf5ed3ec898) ([merge request](gitlab-org/omnibus-gitlab!5142))
+- [Upgrade OpenSSL to 1.1.1k](gitlab-org/omnibus-gitlab@fadd066fcb28c14e86440640629648413bd18e85) ([merge request](gitlab-org/omnibus-gitlab!5140))
+- [Add mail_room as a separate Gem dependency](gitlab-org/omnibus-gitlab@7926d212f199bff8ed3702be06b8adcabb3463be) ([merge request](gitlab-org/omnibus-gitlab!5122))
+- [Disable statement timeout while running analyze for pg-upgrade](gitlab-org/omnibus-gitlab@1b0c2ce3a1e780df2467ab4c4770d0cda38a2be3) ([merge request](gitlab-org/omnibus-gitlab!5121))
+- [Bump container registry version to v3.2.1](gitlab-org/omnibus-gitlab@9b0da5a1c51e4bfe186a7dbcd370dac9ed1d9977) ([merge request](gitlab-org/omnibus-gitlab!5111))
+- [Bump Container Registry to v3.2.0-gitlab](gitlab-org/omnibus-gitlab@e852191df15ce4d49fb931fd14a9a8ad253e2589) ([merge request](gitlab-org/omnibus-gitlab!5097))
+
+### Deprecated (1 change)
+
+- [Add deprecation warning for openSUSE Leap 15.1](gitlab-org/omnibus-gitlab@04deb3c05eb489d342073b8d43b20f016abb88a9) ([merge request](gitlab-org/omnibus-gitlab!5135))
+
+### Security (3 changes)
+
+- [Only allow exiftool to process JPEG and TIFF files](gitlab-org/omnibus-gitlab@e52dc79d56bf7673c417a9aab8887222891958ae)
+- [Bump PostgreSQL versions to 11.11 and 12.6](gitlab-org/omnibus-gitlab@363a4d13f830ae8e7939c018f28a8db637d05e87)
+- [Update GraphicsMagick to 1.3.36](gitlab-org/omnibus-gitlab@8548cb9e419d91c526376ecf0bb988ecc32753b5) ([merge request](gitlab-org/omnibus-gitlab!5075))
+
+### Performance (1 change)
+
+- [Backport BLOCKED_MODULE performance fix from Redis unstable](gitlab-org/omnibus-gitlab@a9de7c8fe3a45d7f6a12271dda3b2524e6004afc) ([merge request](gitlab-org/omnibus-gitlab!5125))
+
+### Other (2 changes)
+
+- [Update grafana from 7.4.2 to 7.5.1](gitlab-org/omnibus-gitlab@f24acaa0eda025c8a2982770b1a012775a2e1ecc) ([merge request](gitlab-org/omnibus-gitlab!5041))
+- [Update Mattermost to 5.33.3](gitlab-org/omnibus-gitlab@5ea328d92881bfc991582bf83bb3aba2a248aaad) ([merge request](gitlab-org/omnibus-gitlab!5151))
+
 ## 13.10.3 (2021-04-13)
 
 ### Security (1 change)
@@ -83,6 +135,29 @@ omnibus-gitlab repository.
 - Remove apt-transport-https as apt natively support https. (Simon Deziel)
 
 
+## 13.9.6 (2021-04-13)
+
+### Security (1 change)
+
+- Only allow exiftool to process JPEG and TIFF files.
+
+### Fixed (1 change)
+
+- Update AWS Marketplace Release code to match new API requirements. !5146
+
+
+## 13.9.5 (2021-03-31)
+
+### Security (2 changes)
+
+- Update openssl from 1i to 1j.
+- Bump PostgreSQL versions to 11.11 and 12.6.
+
+
+## 13.9.4 (2021-03-17)
+
+- No changes.
+
 ## 13.9.3 (2021-03-08)
 
 - No changes.
@@ -146,6 +221,25 @@ omnibus-gitlab repository.
 - Bump Grafana version to 7.3.7. !4933
 - Update Mattermost to 5.31.1. !5003 (Harrison Healey)
 
+
+## 13.8.8 (2021-04-13)
+
+### Security (1 change)
+
+- Only allow exiftool to process JPEG and TIFF files.
+
+
+## 13.8.7 (2021-03-31)
+
+### Security (2 changes)
+
+- Update openssl from 1i to 1j.
+- Bump PostgreSQL versions to 11.11 and 12.6.
+
+
+## 13.8.6 (2021-03-17)
+
+- No changes.
 
 ## 13.8.5 (2021-03-04)
 
@@ -233,6 +327,10 @@ omnibus-gitlab repository.
 - Use Debian 10 as examples in development docs. !4883 (Takuya Noguchi)
 - Update Mattermost to 5.30.1. !4885 (hmhealey)
 
+
+## 13.7.9 (2021-03-17)
+
+- No changes.
 
 ## 13.7.8 (2021-03-04)
 
