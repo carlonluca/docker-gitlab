@@ -176,6 +176,8 @@ default['gitlab']['gitlab-rails']['service_desk_email_log_file'] = "/var/log/git
 default['gitlab']['gitlab-rails']['service_desk_email_inbox_method'] = "imap"
 default['gitlab']['gitlab-rails']['service_desk_email_inbox_inbox_options'] = nil
 default['gitlab']['gitlab-rails']['namespaces_in_product_marketing_emails_worker_cron'] = nil
+default['gitlab']['gitlab-rails']['ssh_keys_expired_notification_worker_cron'] = nil
+default['gitlab']['gitlab-rails']['ssh_keys_expiring_soon_notification_worker_cron'] = nil
 
 # Consolidated object storage config
 default['gitlab']['gitlab-rails']['object_store']['enabled'] = false
@@ -463,6 +465,7 @@ default['gitlab']['gitlab-rails']['smtp_enable_starttls_auto'] = nil
 default['gitlab']['gitlab-rails']['smtp_tls'] = nil
 default['gitlab']['gitlab-rails']['smtp_openssl_verify_mode'] = nil
 default['gitlab']['gitlab-rails']['smtp_ca_path'] = nil
+default['gitlab']['gitlab-rails']['smtp_pool'] = false
 # Path to the public Certificate Authority file
 # defaults to /opt/gitlab/embedded/ssl/certs/cacert.pem. The install-dir path is set at build time
 default['gitlab']['gitlab-rails']['smtp_ca_file'] = "#{node['package']['install-dir']}/embedded/ssl/certs/cacert.pem"
@@ -588,6 +591,7 @@ default['gitlab']['sidekiq']['shutdown_timeout'] = 25
 default['gitlab']['sidekiq']['concurrency'] = 25
 default['gitlab']['sidekiq']['metrics_enabled'] = true
 default['gitlab']['sidekiq']['exporter_log_enabled'] = false
+default['gitlab']['sidekiq']['routing_rules'] = []
 
 # Sidekiq http listener
 default['gitlab']['sidekiq']['listen_address'] = "127.0.0.1"
@@ -659,6 +663,7 @@ default['gitlab']['web-server']['external_users'] = []
 default['gitlab']['gitlab-workhorse']['enable'] = false
 default['gitlab']['gitlab-workhorse']['ha'] = false
 default['gitlab']['gitlab-workhorse']['alt_document_root'] = nil
+default['gitlab']['gitlab-workhorse']['workhorse_keywatcher'] = true
 default['gitlab']['gitlab-workhorse']['listen_network'] = "unix"
 default['gitlab']['gitlab-workhorse']['listen_umask'] = 000
 default['gitlab']['gitlab-workhorse']['sockets_directory'] = nil
@@ -676,6 +681,7 @@ default['gitlab']['gitlab-workhorse']['api_limit'] = nil
 default['gitlab']['gitlab-workhorse']['api_queue_duration'] = nil
 default['gitlab']['gitlab-workhorse']['api_queue_limit'] = nil
 default['gitlab']['gitlab-workhorse']['api_ci_long_polling_duration'] = nil
+default['gitlab']['gitlab-workhorse']['propagate_correlation_id'] = false
 default['gitlab']['gitlab-workhorse']['log_format'] = "json"
 default['gitlab']['gitlab-workhorse']['env_directory'] = '/opt/gitlab/etc/gitlab-workhorse/env'
 default['gitlab']['gitlab-workhorse']['env'] = {
@@ -707,7 +713,8 @@ default['gitlab']['nginx']['log_format'] = '$remote_addr - $remote_user [$time_l
 default['gitlab']['nginx']['sendfile'] = 'on'
 default['gitlab']['nginx']['tcp_nopush'] = 'on'
 default['gitlab']['nginx']['tcp_nodelay'] = 'on'
-default['gitlab']['nginx']['gzip'] = "on"
+default['gitlab']['nginx']['hide_server_tokens'] = 'off'
+default['gitlab']['nginx']['gzip'] = nil
 default['gitlab']['nginx']['gzip_http_version'] = "1.1"
 default['gitlab']['nginx']['gzip_comp_level'] = "2"
 default['gitlab']['nginx']['gzip_proxied'] = "no-cache no-store private expired auth"

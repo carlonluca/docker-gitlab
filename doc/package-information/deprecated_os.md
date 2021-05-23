@@ -33,6 +33,17 @@ packages for the next version of the operating system. The most common reason
 for this our package repository provider, Packagecloud, not supporting newer
 versions and hence we can't upload packages to it.
 
+## Update GitLab package sources after upgrading the OS
+
+After upgrading the Operating System (OS) as per its own documentation,
+it may be necessary to also update the GitLab package source URL
+in your package manager configuration.
+If your package manager reports that no further updates are available,
+although [new versions have been released](https://about.gitlab.com/releases/categories/releases/), repeat the
+"Add the GitLab package repository" instructions
+of the [Linux package install guide](https://about.gitlab.com/install/#content).
+Future GitLab upgrades will now be fetched according to your upgraded OS.
+
 ## Supported Operating Systems
 
 GitLab officially supports LTS versions of operating systems. While OSs like

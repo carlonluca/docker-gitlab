@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 require_relative "lib/gitlab/version"
 
-omnibus_gem_version = Gitlab::Version.new('omnibus', "7.0.10.08")
+omnibus_gem_version = Gitlab::Version.new('omnibus', "7.0.10.09")
 
 # Note that omnibus is from a fork with additional gitlab changes.  You can
 # check what they are with the following comparison link:
@@ -40,7 +40,7 @@ group :packagecloud, optional: true do
 end
 
 group :rubocop do
-  gem 'gitlab-styles', '~> 4.3', require: false
+  gem 'gitlab-styles', '~> 6.1', require: false
 end
 
 group :test do

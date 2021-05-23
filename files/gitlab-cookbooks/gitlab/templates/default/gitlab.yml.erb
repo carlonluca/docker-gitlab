@@ -379,6 +379,12 @@ production: &base
   ## Sidekiq
   sidekiq:
     log_format: <%= @sidekiq['log_format'] %>
+    <% unless @sidekiq['routing_rules'].empty? %>
+    routing_rules:
+      <% @sidekiq['routing_rules'].each do |query, queue| %>
+      - [<%= quote(query) %>, <%= queue.nil? ? 'null' : quote(queue) %>]
+      <% end %>
+    <% end %>
 
   ## Auxiliary jobs
   # Periodically executed jobs, to self-heal GitLab, do external synchronizations, etc.
@@ -479,6 +485,18 @@ production: &base
     <% unless @ci_platform_metrics_update_cron_worker.nil? %>
     ci_platform_metrics_update_cron_worker:
       cron: "<%= @ci_platform_metrics_update_cron_worker %>"
+    <% end %>
+
+    # Send emails about ssh keys that have expired
+    <% unless @ssh_keys_expired_notification_worker_cron.nil? %>
+    ssh_keys_expired_notification_worker:
+      cron: "<%= @ssh_keys_expired_notification_worker_cron %>"
+    <% end %>
+
+    # Send emails about ssh keys that are expiring soon
+    <% unless @ssh_keys_expiring_soon_notification_worker_cron.nil? %>
+    ssh_keys_expiring_soon_notification_worker:
+      cron: "<%= @ssh_keys_expiring_soon_notification_worker_cron %>"
     <% end %>
 
     ##

@@ -48,6 +48,12 @@ RSpec.describe 'gitlab::gitlab-workhorse' do
         expect(content).not_to match(/object_storage/)
       }
     end
+
+    it 'does not propagate correlation ID' do
+      expect(chef_run).to render_file(config_file).with_content { |content|
+        expect(content).not_to match(/propagateCorrelationID/)
+      }
+    end
   end
 
   context 'when the deprecated socket file exists' do
@@ -289,6 +295,16 @@ RSpec.describe 'gitlab::gitlab-workhorse' do
     end
   end
 
+  context 'with propagate_correlation_id enabled' do
+    before do
+      stub_gitlab_rb(gitlab_workhorse: { propagate_correlation_id: true })
+    end
+
+    it 'correctly renders out the workhorse service file' do
+      expect(chef_run).to render_file("/opt/gitlab/sv/gitlab-workhorse/run").with_content(/\-propagateCorrelationID/)
+    end
+  end
+
   context 'with log format defined as json' do
     before do
       stub_gitlab_rb(gitlab_workhorse: { log_format: "json" })
@@ -476,6 +492,38 @@ RSpec.describe 'gitlab::gitlab-workhorse' do
           expect(content).to match(/\[image_resizer\]\n  max_scaler_procs = 5\n  max_filesize = 1024/m)
         }
       end
+    end
+  end
+
+  context 'with workhorse keywatcher enabled' do
+    before do
+      stub_gitlab_rb(
+        gitlab_workhorse: {
+          workhorse_keywatcher: true,
+        }
+      )
+    end
+
+    it 'should generate redis block in the configuration file' do
+      expect(chef_run).to render_file(config_file).with_content { |content|
+        expect(content).to match(/\[redis\]/m)
+      }
+    end
+  end
+
+  context 'with workhorse keywatcher disabled' do
+    before do
+      stub_gitlab_rb(
+        gitlab_workhorse: {
+          workhorse_keywatcher: false,
+        }
+      )
+    end
+
+    it 'should not generate redis block in the configuration file' do
+      expect(chef_run).to render_file(config_file).with_content { |content|
+        expect(content).not_to match(/\[redis\]/m)
+      }
     end
   end
 end

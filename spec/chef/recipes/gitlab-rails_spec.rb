@@ -374,8 +374,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
     # NOTE: Test if we pass proper notifications to other resources
     context 'rails cache management' do
       before do
-        allow_any_instance_of(OmnibusHelper).to receive(:not_listening?)
-          .and_return(false)
+        stub_default_not_listening?(false)
       end
 
       it 'should notify rails cache clear resource' do
@@ -640,61 +639,6 @@ RSpec.describe 'gitlab::gitlab-rails' do
       end
     end
 
-    context 'LDAP server configuration' do
-      context 'LDAP servers are configured' do
-        let(:ldap_servers_config) do
-          <<-EOS
-            main:
-              label: 'LDAP Primary'
-              host: 'primary.ldap'
-              port: 389
-              uid: 'uid'
-              encryption: 'plain'
-              password: 's3cr3t'
-              base: 'dc=example,dc=com'
-              user_filter: ''
-
-            secondary:
-              label: 'LDAP Secondary'
-              host: 'secondary.ldap'
-              port: 389
-              uid: 'uid'
-              encryption: 'plain'
-              bind_dn: 'dc=example,dc=com'
-              password: 's3cr3t'
-              smartcard_auth: 'required'
-              base: ''
-              user_filter: ''
-          EOS
-        end
-
-        it 'exposes the LDAP server configuration' do
-          stub_gitlab_rb(
-            gitlab_rails: {
-              ldap_enabled: true,
-              ldap_servers: YAML.safe_load(ldap_servers_config)
-            })
-
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              "ldap_enabled" => true,
-              "ldap_servers" => YAML.safe_load(ldap_servers_config)
-            )
-          )
-        end
-      end
-
-      context 'LDAP is not configured' do
-        it 'does not enable LDAP' do
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              "ldap_enabled" => false
-            )
-          )
-        end
-      end
-    end
-
     context 'when seat link is enabled' do
       it 'sets seat link to true' do
         expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
@@ -720,102 +664,6 @@ RSpec.describe 'gitlab::gitlab-rails' do
             'seat_link_enabled' => false
           )
         )
-      end
-    end
-
-    context 'smartcard authentication settings' do
-      context 'smartcard authentication is configured' do
-        it 'exposes the smartcard authentication settings' do
-          stub_gitlab_rb(
-            gitlab_rails: {
-              smartcard_enabled: true
-            }
-          )
-
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              'smartcard_enabled' => true,
-              'smartcard_ca_file' => '/etc/gitlab/ssl/CA.pem',
-              'smartcard_client_certificate_required_host' => nil,
-              'smartcard_client_certificate_required_port' => 3444,
-              'smartcard_required_for_git_access' => false
-            )
-          )
-        end
-
-        context 'smartcard_client_certificate_required_host is configured' do
-          it 'sets smartcard_client_certificate_required_host based on config' do
-            stub_gitlab_rb(
-              gitlab_rails: {
-                smartcard_enabled: true,
-                smartcard_client_certificate_required_host: 'smartcard.gitlab.example.com'
-              }
-            )
-
-            expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-              hash_including(
-                'smartcard_enabled' => true,
-                'smartcard_ca_file' => '/etc/gitlab/ssl/CA.pem',
-                'smartcard_client_certificate_required_host' => 'smartcard.gitlab.example.com',
-                'smartcard_client_certificate_required_port' => 3444
-              )
-            )
-          end
-        end
-
-        context 'smartcard_required_for_git_access is enabled' do
-          it 'sets smartcard_required_for_git_access based on config' do
-            stub_gitlab_rb(
-              gitlab_rails: {
-                smartcard_enabled: true,
-                smartcard_required_for_git_access: true
-              }
-            )
-
-            expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-              hash_including(
-                'smartcard_enabled' => true,
-                'smartcard_ca_file' => '/etc/gitlab/ssl/CA.pem',
-                'smartcard_client_certificate_required_host' => nil,
-                'smartcard_client_certificate_required_port' => 3444,
-                'smartcard_required_for_git_access' => true
-              )
-            )
-          end
-        end
-
-        context 'smartcard_san_extensions' do
-          it 'sets smartcard_san_extensions based on config' do
-            stub_gitlab_rb(
-              gitlab_rails: {
-                smartcard_enabled: true,
-                smartcard_san_extensions: true
-              }
-            )
-
-            expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-              hash_including(
-                'smartcard_enabled' => true,
-                'smartcard_ca_file' => '/etc/gitlab/ssl/CA.pem',
-                'smartcard_client_certificate_required_host' => nil,
-                'smartcard_client_certificate_required_port' => 3444,
-                'smartcard_san_extensions' => true
-              )
-            )
-          end
-        end
-      end
-
-      context 'smartcard authentication is disabled' do
-        context 'smartcard authentication is not configured' do
-          it 'does not enable smartcard authentication' do
-            expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-              hash_including(
-                'smartcard_enabled' => false
-              )
-            )
-          end
-        end
       end
     end
 
@@ -1048,123 +896,6 @@ RSpec.describe 'gitlab::gitlab-rails' do
       end
     end
 
-    context 'Monitoring settings' do
-      context 'by default' do
-        it 'whitelists local subnet' do
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              'monitoring_whitelist' => ['127.0.0.0/8', '::1/128']
-            )
-          )
-        end
-
-        it 'sampler will sample every 10s' do
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              'monitoring_unicorn_sampler_interval' => 10
-            )
-          )
-        end
-      end
-
-      context 'when ip whitelist is configured' do
-        before do
-          stub_gitlab_rb(gitlab_rails: { monitoring_whitelist: %w(1.0.0.0 2.0.0.0) })
-        end
-        it 'sets the whitelist' do
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              'monitoring_whitelist' => ['1.0.0.0', '2.0.0.0']
-            )
-          )
-        end
-      end
-
-      context 'when unicorn sampler interval is configured' do
-        before do
-          stub_gitlab_rb(gitlab_rails: { monitoring_unicorn_sampler_interval: 123 })
-        end
-
-        it 'sets the interval value' do
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              'monitoring_unicorn_sampler_interval' => 123
-            )
-          )
-        end
-      end
-
-      context 'Web exporter settings' do
-        it 'disabled by default' do
-          expect(chef_run).to render_file(gitlab_yml_path).with_content { |content|
-            yaml_data = YAML.safe_load(content, [], [], true)
-            expect(yaml_data['production']['monitoring']['web_exporter']).to include('enabled' => false)
-          }
-        end
-
-        it 'enabled for Puma' do
-          stub_gitlab_rb(
-            puma: { enable: true, exporter_enabled: true },
-            unicorn: { enable: false }
-          )
-
-          expect(chef_run).to render_file(gitlab_yml_path).with_content { |content|
-            yaml_data = YAML.safe_load(content, [], [], true)
-            expect(yaml_data['production']['monitoring']['web_exporter']).to include('enabled' => true)
-          }
-        end
-
-        it 'enabled for Unicorn' do
-          stub_gitlab_rb(unicorn: { enable: true, exporter_enabled: true }, puma: { enable: false })
-
-          expect(chef_run).to render_file(gitlab_yml_path).with_content { |content|
-            yaml_data = YAML.safe_load(content, [], [], true)
-            expect(yaml_data['production']['monitoring']['web_exporter']).to include('enabled' => true)
-          }
-        end
-      end
-    end
-
-    context 'Web-server settings' do
-      context 'when Puma is enabled' do
-        before do
-          stub_gitlab_rb(
-            unicorn: { enable: true }
-          )
-        end
-
-        it 'raises an exception' do
-          expect { chef_run }.to raise_error("Only one web server (Puma or Unicorn) can be enabled at the same time!")
-        end
-      end
-
-      context 'when Puma and Unicorn are enabled' do
-        before do
-          stub_gitlab_rb(
-            puma: { enable: true },
-            unicorn: { enable: true }
-          )
-        end
-
-        it 'raises an exception' do
-          expect { chef_run }.to raise_error("Only one web server (Puma or Unicorn) can be enabled at the same time!")
-        end
-      end
-
-      context 'when Puma is enabled and Unicorn explicitly disabled' do
-        before do
-          stub_gitlab_rb(
-            puma: { enable: true },
-            unicorn: { enable: false }
-          )
-        end
-
-        it 'raises an exception' do
-          expect { chef_run }.not_to raise_error
-        end
-      end
-    end
-
     context 'Sidekiq exporter settings' do
       it 'exporter enabled but log disabled by default' do
         expect(chef_run).to render_file(gitlab_yml_path).with_content { |content|
@@ -1209,223 +940,6 @@ RSpec.describe 'gitlab::gitlab-rails' do
             yaml_data = YAML.safe_load(content, [], [], true)
             expect(yaml_data['production']['shutdown']).to include('blackout_seconds' => 20)
           }
-        end
-      end
-    end
-
-    context 'GitLab LDAP settings' do
-      context 'when ldap lowercase_usernames setting is' do
-        it 'set, sets the setting value' do
-          stub_gitlab_rb(gitlab_rails: { ldap_lowercase_usernames: true })
-
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              'ldap_lowercase_usernames' => true
-            )
-          )
-        end
-
-        it 'not set, sets default value to blank' do
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              'ldap_lowercase_usernames' => nil
-            )
-          )
-        end
-      end
-
-      it 'sets prevent_ldap_sign_in by default' do
-        expect(chef_run).to configure_gitlab_yml_using(hash_including({ 'prevent_ldap_sign_in' => false }))
-        expect(generated_yml_content['production']['ldap']).to include({ 'prevent_ldap_sign_in' => false })
-      end
-
-      it 'allows prevent_ldap_sign_in to be configured' do
-        stub_gitlab_rb(gitlab_rails: { prevent_ldap_sign_in: true })
-
-        expect(chef_run).to configure_gitlab_yml_using(hash_including({ 'prevent_ldap_sign_in' => true }))
-        expect(generated_yml_content['production']['ldap']).to include({ 'prevent_ldap_sign_in' => true })
-      end
-    end
-
-    context 'Geo settings' do
-      it 'sets the geo_node_name variable' do
-        stub_gitlab_rb(gitlab_rails: { geo_node_name: 'the name of the node' })
-
-        expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-          hash_including(
-            'geo_node_name' => 'the name of the node'
-          )
-        )
-      end
-
-      it 'sets the geo_registry_replication_enabled variable' do
-        stub_gitlab_rb(gitlab_rails: { geo_registry_replication_enabled: true })
-
-        expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-          hash_including('geo_registry_replication_enabled' => true)
-        )
-      end
-
-      it 'sets the geo_registry_replication_primary_api_url variable' do
-        stub_gitlab_rb(gitlab_rails: { geo_registry_replication_primary_api_url: true })
-
-        expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-          hash_including('geo_registry_replication_primary_api_url' => true)
-        )
-      end
-    end
-
-    context 'Prometheus self-monitoring' do
-      it 'sets the default values' do
-        expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-          hash_including(
-            prometheus_available: true,
-            prometheus_server_address: 'localhost:9090'
-          )
-        )
-        expect(chef_run).to render_file(gitlab_yml_path).with_content(/prometheus:(\s+#.*)*\s+enabled: true\s+server_address: "localhost:9090"/)
-      end
-
-      it 'allows the values to be changed' do
-        stub_gitlab_rb(prometheus: { enable: false, listen_address: '192.168.1.1:8080' })
-
-        expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-          hash_including(
-            prometheus_available: false,
-            prometheus_server_address: '192.168.1.1:8080'
-          )
-        )
-        expect(chef_run).to render_file(gitlab_yml_path).with_content(/prometheus:(\s+#.*)*\s+enabled: false\s+server_address: "192.168.1.1:8080"/)
-      end
-
-      it 'handles symbols' do
-        stub_gitlab_rb(prometheus: { enable: false, listen_address: :':8080' })
-
-        expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-          hash_including(
-            prometheus_available: false,
-            prometheus_server_address: :':8080'
-          )
-        )
-        expect(chef_run).to render_file(gitlab_yml_path).with_content(/prometheus:(\s+#.*)*\s+enabled: false\s+server_address: ":8080"/)
-      end
-
-      context 'prometheus on another server' do
-        before do
-          stub_gitlab_rb(gitlab_rails: { prometheus_address: '101.8.10.12:7070' })
-        end
-
-        it 'sets the prometheus listen address' do
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              prometheus_available: true,
-              prometheus_server_address: '101.8.10.12:7070'
-            )
-          )
-          expect(chef_run).to render_file(gitlab_yml_path).with_content(/prometheus:(\s+#.*)*\s+enabled: true\s+server_address: "101.8.10.12:7070"/)
-        end
-
-        it 'overrides the prometheus enable to true' do
-          stub_gitlab_rb(prometheus: { enable: false })
-
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              prometheus_available: true,
-              prometheus_server_address: '101.8.10.12:7070'
-            )
-          )
-          expect(chef_run).to render_file(gitlab_yml_path).with_content(/prometheus:(\s+#.*)*\s+enabled: true\s+server_address: "101.8.10.12:7070"/)
-        end
-
-        it 'overrides the prometheus listen address' do
-          stub_gitlab_rb(prometheus: { enable: false, listen_address: '192.168.1.1:8080' })
-
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              prometheus_available: true,
-              prometheus_server_address: '101.8.10.12:7070'
-            )
-          )
-          expect(chef_run).to render_file(gitlab_yml_path).with_content(/prometheus:(\s+#.*)*\s+enabled: true\s+server_address: "101.8.10.12:7070"/)
-        end
-      end
-    end
-
-    context 'Consul settings' do
-      it 'sets the default values' do
-        expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-          hash_including(
-            consul_api_url: nil
-          )
-        )
-        expect(chef_run).to render_file(gitlab_yml_path).with_content(/consul:(\s+#.*)*\s+api_url: ""/)
-      end
-
-      context 'with changed configuration values' do
-        it 'sets default address and port' do
-          stub_gitlab_rb(consul: { enable: true })
-
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              consul_api_url: 'http://localhost:8500'
-            )
-          )
-          expect(chef_run).to render_file(gitlab_yml_path).with_content(/consul:(\s+#.*)*\s+api_url: "http:\/\/localhost:8500"/)
-        end
-
-        it 'allows address to be overwritten by client_addr' do
-          stub_gitlab_rb(consul: { enable: true, configuration: { client_addr: '10.0.0.1' } })
-
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              consul_api_url: 'http://10.0.0.1:8500'
-            )
-          )
-          expect(chef_run).to render_file(gitlab_yml_path).with_content(/consul:(\s+#.*)*\s+api_url: "http:\/\/10.0.0.1:8500"/)
-        end
-
-        it 'allows address to be overwritten by addresses' do
-          stub_gitlab_rb(consul: { enable: true, configuration: { client_addr: '10.0.0.1', addresses: { http: '192.168.0.1' } } })
-
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              consul_api_url: 'http://192.168.0.1:8500'
-            )
-          )
-          expect(chef_run).to render_file(gitlab_yml_path).with_content(/consul:(\s+#.*)*\s+api_url: "http:\/\/192.168.0.1:8500"/)
-        end
-
-        it 'allows port to be overwritten' do
-          stub_gitlab_rb(consul: { enable: true, configuration: { ports: { http: 18500 } } })
-
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              consul_api_url: 'http://localhost:18500'
-            )
-          )
-          expect(chef_run).to render_file(gitlab_yml_path).with_content(/consul:(\s+#.*)*\s+api_url: "http:\/\/localhost:18500"/)
-        end
-
-        it 'disables http port by negative port number' do
-          stub_gitlab_rb(consul: { enable: true, configuration: { ports: { http: -1, https: 8501 } } })
-
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              consul_api_url: 'https://localhost:8501'
-            )
-          )
-          expect(chef_run).to render_file(gitlab_yml_path).with_content(/consul:(\s+#.*)*\s+api_url: "https:\/\/localhost:8501"/)
-        end
-
-        it 'allows address and port to be overwritten together' do
-          stub_gitlab_rb(consul: { enable: true, configuration: { client_addr: '10.0.0.1', addresses: { https: '192.168.0.1' }, ports: { http: -1, https: 18501 } } })
-
-          expect(chef_run).to create_templatesymlink('Create a gitlab.yml and create a symlink to Rails root').with_variables(
-            hash_including(
-              consul_api_url: 'https://192.168.0.1:18501'
-            )
-          )
-          expect(chef_run).to render_file(gitlab_yml_path).with_content(/consul:(\s+#.*)*\s+api_url: "https:\/\/192.168.0.1:18501"/)
         end
       end
     end
@@ -2176,6 +1690,45 @@ RSpec.describe 'gitlab::gitlab-rails' do
             )
           )
         end
+      end
+    end
+  end
+
+  context 'SMTP settings' do
+    context 'when connection pooling is not configured' do
+      it 'creates smtp_settings.rb with pooling disabled' do
+        stub_gitlab_rb(
+          gitlab_rails: {
+            smtp_enable: true
+          }
+        )
+
+        expect(chef_run).to create_templatesymlink('Create a smtp_settings.rb and create a symlink to Rails root').with_variables(
+          hash_including(
+            'smtp_pool' => false
+          )
+        )
+      end
+    end
+
+    context 'when connection pooling is enabled' do
+      it 'creates smtp_settings.rb with pooling enabled' do
+        stub_gitlab_rb(
+          gitlab_rails: {
+            smtp_enable: true,
+            smtp_pool: true
+          }
+        )
+
+        expect(chef_run).to create_templatesymlink('Create a smtp_settings.rb and create a symlink to Rails root').with_variables(
+          hash_including(
+            'smtp_pool' => true
+          )
+        )
+
+        expect(chef_run).to render_file('/var/opt/gitlab/gitlab-rails/etc/smtp_settings.rb').with_content { |content|
+          expect(content).to include('ActionMailer::Base.delivery_method = :smtp_pool')
+        }
       end
     end
   end
