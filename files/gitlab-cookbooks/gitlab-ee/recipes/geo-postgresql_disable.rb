@@ -1,6 +1,10 @@
 #
 # Copyright:: Copyright (c) 2012 Opscode, Inc.
+<<<<<<< HEAD:files/gitlab-cookbooks/monitoring/recipes/gitlab-exporter_disable.rb
+# Copyright:: Copyright (c) 2016 GitLab Inc.
+=======
 # Copyright:: Copyright (c) 2017 GitLab Inc.
+>>>>>>> 13.12.3+ce.0:files/gitlab-cookbooks/gitlab-ee/recipes/geo-postgresql_disable.rb
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +20,11 @@
 # limitations under the License.
 #
 
+<<<<<<< HEAD:files/gitlab-cookbooks/monitoring/recipes/gitlab-exporter_disable.rb
+runit_service "gitlab-exporter" do
+=======
 runit_service 'geo-postgresql' do
+>>>>>>> 13.12.3+ce.0:files/gitlab-cookbooks/gitlab-ee/recipes/geo-postgresql_disable.rb
   action :disable
 end
+>>>>>>> /tmp/meld-tmp-Remotetzm9ug_r
