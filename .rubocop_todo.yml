@@ -154,7 +154,6 @@ Performance/CollectionLiteralInLoop:
     - 'files/gitlab-cookbooks/pgbouncer/libraries/pgbouncer_helper.rb'
     - 'files/gitlab-cookbooks/repmgr/libraries/repmgr_helper.rb'
     - 'lib/gitlab/package_repository.rb'
-    - 'spec/chef/recipes/sidekiq-cluster_spec.rb'
 
 # Offense count: 1
 # Cop supports --auto-correct.
@@ -167,7 +166,6 @@ Performance/Count:
 Performance/Detect:
   Exclude:
     - 'files/gitlab-cookbooks/gitlab/libraries/patroni.rb'
-    - 'lib/gitlab/build/ha_validate/trigger.rb'
 
 # Offense count: 7
 # Cop supports --auto-correct.
@@ -322,13 +320,11 @@ Style/RedundantRegexpEscape:
   Exclude:
     - 'files/gitlab-cookbooks/gitlab/libraries/registry.rb'
     - 'files/gitlab-cookbooks/package/libraries/helpers/redhat_helper.rb'
-    - 'spec/chef/recipes/actioncable.rb'
     - 'spec/chef/recipes/add_trusted_certs_spec.rb'
     - 'spec/chef/recipes/gitlab-workhorse_spec.rb'
     - 'spec/chef/recipes/mailroom_spec.rb'
     - 'spec/chef/recipes/puma_spec.rb'
     - 'spec/chef/recipes/registry_spec.rb'
-    - 'spec/chef/recipes/sidekiq-cluster_spec.rb'
     - 'spec/chef/recipes/sidekiq_spec.rb'
     - 'spec/chef/recipes/unicorn_spec.rb'
     - 'spec/chef_helper.rb'

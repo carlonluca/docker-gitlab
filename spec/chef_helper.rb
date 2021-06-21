@@ -6,7 +6,7 @@ require 'chefspec'
 require 'ohai'
 
 # Load our cookbook libraries so we can stub them in our tests
-cookbooks = %w(package gitlab gitaly mattermost gitlab-ee letsencrypt monitoring patroni gitlab-kas gitlab-pages pgbouncer)
+cookbooks = %w(package gitlab gitaly mattermost gitlab-ee letsencrypt monitoring patroni gitlab-kas gitlab-pages pgbouncer consul)
 cookbooks.each do |cookbook|
   Dir[File.join(__dir__, "../files/gitlab-cookbooks/#{cookbook}/libraries/**/*.rb")].each { |f| require f }
 end
@@ -53,10 +53,16 @@ RSpec.configure do |config|
     allow(VersionHelper).to receive(:version).with(/-[-]?version/).and_return('foobar')
     allow_any_instance_of(RedisHelper).to receive(:installed_version).and_return('3.2.12')
     allow_any_instance_of(RedisHelper).to receive(:running_version).and_return('3.2.12')
+    allow_any_instance_of(ConsulHelper).to receive(:installed_version).and_return('1.9.6')
+    allow_any_instance_of(ConsulHelper).to receive(:running_version).and_return('1.9.6')
     stub_command('/sbin/init --version | grep upstart')
     stub_command('systemctl | grep "\-\.mount"')
     # ChefSpec::SoloRunner doesn't support Chef.event_handler, so stub it
     allow(Chef).to receive(:event_handler)
+
+    # Stub access to /etc/gitlab/initial_root_password
+    allow(File).to receive(:open).and_call_original
+    allow(File).to receive(:open).with('/etc/gitlab/initial_root_password', 'w', 0600).and_yield(double(:file, write: true)).once
 
     # Prevent chef converge from reloading any of our previously loaded libraries
     allow(Kernel).to receive(:load).and_call_original

@@ -24,11 +24,8 @@ initial_license_file = node['gitlab']['gitlab-rails']['initial_license_file'] ||
 initial_runner_token = node['gitlab']['gitlab-rails']['initial_shared_runners_registration_token']
 
 dependent_services = []
-dependent_services << "unicorn_service[unicorn]" if omnibus_helper.should_notify?("unicorn")
 dependent_services << "runit_service[puma]" if omnibus_helper.should_notify?("puma")
-dependent_services << "runit_service[actioncable]" if omnibus_helper.should_notify?("actioncable")
 dependent_services << "sidekiq_service[sidekiq]" if omnibus_helper.should_notify?("sidekiq")
-dependent_services << "sidekiq_service[sidekiq-cluster]" if omnibus_helper.should_notify?("sidekiq-cluster")
 
 env_variables = {}
 env_variables['GITLAB_ROOT_PASSWORD'] = initial_root_password if initial_root_password
@@ -40,8 +37,8 @@ ruby_block "check remote PG version" do
     remote_db_version = GitlabRailsEnvHelper.db_version
     if remote_db_version && remote_db_version.to_f < 12
       LoggingHelper.warning(%q(
-        Note that PostgreSQL 12 will become the minimum required PostgreSQL version in GitLab 14.0 (May 2021).
-        Support for PostgreSQL 11 will be removed in GitLab 14.0.
+        Note that PostgreSQL 12 is the minimum required PostgreSQL version in GitLab 14.0.
+        Support for PostgreSQL 11 has been removed.
         To upgrade, please see: https://docs.gitlab.com/omnibus/settings/database.html#upgrade-packaged-postgresql-server
       ))
     end

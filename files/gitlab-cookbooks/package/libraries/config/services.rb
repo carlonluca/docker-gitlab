@@ -43,8 +43,6 @@ module Services
     service 'storage_check'
     service 'crond'
     service 'praefect'
-    service 'unicorn'
-    service 'actioncable'
   end
 
   # Define the services included in the EE edition of GitLab
@@ -54,9 +52,7 @@ module Services
     service 'geo_postgresql',     groups: %w(geo postgres)
     service 'pgbouncer',          groups: %w(postgres pgbouncer_role)
     service 'pgbouncer_exporter', groups: %w(pgbouncer_role monitoring)
-    service 'repmgrd',            groups: %w(postgres postgres_role)
     service 'patroni',            groups: %w(postgres patroni_role)
-    service 'consul',             groups: %w(consul_role ha pgbouncer_role postgres_role patroni_role)
-    service 'sidekiq_cluster',    groups: ['sidekiq']
+    service 'consul',             groups: %w(consul_role ha pgbouncer_role patroni_role)
   end
 end

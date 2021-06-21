@@ -19,7 +19,7 @@ class PatroniHelper < BaseHelper
   end
 
   def bootstrapped?
-    File.exist?(File.join(node['postgresql']['data_dir'], 'patroni.dynamic.json'))
+    File.exist?(File.join(node['postgresql']['dir'], 'data', 'patroni.dynamic.json'))
   end
 
   def scope
@@ -31,12 +31,6 @@ class PatroniHelper < BaseHelper
 
     cmd = "#{ctl_command} -c #{node['patroni']['dir']}/patroni.yaml list | grep #{node.name} | cut -d '|' -f 5"
     do_shell_out(cmd).stdout.chomp.strip
-  end
-
-  def repmgr_data_present?
-    cmd = "/opt/gitlab/embedded/bin/repmgr -f #{node['postgresql']['dir']}/repmgr.conf cluster show"
-    status = do_shell_out(cmd, node['postgresql']['username'])
-    status.exitstatus.zero?
   end
 
   def dynamic_settings
@@ -82,7 +76,7 @@ class PatroniHelper < BaseHelper
     {
       'patroni' => {
         'config_dir' => node['patroni']['dir'],
-        'data_dir' => node['patroni']['data_dir'],
+        'data_dir' => File.join(node['patroni']['dir'], 'data'),
         'log_dir' => node['patroni']['log_directory'],
         'api_address' => "#{node['patroni']['listen_address'] || '127.0.0.1'}:#{node['patroni']['port']}"
       }

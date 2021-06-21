@@ -39,7 +39,7 @@ sudo crontab -e -u root
 
 The cron table will appear in an editor.
 
-Enter the command to create a compressed tar file containing the contents of
+Enter the command to create a tar file containing the contents of
 `/etc/gitlab/`. For example, schedule the backup to run every morning after a
 weekday, Tuesday (day 2) through Saturday (day 6):
 
@@ -84,9 +84,8 @@ backups older than the current time minus the `backup_keep_time`.
 You can provide the parameter `--no-delete-old-backups` if you want to keep all existing backups.
 
 WARNING:
-If no parameter is provided the current default is `--no-delete-old-backups`. In GitLab 14.0 the default setting
-will be `--delete-old-backups` - meaning that we will begin removing older configuration backups by default,
-according to your `backup_keep_time` setting.
+If no parameter is provided the default is `--delete-old-backups`, which will delete any backups
+older than the current time minus the `backup_keep_time`, if `backup_keep_time` is greater than 0.
 
 ### Separate configuration backups from application data
 

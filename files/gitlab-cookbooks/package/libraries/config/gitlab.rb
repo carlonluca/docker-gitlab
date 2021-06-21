@@ -32,7 +32,6 @@ module Gitlab
   role('redis_sentinel').use { RedisSentinelRole }
   role('redis_master').use { RedisMasterRole }
   role('redis_replica')
-  role('redis_slave')
   role('geo_primary',   manage_services: false).use { GeoPrimaryRole }
   role('geo_secondary', manage_services: false).use { GeoSecondaryRole }
   role('monitoring').use { MonitoringRole }
@@ -90,9 +89,8 @@ module Gitlab
     attribute('gitlab_rails',     priority: 15).use { GitlabRails } # Parse rails first as others may depend on it
     attribute('gitlab_workhorse', priority: 20).use { GitlabWorkhorse }
     attribute('logging',          priority: 20).use { Logging }
-    attribute('unicorn',          priority: 20).use { Unicorn }
+    attribute('unicorn',          priority: 20)
     attribute('puma',             priority: 20).use { Puma }
-    attribute('actioncable',      priority: 20).use { ActionCable }
     attribute('mailroom',         priority: 20).use { IncomingEmail }
     attribute('storage_check',    priority: 30).use { StorageCheck }
     attribute('nginx',            priority: 40).use { Nginx } # Parse nginx last so all external_url are parsed before it
@@ -102,14 +100,14 @@ module Gitlab
     attribute('pages_external_url',      default: nil)
     attribute('runtime_dir',             default: nil)
     attribute('git_data_dir',            default: nil)
+    attribute('actioncable')
     attribute('bootstrap')
     attribute('omnibus_gitconfig')
     attribute('manage_accounts')
     attribute('manage_storage_directories')
     attribute('user')
     attribute('gitlab_ci')
-    attribute('sidekiq').use { Sidekiq }
-    attribute('sidekiq_cluster').use { SidekiqCluster }
+    attribute('sidekiq')
     attribute('mattermost_nginx')
     attribute('pages_nginx')
     attribute('registry_nginx')

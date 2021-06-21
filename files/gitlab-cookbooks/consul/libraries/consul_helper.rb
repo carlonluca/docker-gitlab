@@ -82,7 +82,7 @@ class ConsulHelper
 
     ha_solution = postgresql_ha_solution
 
-    cfg = {
+    {
       'service' => {
         'name' => node['consul']['internal']['postgresql_service_name'],
         'address' => '',
@@ -95,14 +95,9 @@ class ConsulHelper
         }
       }
     }
-
-    cfg['watches'] = node['consul']['internal']['postgresql_watches_repmgr'] if ha_solution == 'repmgr'
-
-    cfg
   end
 
   def postgresql_ha_solution
-    return 'repmgr' unless node['patroni']['enable']
     return 'patroni_standby_cluster' if node['patroni'].key?('standby_cluster') && node['patroni']['standby_cluster']['enable']
 
     'patroni'
@@ -122,5 +117,39 @@ class ConsulHelper
   # @return [Array] list of services that are disabled
   def disabled_services
     SERVICES - node['consul']['services']
+  end
+
+  def installed_version
+    return unless OmnibusHelper.new(@node).service_up?('consul')
+
+    command = '/opt/gitlab/embedded/bin/consul version'
+    command_output = VersionHelper.version(command)
+    raise "Execution of the command `#{command}` failed" unless command_output
+
+    version_match = command_output.match(/Consul v(?<consul_version>\d*\.\d*\.\d*)/)
+    raise "Execution of the command `#{command}` generated unexpected output `#{command_output.strip}`" unless version_match
+
+    version_match['consul_version']
+  end
+
+  def running_version
+    return unless OmnibusHelper.new(@node).service_up?('consul')
+
+    info = get_api('/v1/agent/self') do |response|
+      response.code == '200' ? JSON.parse(response.body, symbolize_names: true) : {}
+    end
+
+    info[:Config][:Version] unless info.empty?
+  end
+
+  private
+
+  def get_api(endpoint, header = nil)
+    uri = URI(api_url)
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      http.request_get(endpoint, header) do |response|
+        return yield response
+      end
+    end
   end
 end

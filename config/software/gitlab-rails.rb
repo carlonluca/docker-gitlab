@@ -42,7 +42,6 @@ dependency 'curl'
 dependency 'rsync'
 dependency 'libicu'
 dependency 'postgresql'
-dependency 'postgresql_new'
 dependency 'python-docutils'
 dependency 'krb5'
 dependency 'registry'
@@ -54,7 +53,6 @@ dependency 'exiftool'
 
 if EE
   dependency 'pgbouncer'
-  dependency 'repmgr'
   dependency 'patroni'
   dependency 'gitlab-elasticsearch-indexer'
 end

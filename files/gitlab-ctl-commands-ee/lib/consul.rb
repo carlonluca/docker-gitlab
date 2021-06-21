@@ -1,7 +1,5 @@
 require 'mixlib/shellout'
 
-require_relative 'repmgr'
-
 class ConsulHandler
   WatcherError = Class.new(StandardError)
 
@@ -27,6 +25,10 @@ class ConsulHandler
         run_consul("kv delete #{key}")
       end
 
+      def get(key)
+        run_consul("kv get #{key}")
+      end
+
       protected
 
       def run_consul(cmd)
@@ -37,40 +39,12 @@ class ConsulHandler
         rescue StandardError => e
           puts e
           puts command.stderr
+          raise ConsulError, "#{e}: #{command.stderr}"
         end
+        command.stdout
       end
     end
   end
 
-  class Watchers
-    class << self
-      def handle_failed_master(input)
-        return if input.chomp.eql?('null')
-
-        node = RepmgrHandler::Node.new
-        unless node.is_master?
-          # wait 5 seconds for the actual master node to handle the removal
-          sleep 5
-          return
-        end
-
-        begin
-          data = JSON.parse(input)
-        rescue JSON::ParserError
-          raise ConsulHandler::WatcherError, "Invalid input detected: '#{input}'"
-        end
-
-        data.each do |fm|
-          node_id = fm['Key'].split('/').last
-          begin
-            RepmgrHandler::Master.remove(node_id: node_id, user: 'gitlab-consul')
-          rescue StandardError
-            ConsulHandler::Kv.put(fm['Key'])
-          else
-            ConsulHandler::Kv.delete(fm['Key'])
-          end
-        end
-      end
-    end
-  end
+  ConsulError = Class.new(StandardError)
 end

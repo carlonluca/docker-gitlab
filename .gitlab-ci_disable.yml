@@ -5,9 +5,8 @@ stages:
   - prepare
   - tests
   - post-test
-  - gitlab_com:package
-  - gitlab_com:upload_deploy
-  - package-and-image
+  - package
+  - image
   - scan-dependencies
   - staging_upload
   - package-and-image-release
@@ -51,7 +50,7 @@ variables:
   # will use images from that registry and not depend on GitLab.com
   BUILDER_IMAGE_REGISTRY: "registry.gitlab.com/gitlab-org/gitlab-omnibus-builder"
   PUBLIC_BUILDER_IMAGE_REGISTRY: "registry.gitlab.com/gitlab-org/gitlab-omnibus-builder"
-  BUILDER_IMAGE_REVISION: "1.2.0"
+  BUILDER_IMAGE_REVISION: "1.6.0"
   # The registry to pull the assets image from
   ASSET_REGISTRY: "${CI_REGISTRY}"
   ASSET_SYNC_EXISTING_REMOTE_FILES: "keep"
@@ -65,7 +64,7 @@ variables:
   AUTO_DEPLOY_TAG_REGEX: '^\d+\.\d+\.\d+\+[^ ]{7,}\.[^ ]{7,}$'
   # Default environment for auto-deploy
   AUTO_DEPLOY_ENVIRONMENT: 'pre'
-  MAX_PACKAGE_SIZE_MB: "975"
+  MAX_PACKAGE_SIZE_MB: "985"
   OMNIBUS_GITLAB_MIRROR_ID: "14588374"
   DOCS_GITLAB_REPO_SUFFIX: "omnibus"
 
@@ -83,7 +82,7 @@ variables:
 
 before_script:
   - export CE_ONLY=(Raspberry)
-  - export EE_ONLY=(SLES HA-Validate)
+  - export EE_ONLY=(SLES RAT)
   - for job in "${CE_ONLY[@]}"; do
       if [[ "${CI_JOB_NAME}" =~ ${job} ]]; then
         if ./support/is_gitlab_ee.sh; then

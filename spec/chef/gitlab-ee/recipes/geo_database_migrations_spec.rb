@@ -33,10 +33,7 @@ RSpec.describe 'gitlab-ee::geo-database-migrations' do
         redis
         redis-exporter
         sidekiq
-        sidekiq-cluster
-        unicorn
         puma
-        actioncable
         gitaly
         geo-postgresql
         gitlab-pages

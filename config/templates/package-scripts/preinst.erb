@@ -9,6 +9,7 @@ mkdir -p /var/log/gitlab/reconfigure
 
 skip_backup_file=/etc/gitlab/skip-auto-backup
 skip_reconfigure_file=/etc/gitlab/skip-auto-reconfigure
+skip_unmigrated_data_check=/etc/gitlab/skip-unmigrated-data-check
 
 # environment may contain these - clear them out
 OLD_VERSION_STRING=""
@@ -39,19 +40,7 @@ fi
 upgrade_check() {
   # Minimum version from which jumps are permitted to current version.
   # Follows https://docs.gitlab.com/ee/update/index.html#upgrade-paths
-  MIN_VERSION=13.0
-
-  # If this succeeds, then gitlab-ctl upgrade-check exists, and passed
-  if ctl_results=$(MIN_VERSION=${MIN_VERSION} gitlab-ctl upgrade-check "${OLD_VERSION_STRING}" "${NEW_MAJOR_VERSION}.${NEW_MINOR_VERSION}") ; then
-    return 0
-  fi
-
-  # gitlab-ctl exits 1, and the first line is "I don't know that command."
-  # if a command doesn't exist
-  found=$(echo "${ctl_results}" | head -n 1)
-  if [ "${found}" != "I don't know that command." ] ; then
-    exit 1
-  fi
+  MIN_VERSION=13.12
 
   if [ -n "${OLD_VERSION_STRING}" ] ; then
     # Checking
@@ -69,7 +58,7 @@ upgrade_check() {
 }
 
 pg_check() {
-  PG_MIN_VERSION=11
+  PG_MIN_VERSION=12
 
   # Fetch the currently running version from the database
   # If this doesn't work, assume this isn't a database node
@@ -95,13 +84,55 @@ pg_check() {
   fi
 }
 
+unmigrated_data_check() {
+  if [ -e "${skip_unmigrated_data_check}" ] ; then
+    # The user wants us to do nothing
+    return
+  fi
+
+  if ( [ ! -d ${DEST_DIR}/service/puma ] && [ ! -d ${DEST_DIR}/service/sidekiq ] ); then
+    notify
+    notify "This node does not appear to be running puma and/or sidekiq services"
+    notify "Skipping unmigrated data check, if you think this is an error exit now"
+    notify
+    return
+  fi
+
+  notify "Checking for unmigrated data on legacy storage"
+  output=$(gitlab-rake gitlab:storage:legacy_attachments gitlab:storage:legacy_projects 2>&1);
+
+  if [ $? -ne 0 ]; then
+    notify
+    notify "Upgrade failed. Could not check for unmigrated data on legacy storage."
+    notify
+    notify "${output}"
+    unmigrated_data_check_failed
+  fi
+
+  if ! (echo $output | grep 'Found 0 attachments' && echo $output | grep 'Found 0 projects') > /dev/null 2>&1; then
+    notify
+    notify "Legacy storage is no longer supported. Please migrate your data to hashed storage."
+    notify "Check https://docs.gitlab.com/ee/administration/raketasks/storage.html#migrate-to-hashed-storage for details."
+    unmigrated_data_check_failed
+  fi
+}
+
+unmigrated_data_check_failed() {
+  notify
+  notify "If you want to skip this check, run the following command and try again:"
+  notify
+  notify " sudo touch ${skip_unmigrated_data_check}"
+  notify
+  exit 1
+}
+
 main() {
   if [ -e "${skip_reconfigure_file}" ] ; then
     # The user wants us to do nothing
     return
   fi
 
-  if ( [ -d ${DEST_DIR}/service/unicorn ] || [ -d ${DEST_DIR}/service/puma ] ) && [ ! -e "${skip_backup_file}" ] ; then
+  if [ -d ${DEST_DIR}/service/puma ] && [ ! -e "${skip_backup_file}" ] ; then
     notify "Automatically backing up only the GitLab SQL database (excluding everything else!)"
     if ! ${DEST_DIR}/bin/gitlab-rake gitlab:backup:create SKIP=repositories,uploads,builds,artifacts,lfs,registry,pages ; then
       backup_failed "Database"
@@ -140,6 +171,7 @@ case "$1" in
     upgrade_check
     config_check
     pg_check
+    unmigrated_data_check
     main
     ;;
   upgrade)
@@ -147,6 +179,7 @@ case "$1" in
     upgrade_check
     config_check
     pg_check
+    unmigrated_data_check
     main
     ;;
   *)

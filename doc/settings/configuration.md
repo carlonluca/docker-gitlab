@@ -101,7 +101,7 @@ recommend 4GB RAM, and 4 or 8 CPU cores.
 Follow the steps below to enable relative URL in GitLab:
 
 1. (Optional) If you run short on resources, you can temporarily free up some
-   memory by shutting down Puma (or Unicorn) and Sidekiq with the following
+   memory by shutting down Puma and Sidekiq with the following
    command:
 
    ```shell
@@ -135,16 +135,7 @@ If you stumble upon any issues, see the [troubleshooting section](#relative-url-
 ### Disable relative URL in GitLab
 
 To disable the relative URL, follow the same steps as above and set up the
-`external_url` to a one that doesn't contain a relative path. If you are using
-Unicorn, you may need to explicitly restart it after the reconfigure task is
-done:
-
-```shell
-sudo gitlab-ctl restart unicorn
-```
-
-Puma already gets a full restart during reconfigure, so an explicit one is not
-needed.
+`external_url` to a one that doesn't contain a relative path.
 
 If you stumble upon any issues, see the [troubleshooting section](#relative-url-troubleshooting).
 
@@ -289,6 +280,15 @@ prometheus['gid'] = 1240
 ```
 
 Run `sudo gitlab-ctl reconfigure` for the changes to take effect.
+
+If you're changing `user['uid']` and `user['gid']`, you should make sure to update the uid/guid of any files not managed by Omnibus directly, for example logs:
+
+```shell
+find /var/log/gitlab -uid <old_uid> | xargs -I:: chown git ::
+find /var/log/gitlab -gid <old_uid> | xargs -I:: chgrp git ::
+find /var/opt/gitlab -uid <old_uid> | xargs -I:: chown git ::
+find /var/opt/gitlab -gid <old_uid> | xargs -I:: chgrp git ::
+```
 
 ## Disable user and group account management
 
@@ -652,9 +652,10 @@ CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) for more
 details.
 
 GitLab 12.2 added support for [CSP and nonces with inline
-JavaScript](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/script-src)
-and it is enabled by default since GitLab 13.12.
-The following configuration example will work for most GitLab installations:
+JavaScript](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/script-src).
+It is [not configured on by default
+yet](https://gitlab.com/gitlab-org/gitlab/-/issues/30720). An example
+configuration that will work for most installations of GitLab is below:
 
 ```ruby
 gitlab_rails['content_security_policy'] = {
@@ -662,28 +663,18 @@ gitlab_rails['content_security_policy'] = {
     report_only: false,
     directives: {
       default_src: "'self'",
-      base_uri: "'self'",
-      child_src: "'none'",
-      connect_src: "'self'",
-      font_src: "'self'",
-      form_action: "'self' https: http:",
-      frame_ancestors: "'self'",
+      script_src: "'self' 'unsafe-inline' 'unsafe-eval' https://www.recaptcha.net https://apis.google.com",
+      frame_ancestor: "'self'",
       frame_src: "'self' https://www.recaptcha.net/ https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com https://content-cloudresourcemanager.googleapis.com",
-      img_src: "'self' data: blob: http: https:",
-      manifest_src: "'self'",
-      media_src: "'self'",
-      script_src: "'strict-dynamic' 'self' 'unsafe-inline' 'unsafe-eval' https://www.recaptcha.net https://apis.google.com",
-      style_src: "'self' 'unsafe-inline'",
-      worker_src: "'self'",
-      object_src: "'none'",
-      report_uri: nil
+      img_src: "* data: blob:",
+      style_src: "'self' 'unsafe-inline'"
     }
 }
 ```
 
 Improperly configuring the CSP rules could prevent GitLab from working
 properly. Before rolling out a policy, you may also want to change
-`report_only` to `true` and set a `report_uri` to test the configuration.
+`report_only` to `true` to test the configuration.
 
 ## Setting initial root password on installation
 
@@ -695,9 +686,29 @@ For example:
 GITLAB_ROOT_PASSWORD="<strongpassword>" EXTERNAL_URL="http://gitlab.exmaple.com" apt install gitlab-ee
 ```
 
+## Setting allowed hosts to prevent host header attacks
+
+To prevent GitLab from accepting a host header other than
+what's intended:
+
+1. Edit `/etc/gitlab/gitlab.rb` and configure `allowed_hosts`:
+
+   ```ruby
+   gitlab_rails['allowed_hosts'] = ['gitlab.example.com']
+   ```
+
+1. Reconfigure GitLab for the changes to take effect:
+
+   ```shell
+   sudo gitlab-ctl reconfigure
+   ```
+
+There are no known security issues in GitLab caused by not configuring `allowed_hosts`,
+but it's recommended for defense in depth against potential [host header attacks](https://portswigger.net/web-security/host-header).
+
 ## Setting up LDAP sign-in
 
-See [LDAP setup documentation](ldap.md).
+See [LDAP setup documentation](https://docs.gitlab.com/ee/administration/auth/ldap.html).
 
 ## Smartcard authentication
 
@@ -748,10 +759,6 @@ See [OmniAuth documentation](https://docs.gitlab.com/ee/integration/omniauth.htm
 ## Adjusting Puma settings
 
 See [Puma documentation](puma.md)
-
-## Adjusting Unicorn settings
-
-See [Unicorn documentation](unicorn.md).
 
 ## Setting the NGINX listen address or addresses
 

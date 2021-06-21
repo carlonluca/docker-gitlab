@@ -202,6 +202,7 @@ If successful, you can now run any Mattermost CLI command with your new shell al
 
 ```shell
 $ mattermost-cli version
+
 [sudo] password for username:
 {"level":"info","ts":1569614421.9058893,"caller":"utils/i18n.go:83","msg":"Loaded system translations for 'en' from '/opt/gitlab/embedded/service/mattermost/i18n/en.json'"}
 {"level":"info","ts":1569614421.9062793,"caller":"app/server_app_adapters.go:58","msg":"Server is initializing..."}
@@ -284,6 +285,7 @@ Below is a list of Mattermost versions for GitLab 11.10 and later:
 | 13.10 | 5.32 |
 | 13.11 | 5.33 |
 | 13.12 | 5.34 |
+| 14.0 | 5.35 |
 
 NOTE:
 When upgrading the Mattermost version, it is essential to check the

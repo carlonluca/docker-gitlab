@@ -1,10 +1,10 @@
 ---
 stage: Monitor
-group: APM
+group: Monitor
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/engineering/ux/technical-writing/#designated-technical-writers
 ---
 
-# Omnibus GitLab Logs
+# Omnibus GitLab logs **(FREE SELF)**
 
 GitLab includes an [advanced log system](https://docs.gitlab.com/ee/administration/logs.html) where every service and component within GitLab will output system logs. Here are the Omnibus configuration settings and tools for managing these logs.
 
@@ -122,10 +122,6 @@ are only rotated when they change. With this setting in place, some tidying can 
 - Empty logs which were rotated and compressed by older versions of GitLab. These
   empty logs are usually 20 bytes in size.
 
-NOTE:
-Currently the Gitaly-specific [GitLab Shell log](https://docs.gitlab.com/ee/administration/logs.html#gitlab-shelllog) is not rotated by logrotate.
-See [Issue #4938](https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/4938) for more details.
-
 ### Run logrotate manually
 
 Logrotate is a scheduled job but it can also be triggered on-demand.
@@ -136,7 +132,7 @@ To manually trigger GitLab log rotation with `logrotate`, use the following comm
 /opt/gitlab/embedded/sbin/logrotate -fv -s /var/opt/gitlab/logrotate/logrotate.status /var/opt/gitlab/logrotate/logrotate.conf
 ```
 
-## UDP log forwarding **(STARTER ONLY)**
+## UDP log forwarding **(PREMIUM SELF)**
 
 Omnibus GitLab can utilize the UDP logging feature in svlogd as well as sending non-svlogd logs to a syslog-compatible remote system using UDP.
 To configure Omnibus GitLab to send syslog-protocol messages via UDP, use the following settings:
@@ -195,7 +191,7 @@ postgresql['logging_collector'] = 'on'
 
 A restart of the database is required for this to take effect. For more
 details, see the [PostgreSQL
-documentation](https://www.postgresql.org/docs/11/runtime-config-logging.html).
+documentation](https://www.postgresql.org/docs/12/runtime-config-logging.html).
 
 ## Text logging
 

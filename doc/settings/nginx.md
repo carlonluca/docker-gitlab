@@ -373,15 +373,26 @@ nginx['listen_https'] = false
 
 Other bundled components (Registry, Pages, etc) use a similar strategy for
 proxied SSL. Set the particular component's `*_external_url` with `https://` and
-prefix the `nginx[...]` configuration with the component name. For example, for
-Registry use the following configuration:
+prefix the `nginx[...]` configuration with the component name. For example, the
+GitLab Container Registry configuration is prefixed with `registry_`:
 
-```ruby
-registry_external_url 'https://registry.example.com'
+- [GitLab Container Registry listening under its own subdomain](https://docs.gitlab.com/ee/administration/packages/container_registry.html#configure-container-registry-under-its-own-domain):
 
-registry_nginx['listen_port'] = 80
-registry_nginx['listen_https'] = false
-```
+  ```ruby
+  registry_external_url 'https://registry.example.com'
+
+  registry_nginx['listen_port'] = 80
+  registry_nginx['listen_https'] = false
+  ```
+  
+- [GitLab Container Registry listening on a port under main GitLab domain](https://docs.gitlab.com/ee/administration/packages/container_registry.html#configure-container-registry-under-an-existing-gitlab-domain):
+
+  ```ruby
+  registry_external_url 'https://example.com:5050'
+
+  registry_nginx['listen_port'] = 5050
+  registry_nginx['listen_https'] = false
+  ```
 
 The same format can be used for Pages (`pages_` prefix) and Mattermost (`mattermost_` prefix).
 
@@ -830,7 +841,7 @@ sudo usermod -aG gitlab-www www-data
 
 ## Templates
 
-Other than the Passenger configuration in place of Unicorn and the lack of HTTPS
+Other than the Passenger configuration in place of Puma and the lack of HTTPS
 (although this could be enabled) these files are mostly identical to:
 
 - [Bundled GitLab NGINX configuration](https://gitlab.com/gitlab-org/omnibus-gitlab/tree/master/files/gitlab-cookbooks/gitlab/templates/default/nginx-gitlab-http.conf.erb)

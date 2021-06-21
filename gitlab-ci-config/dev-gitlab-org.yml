@@ -6,7 +6,7 @@
 #############
 
 .unless-dev: &unless-dev
-  if: '$CI_PROJECT_PATH != "gitlab/omnibus-gitlab"'
+  if: '$CI_PROJECT_PATH != "gitlab/omnibus-gitlab" || $JH_DEV == "true"'
 
 .if-branch: &if-branch
   if: '$CI_COMMIT_BRANCH'
@@ -243,6 +243,10 @@
       when: never
     - <<: *unless-dev
       when: never
+    - <<: *if-auto-deploy-tag
+      when: never
+    - <<: *if-ee-tag
+      when: never
     - <<: *if-ce-tag
 
 .dev-ce-tag-only-manual: &dev-ce-tag-only-manual
@@ -336,7 +340,7 @@
   <<: *branch-cache
 
 .branch_template: &branch_build
-  stage: package-and-image
+  stage: package
   script:
     - support/import_gpg_secrets.sh
     - bundle exec rake cache:populate
@@ -352,8 +356,9 @@
     <<: *package-artifacts
     reports:
       junit: junit_ci_rspec.xml
-  dependencies:
-    - fetch-assets
+  needs:
+    - job: fetch-assets
+      optional: true
   cache: *branch-cache
   retry: 1
 
@@ -369,7 +374,7 @@
   retry: 1
 
 .tag_template: &tag_build
-  stage: package-and-image
+  stage: package
   script:
     # Always compile assets for auto-deploy builds,
     # this is done for auto-deploy builds
@@ -393,8 +398,9 @@
   - docker-builder
   <<: *dev-tag-only-except-auto-deploy
   artifacts: *package-artifacts-release
-  dependencies:
-    - fetch-assets
+  needs:
+    - job: fetch-assets
+      optional: true
   cache: *tag-cache
   retry: 1
 
@@ -463,7 +469,8 @@
   - docker-builder
   <<: *dev-tag-only-except-auto-deploy-or-rc-manual
   cache: *tag-cache
-  dependencies: []
+  needs:
+    - Ubuntu-20.04
   retry: 1
 
 .aws_marketplace_release: &aws_marketplace_release
@@ -474,7 +481,6 @@
     - export AWS_ACCESS_KEY_ID=$AWS_AMI_ACCESS_KEY_ID
     - export AWS_SECRET_ACCESS_KEY=$AWS_AMI_SECRET_ACCESS_KEY
     - bundle exec rake aws:marketplace:release
-  dependencies: []
   <<: *dev-ee-tag-only-except-auto-deploy-or-rc
 
 ###########################
@@ -486,17 +492,14 @@
 # We build package for deploying to GitLab.com first
 Ubuntu-16.04-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_16.04:${BUILDER_IMAGE_REVISION}"
-  stage: gitlab_com:package
   extends: .branch_template
 
 Ubuntu-18.04-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_18.04:${BUILDER_IMAGE_REVISION}"
-  stage: gitlab_com:package
   extends: .branch_template
 
 Ubuntu-20.04-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04:${BUILDER_IMAGE_REVISION}"
-  stage: gitlab_com:package
   extends: .branch_template
 
 Debian-9-branch:
@@ -526,14 +529,6 @@ CentOS-8-arm64-branch:
   <<: *branch_build
   tags:
   - docker-arm-builder
-OpenSUSE-15.1-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.1:${BUILDER_IMAGE_REVISION}"
-  <<: *branch_build
-OpenSUSE-15.1-arm64-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.1_arm64:${BUILDER_IMAGE_REVISION}"
-  <<: *branch_build
-  tags:
-  - docker-arm-builder
 OpenSUSE-15.2-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.2:${BUILDER_IMAGE_REVISION}"
   <<: *branch_build
@@ -553,7 +548,7 @@ SLES-12.5-branch:
 
 Docker-branch:
   extends: .docker_job
-  stage: package-and-image
+  stage: image
   script:
   - bundle exec rake docker:build:image
   - bundle exec rake docker:push:staging
@@ -562,12 +557,14 @@ Docker-branch:
   tags:
   - docker-builder
   cache: *branch-cache
-  dependencies: []
+  needs:
+    - job: Ubuntu-20.04-branch
+      artifacts: false
   retry: 1
 
 QA-branch:
   extends: .docker_job
-  stage: package-and-image
+  stage: image
   variables:
     QA_SCREENSHOTS_DIR: $CI_PROJECT_DIR/screenshots
   script:
@@ -584,8 +581,9 @@ QA-branch:
   tags:
   - docker-builder
   cache: *branch-cache
-  dependencies:
-    - Ubuntu-20.04-branch
+  needs:
+    - job: Ubuntu-20.04-branch
+      artifacts: false
   retry: 1
 
 Raspberry-Pi-2-Buster-branch:
@@ -593,15 +591,16 @@ Raspberry-Pi-2-Buster-branch:
   <<: *rpi_branch_build
 
 # This job runs only on nightly EE builds
-HA-Validate-Nightly:
+RAT-Nightly:
   stage: slow_jobs
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_16.04:${BUILDER_IMAGE_REVISION}"
   script:
-    - '[[ -n "${NIGHTLY}" ]] || exit 0'
-    - bundle exec rake qa:ha:nightly
-  <<: *dev-ee-nightly-only
+    - bundle exec rake qa:rat:nightly
   cache: *branch-cache
-  dependencies: []
+  needs:
+    - Ubuntu-20.04-branch
+  allow_failure: true
+  <<: *dev-ee-nightly-only
 
 ############################
 #     Release pipeline     #
@@ -612,21 +611,21 @@ HA-Validate-Nightly:
 # We build package for deploying to GitLab.com first
 Ubuntu-16.04:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_16.04:${BUILDER_IMAGE_REVISION}"
-  stage: gitlab_com:package
+  stage: package
   extends: .tag_template
   # Also build for auto-deploy tags
   <<: *dev-tag-only
 
 Ubuntu-18.04:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_18.04:${BUILDER_IMAGE_REVISION}"
-  stage: gitlab_com:package
+  stage: package
   extends: .tag_template
   # Also build for auto-deploy tags
   <<: *dev-tag-only
 
 Ubuntu-20.04:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04:${BUILDER_IMAGE_REVISION}"
-  stage: gitlab_com:package
+  stage: package
   extends: .tag_template
   # Also build for auto-deploy tags
   <<: *dev-tag-only
@@ -637,14 +636,14 @@ Ubuntu-20.04:
 ## the upload and deploy stage for GitLab.com
 Docker-QA:
   extends: .docker_job
-  stage: gitlab_com:package
+  stage: image
   script:
     - bundle exec rake qa:build qa:push:staging
   <<: *dev-tag-only
   cache: *tag-cache
   tags:
   - docker-builder
-  dependencies: []
+  needs: []
   retry: 1
 
 ###########################################################
@@ -662,30 +661,33 @@ Docker-QA:
 ##                after this package is built
 
 Ubuntu-16.04-upload-deploy:
-  stage: gitlab_com:upload_deploy
   extends: .staging_upload_template
-  dependencies:
-    - Ubuntu-16.04
-    - Ubuntu-16.04-branch
+  needs:
+    - job: Ubuntu-16.04
+      optional: true
+    - job: Ubuntu-16.04-branch
+      optional: true
   script:
     - bundle exec rake repository:upload:staging[$STAGING_REPO]
     - if [ -n "$DEPLOYER_TRIGGER_TOKEN" ]; then bundle exec rake gitlab_com:deployer; fi
   <<: *dev-tag-and-nightly
 
 Ubuntu-18.04-staging:
-  stage: gitlab_com:upload_deploy
   extends: .staging_upload_template
-  dependencies:
-    - Ubuntu-18.04
-    - Ubuntu-18.04-branch
+  needs:
+    - job: Ubuntu-18.04
+      optional: true
+    - job: Ubuntu-18.04-branch
+      optional: true
   <<: *dev-tag-and-nightly
 
 Ubuntu-20.04-staging:
-  stage: gitlab_com:upload_deploy
   extends: .staging_upload_template
-  dependencies:
-    - Ubuntu-20.04
-    - Ubuntu-20.04-branch
+  needs:
+    - job: Ubuntu-20.04
+      optional: true
+    - job: Ubuntu-20.04-branch
+      optional: true
   <<: *dev-tag-and-nightly
 
 ### Package builds
@@ -713,15 +715,6 @@ CentOS-8:
   <<: *tag_build
 CentOS-8-arm64:
   image: "${BUILDER_IMAGE_REGISTRY}/centos_8_arm64:${BUILDER_IMAGE_REVISION}"
-  <<: *tag_build
-  tags:
-  - docker-arm-builder
-OpenSUSE-15.1:
-  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.1:${BUILDER_IMAGE_REVISION}"
-  <<: *tag_build
-  <<: *tag_build
-OpenSUSE-15.1-arm64:
-  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.1_arm64:${BUILDER_IMAGE_REVISION}"
   <<: *tag_build
   tags:
   - docker-arm-builder
@@ -758,7 +751,7 @@ create_omnibus_manifest:
 
 dependency_scanning:
   image: "registry.gitlab.com/gitlab-org/security-products/gitlab-depscan:2.1.0"
-  stage: package-and-image
+  stage: package
   variables:
     REPORT_PATH: ./
     NVD_DB_UPDATE: "true"
@@ -779,7 +772,7 @@ dependency_scanning:
 
 Docker:
   extends: .docker_job
-  stage: package-and-image
+  stage: image
   script:
   - bundle exec rake docker:build:image
   - bundle exec rake docker:push:staging
@@ -787,142 +780,144 @@ Docker:
   tags:
   - docker-builder
   cache: *tag-cache
-  dependencies: []
+  needs:
+    - job: Ubuntu-20.04
+      artifacts: false
   retry: 1
 
 ### Staging uploads
 Debian-9-staging:
-  dependencies:
-    - Debian-9
-    - Debian-9-branch
+  needs:
+    - job: Debian-9
+      optional: true
+    - job: Debian-9-branch
+      optional: true
   <<: *staging_upload
 Debian-10-staging:
-  dependencies:
-    - Debian-10
-    - Debian-10-branch
+  needs:
+    - job: Debian-10
+      optional: true
+    - job: Debian-10-branch
+      optional: true
   <<: *staging_upload
 Debian-10-arm-staging:
-  dependencies:
-    - Debian-10-arm
-    - Debian-10-arm-branch
+  needs:
+    - job: Debian-10-arm
+      optional: true
+    - job: Debian-10-arm-branch
+      optional: true
   <<: *staging_upload
 Ubuntu-20.04-arm-staging:
-  dependencies:
-    - Ubuntu-20.04-arm
-    - Ubuntu-20.04-arm-branch
+  needs:
+    - job: Ubuntu-20.04-arm
+      optional: true
+    - job: Ubuntu-20.04-arm-branch
+      optional: true
   <<: *staging_upload
 CentOS-7-staging:
-  dependencies:
-    - CentOS-7
-    - CentOS-7-branch
+  needs:
+    - job: CentOS-7
+      optional: true
+    - job: CentOS-7-branch
+      optional: true
   <<: *staging_upload
 CentOS-8-staging:
-  dependencies:
-    - CentOS-8
-    - CentOS-8-branch
+  needs:
+    - job: CentOS-8
+      optional: true
+    - job: CentOS-8-branch
+      optional: true
   <<: *staging_upload
 CentOS-8-arm64-staging:
-  dependencies:
-    - CentOS-8-arm64
-    - CentOS-8-arm64-branch
-  <<: *staging_upload
-OpenSUSE-15.1-staging:
-  dependencies:
-    - OpenSUSE-15.1
-    - OpenSUSE-15.1-branch
-  <<: *staging_upload
-OpenSUSE-15.1-arm64-staging:
-  dependencies:
-    - OpenSUSE-15.1-arm64
-    - OpenSUSE-15.1-arm64-branch
+  needs:
+    - job: CentOS-8-arm64
+      optional: true
+    - job: CentOS-8-arm64-branch
+      optional: true
   <<: *staging_upload
 OpenSUSE-15.2-staging:
-  dependencies:
-    - OpenSUSE-15.2
-    - OpenSUSE-15.2-branch
+  needs:
+    - job: OpenSUSE-15.2
+      optional: true
+    - job: OpenSUSE-15.2-branch
+      optional: true
   <<: *staging_upload
 OpenSUSE-15.2-arm64-staging:
-  dependencies:
-    - OpenSUSE-15.2-arm64
-    - OpenSUSE-15.2-arm64-branch
+  needs:
+    - job: OpenSUSE-15.2-arm64
+      optional: true
+    - job: OpenSUSE-15.2-arm64-branch
+      optional: true
   <<: *staging_upload
 SLES-12.2-staging:
-  dependencies:
-    - SLES-12.2
-    - SLES-12.2-branch
+  needs:
+    - job: SLES-12.2
+      optional: true
+    - job: SLES-12.2-branch
+      optional: true
   <<: *staging_upload
   <<: *dev-ee-tag-only-except-auto-deploy
 SLES-12.5-staging:
-  dependencies:
-    - SLES-12.5
-    - SLES-12.5-branch
+  needs:
+    - job: SLES-12.5
+      optional: true
+    - job: SLES-12.5-branch
+      optional: true
   <<: *staging_upload
   <<: *dev-ee-tag-only-except-auto-deploy
 
 ### Package releases
-Ubuntu-16.04-release:
-  dependencies:
-    - Ubuntu-16.04
-  <<: *production_release
 Ubuntu-18.04-release:
-  dependencies:
+  needs:
     - Ubuntu-18.04
   <<: *production_release
 Ubuntu-20.04-release:
-  dependencies:
+  needs:
     - Ubuntu-20.04
   <<: *production_release
 Ubuntu-20.04-arm-release:
-  dependencies:
+  needs:
     - Ubuntu-20.04-arm
   <<: *production_release
 Debian-9-release:
-  dependencies:
+  needs:
     - Debian-9
   <<: *production_release
 Debian-10-release:
-  dependencies:
+  needs:
     - Debian-10
   <<: *production_release
 Debian-10-arm-release:
-  dependencies:
+  needs:
     - Debian-10-arm
   <<: *production_release
 CentOS-7-release:
-  dependencies:
+  needs:
     - CentOS-7
   <<: *production_release
 CentOS-8-release:
-  dependencies:
+  needs:
     - CentOS-8
   <<: *production_release
 CentOS-8-arm64-release:
-  dependencies:
+  needs:
     - CentOS-8-arm64
   <<: *production_release
-OpenSUSE-15.1-release:
-  dependencies:
-    - OpenSUSE-15.1
-  <<: *production_release
-OpenSUSE-15.1-arm64-release:
-  dependencies:
-    - OpenSUSE-15.1-arm64
-  <<: *production_release
 OpenSUSE-15.2-release:
-  dependencies:
+  needs:
     - OpenSUSE-15.2
   <<: *production_release
 OpenSUSE-15.2-arm64-release:
-  dependencies:
+  needs:
     - OpenSUSE-15.2-arm64
   <<: *production_release
 SLES-12.2-release:
-  dependencies:
+  needs:
     - SLES-12.2
   <<: *production_release
   <<: *dev-ee-tag-only-except-auto-deploy-manual
 SLES-12.5-release:
-  dependencies:
+  needs:
     - SLES-12.5
   <<: *production_release
   <<: *dev-ee-tag-only-except-auto-deploy-manual
@@ -934,7 +929,8 @@ Docker-Release:
     - bundle exec rake release:docker
   <<: *dev-tag-only-except-auto-deploy-manual
   cache: *tag-cache
-  dependencies: []
+  needs:
+    - Docker
 
 AWS:
   <<: *aws_ami_build
@@ -968,22 +964,9 @@ QA-Tag:
   tags:
   - docker-builder
   cache: *tag-cache
-  dependencies:
-    - Ubuntu-20.04
+  needs:
+    - Docker-QA
   retry: 1
-
-upgrade:
-  stage: metrics
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_16.04:${BUILDER_IMAGE_REVISION}"
-  script:
-    - echo $GCP_SERVICE_ACCOUNT > service_account.json
-    - bundle exec rake metrics:upgrade_package
-  allow_failure: true
-  <<: *dev-tag-only-except-auto-deploy-manual
-  tags:
-  - docker-builder
-  cache: *tag-cache
-  dependencies: []
 
 license-upload:
   stage: metrics
@@ -995,25 +978,28 @@ license-upload:
   tags:
   - docker-builder
   cache: *tag-cache
-  dependencies:
+  needs:
     - Ubuntu-18.04
 
-HA-Validate-Tagged:
+RAT-Tag:
   stage: slow_jobs
   image: "dev.gitlab.org:5005/cookbooks/gitlab-omnibus-builder/ubuntu_16.04:${BUILDER_IMAGE_REVISION}"
+  variables:
+    CI_COMMIT_TAG: "1.2.3"
   script:
-    - bundle exec rake qa:ha:tag
-  <<: *dev-ee-tag-only
+    - bundle exec rake qa:rat:tag
   cache: *tag-cache
-  dependencies: []
+  needs:
+    - Ubuntu-20.04
   allow_failure: true
+  <<: *dev-ee-tag-only
 
 Raspberry-Pi-2-Buster:
   image: "${BUILDER_IMAGE_REGISTRY}/rpi_10:${BUILDER_IMAGE_REVISION}"
   <<: *rpi_tag_build
 
 Raspberry-Pi-2-Buster-release:
-  dependencies:
+  needs:
     - Raspberry-Pi-2-Buster
   <<: *raspbian_release
 

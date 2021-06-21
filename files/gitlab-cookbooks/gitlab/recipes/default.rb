@@ -31,7 +31,6 @@ OmnibusHelper.check_locale
 
 # Setup additional postgresql attributes
 include_recipe 'postgresql::directory_locations'
-OmnibusHelper.new(node).check_invalid_pg_ha
 
 directory "/etc/gitlab" do
   owner "root"
@@ -96,9 +95,7 @@ include_recipe "gitlab::add_trusted_certs"
 # Create dummy services to receive notifications, in case
 # the corresponding service recipe is not loaded below.
 %w(
-  unicorn
   puma
-  actioncable
   sidekiq
   mailroom
 ).each do |dummy|
@@ -132,14 +129,20 @@ include_recipe "package::sysctl"
   end
 end
 
-include_recipe "gitlab::database_migrations" if node['gitlab']['gitlab-rails']['enable'] && !(node.key?('pgbouncer') && node['pgbouncer']['enable'])
+if node['gitlab']['gitlab-rails']['enable'] && !(node.key?('pgbouncer') && node['pgbouncer']['enable'])
+  include_recipe "gitlab::database_migrations"
+
+  # We need to deal with initial root password only if the DB migrations were
+  # applied.
+  OmnibusHelper.new(node).print_root_account_details if node['gitlab']['gitlab-rails']['auto_migrate']
+end
+
+OmnibusHelper.cleanup_root_password_file
 
 # Configure Services
 %w[
-  unicorn
   puma
   sidekiq
-  sidekiq-cluster
   gitlab-workhorse
   mailroom
   nginx
@@ -152,12 +155,6 @@ include_recipe "gitlab::database_migrations" if node['gitlab']['gitlab-rails']['
   else
     include_recipe "gitlab::#{service}_disable"
   end
-end
-
-if node['gitlab']['actioncable']['enable'] && !node['gitlab']['actioncable']['in_app']
-  include_recipe "gitlab::actioncable"
-else
-  include_recipe "gitlab::actioncable_disable"
 end
 
 %w(
@@ -186,8 +183,6 @@ else
 end
 
 OmnibusHelper.is_deprecated_os?
-
-OmnibusHelper.new(node).print_root_account_details
 
 # Report on any deprecations we encountered at the end of the run
 # There are three possible exits for a reconfigure run

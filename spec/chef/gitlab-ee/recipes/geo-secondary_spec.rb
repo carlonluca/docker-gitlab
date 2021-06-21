@@ -51,7 +51,6 @@ RSpec.describe 'gitlab-ee::geo-secondary' do
                      geo_postgresql: { enable: true },
                      puma: { enable: false },
                      sidekiq: { enable: false },
-                     sidekiq_cluster: { enable: false },
                      geo_logcursor: { enable: false },
                      gitlab_rails: { enable: true })
     end
@@ -71,7 +70,6 @@ RSpec.describe 'gitlab-ee::geo-secondary' do
                        geo_postgresql: { enable: false },
                        puma: { enable: false },
                        sidekiq: { enable: false },
-                       sidekiq_cluster: { enable: false },
                        geo_logcursor: { enable: false },
                        gitaly: { enable: true })
       end
@@ -91,7 +89,6 @@ RSpec.describe 'gitlab-ee::geo-secondary' do
                        geo_postgresql: { enable: false },
                        puma: { enable: false },
                        sidekiq: { enable: false },
-                       sidekiq_cluster: { enable: false },
                        geo_logcursor: { enable: false },
                        gitaly: { enable: true },
                        gitlab_rails: { enable: false })
@@ -132,7 +129,8 @@ RSpec.describe 'gitlab-ee::geo-secondary' do
             "db_database" => "gitlabhq_geo_production",
             "db_host" => "1.1.1.1",
             "db_port" => "5431",
-            "db_sslcompression" => 0
+            "db_sslcompression" => 0,
+            "db_prepared_statements" => false
           )
         )
       end
@@ -172,13 +170,12 @@ RSpec.describe 'gitlab-ee::geo-secondary' do
         redis
         redis-exporter
         sidekiq
-        sidekiq-cluster
         puma
-        actioncable
         gitaly
         geo-postgresql
         gitlab-pages
         geo-logcursor
+        patroni
       ).map { |svc| stub_should_notify?(svc, true) }
     end
 
@@ -260,10 +257,8 @@ RSpec.describe 'gitlab-ee::geo-secondary' do
       it 'does not include the Geo database migrations recipe if Rails not needed' do
         stub_gitlab_rb(geo_secondary_role: { enable: true },
                        nginx: { enable: false },
-                       unicorn: { enable: false },
                        puma: { enable: false },
                        sidekiq: { enable: false },
-                       sidekiq_cluster: { enable: false },
                        gitaly: { enable: false },
                        postgresql: { enable: false },
                        geo_logcursor: { enable: false },
@@ -287,11 +282,9 @@ RSpec.describe 'gitlab-ee::geo-secondary' do
       context 'manually enabled services' do
         before do
           stub_gitlab_rb(
-            unicorn: { enable: true },
-            # Everything but unicorn is disabled
-            puma: { enable: false },
+            # Everything but puma is disabled
+            puma: { enable: true },
             sidekiq: { enable: false },
-            sidekiq_cluster: { enable: false },
             geo_logcursor: { enable: false },
             gitaly: { enable: false }
           )
@@ -344,45 +337,6 @@ RSpec.describe 'gitlab-ee::geo-secondary' do
       stub_gitlab_rb(geo_primary_role: { enable: true })
 
       expect(chef_run.node['gitlab']['puma']['worker_processes']).to eq 6
-    end
-  end
-
-  context 'unicorn worker_processes' do
-    let(:chef_run) do
-      ChefSpec::SoloRunner.new do |node|
-        node.automatic['cpu']['total'] = 16
-        node.automatic['memory']['total'] = '8388608KB' # 8GB
-      end.converge('gitlab-ee::default')
-    end
-
-    it 'reduces the number of unicorn workers on secondary node' do
-      stub_gitlab_rb(
-        geo_secondary_role: { enable: true },
-        unicorn: { enable: true },
-        puma: { enable: false }
-      )
-
-      expect(chef_run.node['gitlab']['unicorn']['worker_processes']).to eq 9
-    end
-
-    it 'uses the specified number of unicorn workers' do
-      stub_gitlab_rb(
-        geo_secondary_role: { enable: true },
-        unicorn: { enable: true, worker_processes: 1 },
-        puma: { enable: false }
-      )
-
-      expect(chef_run.node['gitlab']['unicorn']['worker_processes']).to eq 1
-    end
-
-    it 'does not reduce the number of unicorn workers on primary node' do
-      stub_gitlab_rb(
-        geo_primary_role: { enable: true },
-        unicorn: { enable: true },
-        puma: { enable: false }
-      )
-
-      expect(chef_run.node['gitlab']['unicorn']['worker_processes']).to eq 11
     end
   end
 end

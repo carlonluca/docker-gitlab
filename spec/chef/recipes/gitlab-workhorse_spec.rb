@@ -43,6 +43,12 @@ RSpec.describe 'gitlab::gitlab-workhorse' do
       }
     end
 
+    it 'does not include shutdown timeout' do
+      expect(chef_run).to render_file(config_file).with_content { |content|
+        expect(content).not_to match(/shutdown_timeout/)
+      }
+    end
+
     it 'does not include object storage configs' do
       expect(chef_run).to render_file(config_file).with_content { |content|
         expect(content).not_to match(/object_storage/)
@@ -52,16 +58,6 @@ RSpec.describe 'gitlab::gitlab-workhorse' do
     it 'does not propagate correlation ID' do
       expect(chef_run).to render_file(config_file).with_content { |content|
         expect(content).not_to match(/propagateCorrelationID/)
-      }
-    end
-  end
-
-  context 'when the deprecated socket file exists' do
-    it 'includes a cleanup for the orphan socket' do
-      allow(File).to receive(:exist?).and_call_original
-      allow(File).to receive(:exist?).with('/var/opt/gitlab/gitlab-workhorse/socket').and_return(true)
-      expect(chef_run).to render_file("/opt/gitlab/sv/gitlab-workhorse/run").with_content { |content|
-        expect(content).to match(%r(Removing orphaned workhorse socket at))
       }
     end
   end
@@ -119,6 +115,18 @@ RSpec.describe 'gitlab::gitlab-workhorse' do
     it 'includes alternate document root setting' do
       expect(chef_run).to render_file(config_file).with_content { |content|
         expect(content).to match(%r(alt_document_root = "/tmp/test"))
+      }
+    end
+  end
+
+  context 'with shutdown timeout' do
+    before do
+      stub_gitlab_rb(gitlab_workhorse: { shutdown_timeout: '60s' })
+    end
+
+    it 'includes alternate document root setting' do
+      expect(chef_run).to render_file(config_file).with_content { |content|
+        expect(content).to match(%r(shutdown_timeout = "60s"))
       }
     end
   end

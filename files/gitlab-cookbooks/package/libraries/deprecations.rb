@@ -86,12 +86,6 @@ module Gitlab
             note: "Geo does not require Foreign Data Wrapper (FDW) to be configured to replicate data."
           },
           {
-            config_keys: %w(praefect virtual_storages primary),
-            deprecation: '13.4',
-            removal: '14.0', # https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/5658
-            note: "Praefect no longer supports statically designating primary Gitaly nodes."
-          },
-          {
             config_keys: %w(gitlab gitlab-rails extra_piwik_site_id),
             deprecation: '13.7',
             removal: '14.0', # https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/6139
@@ -133,10 +127,29 @@ module Gitlab
             removal: '14.0', # https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/6122
             note: "The config has been deprecated. Value for this directive in NGINX configuration will be controlled by `nginx['gzip_enabled']` setting in `/etc/gitlab/gitlab.rb`."
           },
-
+          {
+            config_keys: %w(gitlab-pages use_legacy_storage),
+            deprecation: '14.0',
+            removal: '14.3', # https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/6166
+            note: "This parameter was introduced as a temporary solution in case of unforseen problems with new storage format. It will be removed in 14.3. If you use this parameter, please comment on https://gitlab.com/gitlab-org/gitlab/-/issues/331699"
+          },
+          {
+            config_keys: %w(praefect database_host_no_proxy),
+            deprecation: '14.0',
+            removal: '14.3', # https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/6150
+            note: "Use `praefect['database_direct_host']` instead."
+          },
+          {
+            config_keys: %w(praefect database_port_no_proxy),
+            deprecation: '14.0',
+            removal: '14.3', # https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/6150
+            note: "Use `praefect['database_direct_port']` instead."
+          },
         ]
 
         deprecations += identify_deprecated_config(existing_config, ['gitlab', 'unicorn'], ['enable'], "13.10", "14.0", "Starting with GitLab 14.0, Unicorn is no longer supported and users must switch to Puma, following https://docs.gitlab.com/ee/administration/operations/puma.html.")
+        deprecations += identify_deprecated_config(existing_config, ['repmgr'], ['enable'], "13.3", "14.0", "Starting with GitLab 14.0, Repmgr is no longer supported and users must switch to Patroni, following https://docs.gitlab.com/ee/administration/postgresql/replication_and_failover.html#switching-from-repmgr-to-patroni.")
+        deprecations += identify_deprecated_config(existing_config, ['repmgrd'], ['enable'], "13.3", "14.0", "Starting with GitLab 14.0, Repmgr is no longer supported and users must switch to Patroni, following https://docs.gitlab.com/ee/administration/postgresql/replication_and_failover.html#switching-from-repmgr-to-patroni.")
 
         deprecations
       end
@@ -226,6 +239,8 @@ module Gitlab
       def additional_deprecations(incoming_version, existing_config, type)
         messages = []
         messages += deprecate_only_if_value(incoming_version, existing_config, type, ['gitlab', 'unicorn'], 'enable', true, '13.10', '14.0')
+        messages += deprecate_only_if_value(incoming_version, existing_config, type, ['repmgr'], 'enable', true, '13.3', '14.0')
+        messages += deprecate_only_if_value(incoming_version, existing_config, type, ['repmgrd'], 'enable', true, '13.3', '14.0')
 
         praefect_note = <<~EOS
           From GitLab 14.0 onwards, the `per_repository` will be the only available election strategy.

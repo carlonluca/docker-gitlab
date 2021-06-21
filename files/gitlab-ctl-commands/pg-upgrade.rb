@@ -57,7 +57,7 @@ add_command_under_category 'revert-pg-upgrade', 'database',
       options[:tmp_dir],
       options[:timeout]
     )
-    geo_db_worker.data_dir = @attributes['gitlab']['geo-postgresql']['data_dir']
+    geo_db_worker.data_dir = File.join(@attributes['gitlab']['geo-postgresql']['dir'], 'data')
     geo_db_worker.tmp_data_dir = "#{geo_db_worker.tmp_dir}/geo-data" unless geo_db_worker.tmp_dir.nil?
     geo_db_worker.psql_command = 'gitlab-geo-psql'
   end
@@ -178,15 +178,6 @@ add_command_under_category 'pg-upgrade', 'database',
 
   deprecation_message if @db_worker.target_version.major.to_f < 12
 
-  if @db_worker.target_version.major.to_f >= 12 && service_enabled?('repmgrd')
-    error_messsage = <<~EOF
-      Detected an HA cluster using Repmgr. To upgrade PostgreSQL to version 12, it is mandatory to use Patroni instead for replication and failover.
-      Refer to https://docs.gitlab.com/ee/administration/postgresql/replication_and_failover.html#switching-from-repmgr-to-patroni for details.
-    EOF
-    $stderr.puts error_messsage
-    Kernel.exit 1
-  end
-
   target_data_dir = "#{@db_worker.tmp_data_dir}.#{@db_worker.target_version.major}"
   if @db_worker.upgrade_artifact_exists?(target_data_dir)
     $stderr.puts "Cannot upgrade, #{target_data_dir} is not empty. Move or delete this directory to proceed with upgrade"
@@ -196,7 +187,7 @@ add_command_under_category 'pg-upgrade', 'database',
   unless options[:skip_disk_check]
     check_dirs = [@db_worker.tmp_dir]
     check_dirs << @db_worker.data_dir if pg_enabled || patroni_enabled
-    check_dirs << @attributes['gitlab']['geo-postgresql']['data_dir'] if geo_enabled
+    check_dirs << File.join(@attributes['gitlab']['geo-postgresql']['dir'], 'data') if geo_enabled
 
     check_dirs.compact.uniq.each do |dir|
       unless GitlabCtl::Util.progress_message(
@@ -269,18 +260,6 @@ add_command_under_category 'pg-upgrade', 'database',
     else
       patroni_replica_upgrade
     end
-  elsif service_enabled?('repmgrd')
-    log "Detected an HA cluster."
-    node = RepmgrHandler::Node.new
-    if node.is_master?
-      log "Primary node detected."
-      @instance_type = :pg_primary
-      general_upgrade
-    else
-      log "Secondary node detected."
-      @instance_type = :pg_secondary
-      ha_secondary_upgrade(options)
-    end
   elsif @roles.include?('geo-primary')
     log 'Detected a GEO primary node'
     @instance_type = :geo_primary
@@ -334,20 +313,6 @@ def common_post_upgrade(disable_maintenance = true)
 
   maintenance_mode('disable') if disable_maintenance
   goodbye_message
-end
-
-def ha_secondary_upgrade(options)
-  promote_database
-  restart_database
-  if options[:skip_unregister]
-    log "Not attempting to unregister secondary node due to --skip-unregister flag"
-  else
-    log "Unregistering secondary node from cluster"
-    RepmgrHandler::Standby.unregister({})
-  end
-
-  common_pre_upgrade
-  common_post_upgrade
 end
 
 def general_upgrade
@@ -464,7 +429,7 @@ def geo_secondary_upgrade(tmp_dir, timeout)
   log('Upgrading the geo-postgresql database')
   # Secondary nodes have a replica db under /var/opt/gitlab/postgresql that needs
   # the bin files updated and the geo tracking db under /var/opt/gitlab/geo-postgresl that needs data updated
-  data_dir = @attributes['gitlab']['geo-postgresql']['data_dir']
+  data_dir = File.join(@attributes['gitlab']['geo-postgresql']['dir'], 'data')
 
   @db_service_name = 'geo-postgresql'
   @db_worker.data_dir = data_dir
@@ -716,7 +681,7 @@ def old_version
 end
 
 def default_version
-  PGVersion.parse(version_from_manifest('postgresql_new')) || PGVersion.parse(version_from_manifest('postgresql'))
+  PGVersion.parse(version_from_manifest('postgresql'))
 end
 
 def new_version
@@ -772,10 +737,10 @@ def revert_data_dir(version)
 end
 
 def maintenance_mode(command)
-  # In order for the deploy page to work, we need nginx, unicorn, redis, and
+  # In order for the deploy page to work, we need nginx, Puma, redis, and
   # gitlab-workhorse running
   # We'll manage postgresql and patroni during the upgrade process
-  omit_services = %w(postgresql geo-postgresql patroni consul nginx unicorn puma redis gitlab-workhorse)
+  omit_services = %w(postgresql geo-postgresql patroni consul nginx puma redis gitlab-workhorse)
   if command.eql?('enable')
     dp_cmd = 'up'
     sv_cmd = 'stop'

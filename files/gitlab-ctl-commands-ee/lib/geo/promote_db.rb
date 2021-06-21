@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 require 'rainbow/ext/string'
+require_relative 'pitr_file'
 
 # The first path works on production, while the second path works for tests
 begin
@@ -11,7 +14,8 @@ module Geo
   # PromoteDb promotes standby database as usual "pg-ctl promote" but
   # if point-in-time LSN file is found, the database will be recovered to that state first
   class PromoteDb
-    PITR_FILE_NAME = 'geo-pitr-file'.freeze
+    PITR_FILE_NAME = 'geo-pitr-file'
+    CONSUL_PITR_KEY = 'promote-db'
 
     attr_accessor :base_path, :postgresql_dir_path
 
@@ -57,13 +61,11 @@ module Geo
     end
 
     def lsn_from_pitr_file
-      geo_pitr_file = "#{postgresql_dir_path}/data/#{PITR_FILE_NAME}"
-
-      return nil unless File.exist?(geo_pitr_file)
-
-      lsn = File.read(geo_pitr_file)
-
+      lsn = Geo::PitrFile.new("#{postgresql_dir_path}/data/#{PITR_FILE_NAME}", consul_key: CONSUL_PITR_KEY).get
       lsn.empty? ? nil : lsn
+    rescue Geo::PitrFileError
+      # It is not an error if the file does not exist
+      nil
     end
 
     def built_recovery_setting_for_pitr(lsn)
@@ -76,29 +78,13 @@ module Geo
     def write_recovery_settings(lsn)
       settings = built_recovery_setting_for_pitr(lsn)
 
-      if postgresql_version >= 12
-        puts "PostgreSQL 12 or newer. Writing settings to postgresql.conf...".color(:green)
-
-        write_geo_config_file(settings)
-      else
-        puts "Writing recovery.conf...".color(:green)
-
-        write_recovery_conf(settings)
-      end
+      write_geo_config_file(settings)
     end
 
     def write_geo_config_file(settings)
       geo_conf_file = "#{postgresql_dir_path}/data/gitlab-geo.conf"
 
       File.open(geo_conf_file, "w", 0640) do |file|
-        file.write(settings)
-      end
-    end
-
-    def write_recovery_conf(settings)
-      recovery_conf = "#{postgresql_dir_path}/data/recovery.conf"
-
-      File.open(recovery_conf, 'a', 0640) do |file|
         file.write(settings)
       end
     end

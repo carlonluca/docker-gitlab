@@ -19,18 +19,6 @@ require_relative '../../gitaly/libraries/gitaly.rb'
 
 module GitlabRails
   class << self
-    def parse_analytics_site_id
-      return unless Gitlab['gitlab_rails']['extra_piwik_site_id']
-
-      Gitlab['gitlab_rails']['extra_matomo_site_id'] = Gitlab['gitlab_rails']['extra_piwik_site_id']
-    end
-
-    def parse_analytics_url
-      return unless Gitlab['gitlab_rails']['extra_piwik_url']
-
-      Gitlab['gitlab_rails']['extra_matomo_url'] = Gitlab['gitlab_rails']['extra_piwik_url']
-    end
-
     def parse_variables
       parse_database_adapter
       parse_external_url
@@ -39,8 +27,6 @@ module GitlabRails
       parse_incoming_email_logfile
       parse_service_desk_email_logfile
       parse_maximum_request_duration
-      parse_analytics_site_id
-      parse_analytics_url
     end
 
     def parse_directories
@@ -58,7 +44,10 @@ module GitlabRails
       parse_repository_storage
     end
 
-    def parse_secrets # rubocop:disable Metrics/AbcSize (disabled because it is false positive)
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/CyclomaticComplexity
+    # rubocop:disable Metrics/PerceivedComplexity
+    def parse_secrets
       # Blow up when the existing configuration is ambiguous, so we don't accidentally throw away important secrets
       ci_db_key_base = Gitlab['gitlab_ci']['db_key_base']
       rails_db_key_base = Gitlab['gitlab_rails']['db_key_base']
@@ -86,6 +75,12 @@ module GitlabRails
       Gitlab['gitlab_rails']['encrypted_settings_key_base'] ||= SecretsHelper.generate_hex(64)
       Gitlab['gitlab_rails']['openid_connect_signing_key'] ||= SecretsHelper.generate_rsa(4096).to_pem
 
+      Gitlab['gitlab_rails']['initial_root_password'] = ENV['GITLAB_ROOT_PASSWORD'] || Gitlab['gitlab_rails']['initial_root_password']
+      if Gitlab['gitlab_rails']['initial_root_password'].nil?
+        Gitlab['gitlab_rails']['initial_root_password'] = SecretsHelper.generate_base64(32)
+        Gitlab['gitlab_rails']['store_initial_root_password'] = true if Gitlab['gitlab_rails']['store_initial_root_password'].nil?
+      end
+
       if Gitlab['gitlab_rails']['ci_jwt_signing_key']
         begin
           key = OpenSSL::PKey::RSA.new(Gitlab['gitlab_rails']['ci_jwt_signing_key'])
@@ -97,6 +92,9 @@ module GitlabRails
         Gitlab['gitlab_rails']['ci_jwt_signing_key'] ||= SecretsHelper.generate_rsa(4096).to_pem
       end
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/CyclomaticComplexity
+    # rubocop:enable Metrics/PerceivedComplexity
 
     def parse_external_url
       return unless Gitlab['external_url']

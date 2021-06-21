@@ -21,10 +21,11 @@ account_helper = AccountHelper.new(node)
 omnibus_helper = OmnibusHelper.new(node)
 pg_helper = PgHelper.new(node)
 patroni_helper = PatroniHelper.new(node)
+patroni_data_dir = File.join(node['patroni']['dir'], 'data')
 
 [
   node['patroni']['dir'],
-  node['patroni']['data_dir'],
+  patroni_data_dir,
   node['patroni']['log_directory']
 ].each do |dir|
   directory dir do
@@ -100,8 +101,8 @@ execute 'reload postgresql' do
   action :nothing
 end
 
-Dir["#{node['patroni']['data_dir']}/*"].each do |src|
-  file "#{node['postgresql']['data_dir']}/#{File.basename(src)}" do
+Dir["#{patroni_data_dir}/*"].each do |src|
+  file File.join(node['postgresql']['dir'], 'data', File.basename(src)) do
     owner account_helper.postgresql_user
     group account_helper.postgresql_group
     mode lazy { format('%o', File.new(src).stat.mode)[-5..-1] }
@@ -120,7 +121,6 @@ end
 
 execute 'signal to restart postgresql' do
   command "#{patroni_helper.ctl_command} -c #{patroni_config_file} restart --force #{node['patroni']['scope']} #{node['patroni']['name']}"
-  not_if { patroni_helper.repmgr_data_present? }
   only_if { omnibus_helper.service_dir_enabled?('postgresql') && patroni_helper.node_status == 'running' }
   notifies :run, 'ruby_block[wait for node bootstrap to complete]', :before
 end

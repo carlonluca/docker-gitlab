@@ -1,3 +1,4 @@
+require 'fileutils'
 require 'mixlib/shellout'
 require_relative 'helper'
 require_relative 'deprecations'
@@ -25,13 +26,6 @@ class OmnibusHelper
   end
 
   def service_enabled?(service_name)
-    # Dealing with sidekiq and sidekiq-cluster separatly, since `sidekiq-cluster`
-    # could be configured through `sidekiq`
-    # This be removed after https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/240
-    # The sidekiq services are still in the old `node['gitlab']`
-    return sidekiq_service_enabled? if service_name == 'sidekiq'
-    return sidekiq_cluster_service_enabled? if service_name == 'sidekiq-cluster'
-
     # As part of https://gitlab.com/gitlab-org/omnibus-gitlab/issues/2078 services are
     # being split to their own dedicated cookbooks, and attributes are being moved from
     # node['gitlab'][service_name] to node[service_name]. Until they've been moved, we
@@ -101,36 +95,63 @@ class OmnibusHelper
     LoggingHelper.deprecation(msg)
   end
 
+  def write_root_password
+    return unless node['gitlab']['bootstrap']['enable']
+
+    content = <<~EOS
+      # WARNING: This value is valid only in the following conditions
+      #          1. If provided manually (either via `GITLAB_ROOT_PASSWORD` environment variable or via `gitlab_rails['initial_root_password']` setting in `gitlab.rb`, it was provided before database was seeded for the first time (usually, the first reconfigure run).
+      #          2. Password hasn't been changed manually, either via UI or via command line.
+      #
+      #          If the password shown here doesn't work, you must reset the admin password following https://docs.gitlab.com/ee/security/reset_user_password.html#reset-your-root-password.
+
+      Password: #{node['gitlab']['gitlab-rails']['initial_root_password']}
+
+      # NOTE: This file will be automatically deleted in the first reconfigure run after 24 hours.
+    EOS
+
+    File.open('/etc/gitlab/initial_root_password', 'w', 0600) do |f|
+      f.write(content)
+    end
+  end
+
+  def self.cleanup_root_password_file
+    return unless File.exist?('/etc/gitlab/initial_root_password')
+
+    # If initial root password file is younger than 24 hours
+    return if File.mtime('/etc/gitlab/initial_root_password') > (Time.now - (60 * 60 * 24))
+
+    LoggingHelper.note("Found old initial root password file at /etc/gitlab/initial_root_password and deleted it.")
+    FileUtils.rm_f('/etc/gitlab/initial_root_password')
+  end
+
   def print_root_account_details
     return unless node['gitlab']['bootstrap']['enable']
 
-    initial_password_provided = ENV['GITLAB_ROOT_PASSWORD'] || node['gitlab']['gitlab-rails']['initial_root_password']
+    initial_password = node['gitlab']['gitlab-rails']['initial_root_password']
+    display_password = node['gitlab']['gitlab-rails']['display_initial_root_password']
+    store_password = node['gitlab']['gitlab-rails']['store_initial_root_password']
 
-    msg = if initial_password_provided
-            "Default admin account has been configured with username `root` and the password you specified in `/etc/gitlab/gitlab.rb` file."
-          else
-            <<~EOS
-              It seems you haven't specified an initial root password while configuring the GitLab instance.
-              On your first visit to  your GitLab instance, you will be presented with a screen to set a
-              password for the default admin account with username `root`.
-            EOS
-          end
-    LoggingHelper.note(msg)
-  end
+    password_string = if display_password
+                        "Password: #{initial_password}"
+                      else
+                        "Password: You didn't opt-in to print initial root password to STDOUT."
+                      end
 
-  def check_invalid_pg_ha
-    return unless Services.enabled?('repmgr') && Services.enabled?('repmgrd')
+    if store_password
+      write_root_password
+      password_string += "\nPassword stored to /etc/gitlab/initial_root_password. This file will be cleaned up in first reconfigure run after 24 hours."
+    end
 
-    geo_pg_helper = GeoPgHelper.new(node)
-    pg_helper = PgHelper.new(node)
+    message = <<~EOS
+      Default admin account has been configured with following details:
+      Username: root
+      #{password_string}
 
-    main_db_version = pg_helper.database_version if Services.enabled?('postgresql')
-    geo_db_version = geo_pg_helper.database_version if Services.enabled?('geo_postgresql')
-    db_version = node['postgresql']['version'] || main_db_version || geo_db_version
+      NOTE: Because these credentials might be present in your log files in plain text, it is highly recommended to reset the password following https://docs.gitlab.com/ee/security/reset_user_password.html#reset-your-root-password.
+    EOS
 
-    return unless db_version.nil? || db_version.to_f >= 12
-
-    raise 'The included Repmgr is not supported on PostgreSQL 12, please use Patroni: https://docs.gitlab.com/ee/administration/postgresql/replication_and_failover.html'
+    LoggingHelper.note(message)
   end
 
   def self.utf8_variable?(var)
@@ -248,25 +269,9 @@ class OmnibusHelper
     LoggingHelper.warning(format(error_message, variable: 'LANG')) unless utf8_variable?('LANG')
   end
 
-  def sidekiq_cluster_service_name
-    node['gitlab']['sidekiq']['cluster'] ? 'sidekiq' : 'sidekiq-cluster'
-  end
-
   def restart_service_resource(service)
-    return "sidekiq_service[#{service}]" if %w(sidekiq sidekiq-cluster).include?(service)
-    return "unicorn_service[#{service}]" if %w(unicorn).include?(service)
+    return "sidekiq_service[#{service}]" if %w(sidekiq).include?(service)
 
     "runit_service[#{service}]"
-  end
-
-  private
-
-  def sidekiq_service_enabled?
-    node['gitlab']['sidekiq']['enable'] ||
-      (node['gitlab']['sidekiq']['cluster'] && node['gitlab']['sidekiq-cluster']['enable'])
-  end
-
-  def sidekiq_cluster_service_enabled?
-    node['gitlab']['sidekiq-cluster']['enable'] && !node['gitlab']['sidekiq']['cluster']
   end
 end

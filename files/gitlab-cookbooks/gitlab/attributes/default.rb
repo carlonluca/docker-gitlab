@@ -141,7 +141,6 @@ default['gitlab']['gitlab-rails']['geo_secondary_usage_data_cron_worker'] = nil
 default['gitlab']['gitlab-rails']['geo_prune_event_log_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['geo_repository_verification_primary_batch_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['geo_repository_verification_secondary_scheduler_worker_cron'] = nil
-default['gitlab']['gitlab-rails']['analytics_instance_statistics_count_job_trigger_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['analytics_usage_trends_count_job_trigger_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['member_invitation_reminder_emails_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['user_status_cleanup_batch_worker_cron'] = nil
@@ -420,7 +419,6 @@ default['gitlab']['gitlab-rails']['db_sslca'] = nil
 default['gitlab']['gitlab-rails']['db_prepared_statements'] = false
 default['gitlab']['gitlab-rails']['db_statements_limit'] = 1000
 default['gitlab']['gitlab-rails']['db_statement_timeout'] = nil
-default['gitlab']['gitlab-rails']['db_fdw'] = nil
 default['gitlab']['gitlab-rails']['db_connect_timeout'] = nil
 default['gitlab']['gitlab-rails']['db_keepalives'] = nil
 default['gitlab']['gitlab-rails']['db_keepalives_idle'] = nil
@@ -451,6 +449,8 @@ default['gitlab']['gitlab-rails']['redis_queues_instance'] = nil
 default['gitlab']['gitlab-rails']['redis_queues_sentinels'] = []
 default['gitlab']['gitlab-rails']['redis_shared_state_instance'] = nil
 default['gitlab']['gitlab-rails']['redis_shared_state_sentinels'] = []
+default['gitlab']['gitlab-rails']['redis_trace_chunks_instance'] = nil
+default['gitlab']['gitlab-rails']['redis_trace_chunks_sentinels'] = []
 default['gitlab']['gitlab-rails']['redis_actioncable_instance'] = nil
 default['gitlab']['gitlab-rails']['redis_actioncable_sentinels'] = []
 
@@ -482,16 +482,17 @@ default['gitlab']['gitlab-rails']['graphql_timeout'] = nil
 default['gitlab']['gitlab-rails']['initial_root_password'] = nil
 default['gitlab']['gitlab-rails']['initial_license_file'] = nil
 default['gitlab']['gitlab-rails']['initial_shared_runners_registration_token'] = nil
+default['gitlab']['gitlab-rails']['display_initial_root_password'] = false
+default['gitlab']['gitlab-rails']['store_initial_root_password'] = false
 default['gitlab']['gitlab-rails']['trusted_proxies'] = []
 default['gitlab']['gitlab-rails']['content_security_policy'] = nil
 default['gitlab']['gitlab-rails']['allowed_hosts'] = []
 
 # List of ips and subnets that are allowed to access Gitlab monitoring endpoints
 default['gitlab']['gitlab-rails']['monitoring_whitelist'] = ['127.0.0.0/8', '::1/128']
-default['gitlab']['gitlab-rails']['monitoring_unicorn_sampler_interval'] = 10
 default['gitlab']['gitlab-rails']['shutdown_blackout_seconds'] = 10
 # Default dependent services to restart in the event that files-of-interest change
-default['gitlab']['gitlab-rails']['dependent_services'] = %w{puma actioncable}
+default['gitlab']['gitlab-rails']['dependent_services'] = %w{puma}
 
 ###
 # Unleash
@@ -512,29 +513,6 @@ default['gitlab']['gitlab-rails']['prometheus_address'] = nil
 default['gitlab']['gitlab-rails']['gitlab_kas_enabled'] = nil
 default['gitlab']['gitlab-rails']['gitlab_kas_external_url'] = nil
 default['gitlab']['gitlab-rails']['gitlab_kas_internal_url'] = nil
-
-####
-# Unicorn
-####
-default['gitlab']['unicorn']['enable'] = false
-default['gitlab']['unicorn']['ha'] = false
-default['gitlab']['unicorn']['log_directory'] = "/var/log/gitlab/unicorn"
-default['gitlab']['unicorn']['listen'] = "127.0.0.1"
-default['gitlab']['unicorn']['port'] = 8080
-default['gitlab']['unicorn']['socket'] = '/var/opt/gitlab/gitlab-rails/sockets/gitlab.socket'
-# Path to the unicorn server Process ID file
-# defaults to /opt/gitlab/var/unicorn/unicorn.pid. The install-dir path is set at build time
-default['gitlab']['unicorn']['pidfile'] = "#{node['package']['install-dir']}/var/unicorn/unicorn.pid"
-default['gitlab']['unicorn']['tcp_nopush'] = true
-default['gitlab']['unicorn']['backlog_socket'] = 1024
-default['gitlab']['unicorn']['somaxconn'] = 1024
-default['gitlab']['unicorn']['worker_timeout'] = 60
-default['gitlab']['unicorn']['worker_memory_limit_min'] = "1024 * 1 << 20"
-default['gitlab']['unicorn']['worker_memory_limit_max'] = "1280 * 1 << 20"
-default['gitlab']['unicorn']['worker_processes'] = nil
-default['gitlab']['unicorn']['exporter_enabled'] = false
-default['gitlab']['unicorn']['exporter_address'] = "127.0.0.1"
-default['gitlab']['unicorn']['exporter_port'] = 8083
 
 ####
 # Puma
@@ -563,21 +541,6 @@ default['gitlab']['puma']['exporter_port'] = 8083
 # ActionCable
 ####
 default['gitlab']['actioncable']['enable'] = false
-default['gitlab']['actioncable']['ha'] = false
-default['gitlab']['actioncable']['log_directory'] = "/var/log/gitlab/actioncable"
-default['gitlab']['actioncable']['listen'] = "127.0.0.1"
-default['gitlab']['actioncable']['port'] = 8280
-default['gitlab']['actioncable']['socket'] = '/var/opt/gitlab/gitlab-rails/sockets/gitlab_actioncable.socket'
-# Path to the puma server Process ID file
-# defaults to /opt/gitlab/var/actioncable/actioncable.pid. The install-dir path is set at build time
-default['gitlab']['actioncable']['pidfile'] = "#{node['package']['install-dir']}/var/actioncable/actioncable.pid"
-default['gitlab']['actioncable']['state_path'] = "#{node['package']['install-dir']}/var/actioncable/actioncable.state"
-default['gitlab']['actioncable']['worker_timeout'] = 60
-default['gitlab']['actioncable']['per_worker_max_memory_mb'] = nil
-default['gitlab']['actioncable']['worker_processes'] = 2
-default['gitlab']['actioncable']['min_threads'] = 4
-default['gitlab']['actioncable']['max_threads'] = 4
-default['gitlab']['actioncable']['in_app'] = false
 default['gitlab']['actioncable']['worker_pool_size'] = 4
 
 ####
@@ -598,31 +561,12 @@ default['gitlab']['sidekiq']['listen_address'] = "127.0.0.1"
 default['gitlab']['sidekiq']['listen_port'] = 8082
 
 # Cluster specific settings
-default['gitlab']['sidekiq']['cluster'] = true
 default['gitlab']['sidekiq']['queue_selector'] = false
-# Remove with https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/646
-default['gitlab']['sidekiq']['experimental_queue_selector'] = false
 default['gitlab']['sidekiq']['interval'] = nil
 default['gitlab']['sidekiq']['max_concurrency'] = 50
 default['gitlab']['sidekiq']['min_concurrency'] = nil
 default['gitlab']['sidekiq']['negate'] = false
 default['gitlab']['sidekiq']['queue_groups'] = ['*']
-
-####
-# Sidekiq Cluster
-####
-# This will be removed in 14.0
-# https://gitlab.com/groups/gitlab-com/gl-infra/-/epics/198
-default['gitlab']['sidekiq-cluster']['enable'] = false
-default['gitlab']['sidekiq-cluster']['ha'] = false
-default['gitlab']['sidekiq-cluster']['log_directory'] = "/var/log/gitlab/sidekiq-cluster"
-default['gitlab']['sidekiq-cluster']['interval'] = nil
-default['gitlab']['sidekiq-cluster']['max_concurrency'] = nil
-default['gitlab']['sidekiq-cluster']['min_concurrency'] = nil
-default['gitlab']['sidekiq-cluster']['queue_groups'] = []
-default['gitlab']['sidekiq-cluster']['negate'] = false
-# Remove with https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/646
-default['gitlab']['sidekiq-cluster']['experimental_queue_selector'] = false
 
 ###
 # gitlab-shell
@@ -663,6 +607,7 @@ default['gitlab']['web-server']['external_users'] = []
 default['gitlab']['gitlab-workhorse']['enable'] = false
 default['gitlab']['gitlab-workhorse']['ha'] = false
 default['gitlab']['gitlab-workhorse']['alt_document_root'] = nil
+default['gitlab']['gitlab-workhorse']['shutdown_timeout'] = nil
 default['gitlab']['gitlab-workhorse']['workhorse_keywatcher'] = true
 default['gitlab']['gitlab-workhorse']['listen_network'] = "unix"
 default['gitlab']['gitlab-workhorse']['listen_umask'] = 000
@@ -670,8 +615,6 @@ default['gitlab']['gitlab-workhorse']['sockets_directory'] = nil
 default['gitlab']['gitlab-workhorse']['listen_addr'] = nil
 default['gitlab']['gitlab-workhorse']['auth_backend'] = "http://localhost:8080"
 default['gitlab']['gitlab-workhorse']['auth_socket'] = nil
-default['gitlab']['gitlab-workhorse']['cable_backend'] = "http://localhost:8280"
-default['gitlab']['gitlab-workhorse']['cable_socket'] = "''" # the empty string is the default in gitlab-workhorse option parser
 default['gitlab']['gitlab-workhorse']['pprof_listen_addr'] = "''" # put an empty string on the command line
 default['gitlab']['gitlab-workhorse']['prometheus_listen_addr'] = "localhost:9229"
 default['gitlab']['gitlab-workhorse']['dir'] = "/var/opt/gitlab/gitlab-workhorse"
@@ -714,7 +657,6 @@ default['gitlab']['nginx']['sendfile'] = 'on'
 default['gitlab']['nginx']['tcp_nopush'] = 'on'
 default['gitlab']['nginx']['tcp_nodelay'] = 'on'
 default['gitlab']['nginx']['hide_server_tokens'] = 'off'
-default['gitlab']['nginx']['gzip'] = nil
 default['gitlab']['nginx']['gzip_http_version'] = "1.1"
 default['gitlab']['nginx']['gzip_comp_level'] = "2"
 default['gitlab']['nginx']['gzip_proxied'] = "no-cache no-store private expired auth"
@@ -813,7 +755,7 @@ default['gitlab']['remote-syslog']['dir'] = "/var/opt/gitlab/remote-syslog"
 default['gitlab']['remote-syslog']['log_directory'] = "/var/log/gitlab/remote-syslog"
 default['gitlab']['remote-syslog']['destination_host'] = "localhost"
 default['gitlab']['remote-syslog']['destination_port'] = 514
-default['gitlab']['remote-syslog']['services'] = %w(redis nginx puma unicorn gitlab-rails gitlab-shell postgresql sidekiq gitlab-workhorse gitlab-pages praefect gitlab-kas)
+default['gitlab']['remote-syslog']['services'] = %w(redis nginx puma gitlab-rails gitlab-shell postgresql sidekiq gitlab-workhorse gitlab-pages praefect gitlab-kas)
 
 ###
 # High Availability

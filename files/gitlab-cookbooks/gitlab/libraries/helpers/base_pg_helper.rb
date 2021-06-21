@@ -138,12 +138,6 @@ class BasePgHelper < BaseHelper
     psql_query(db_name, sql)
   end
 
-  def fdw_server_exists?(server_name, db_name)
-    psql_cmd(["-d '#{db_name}'",
-              "-c 'select srvname from pg_foreign_server' -tA",
-              "| grep -x #{server_name}"])
-  end
-
   def user_hashed_password(db_user)
     db_user_safe = db_user.scan(/[a-z_][a-z0-9_-]*[$]?/).first
     psql_query('template1', "SELECT passwd FROM pg_shadow WHERE usename='#{db_user_safe}'")
@@ -178,9 +172,7 @@ class BasePgHelper < BaseHelper
   end
 
   def is_standby?
-    # PostgreSQL <= 11 uses recovery.conf to configure a standby node.
-    # PostgreSQL 12 switched to the .signal files
-    %w(recovery.conf recovery.signal standby.signal).each do |standby_file|
+    %w(recovery.signal standby.signal).each do |standby_file|
       return true if ::File.exist?(::File.join(node_attributes['dir'], 'data', standby_file))
     end
     false
@@ -215,9 +207,9 @@ class BasePgHelper < BaseHelper
     # node['gitlab'][service_name] to node[service_name]. Until they've been moved, we
     # need to check both.
 
-    return File.exist?(File.join(node['gitlab'][service_name]['data_dir'], 'PG_VERSION')) if node['gitlab'].key?(service_name)
+    return File.exist?(File.join(node['gitlab'][service_name]['dir'], 'data', 'PG_VERSION')) if node['gitlab'].key?(service_name)
 
-    File.exist?(File.join(node[service_name]['data_dir'], 'PG_VERSION'))
+    File.exist?(File.join(node[service_name]['dir'], 'data', 'PG_VERSION'))
   end
 
   def psql_cmd(cmd_list)
@@ -256,7 +248,7 @@ class BasePgHelper < BaseHelper
     # node['gitlab'][service_name] to node[service_name]. Until they've been moved, we
     # need to check both.
 
-    version_file = node['gitlab'].key?(service_name) ? "#{@node['gitlab'][service_name]['data_dir']}/PG_VERSION" : "#{@node[service_name]['data_dir']}/PG_VERSION"
+    version_file = node['gitlab'].key?(service_name) ? "#{@node['gitlab'][service_name]['dir']}/data/PG_VERSION" : "#{@node[service_name]['dir']}/data/PG_VERSION"
     PGVersion.new(File.read(version_file).chomp) if File.exist?(version_file)
   end
 
@@ -291,11 +283,11 @@ class BasePgHelper < BaseHelper
     # When Patroni is enabled, the configuration of PostgreSQL instance must be delegated to it.
     # PostgreSQL cookbook skips some of the steps that are must be done either during or after
     # Patroni bootstraping.
-    node['patroni']['enable'] && !Gitlab['repmgr']['enable']
+    node['patroni']['enable']
   end
 
   def config_dir
-    node['patroni']['enable'] ? node['patroni']['data_dir'] : node['postgresql']['data_dir']
+    ::File.join(node['patroni']['enable'] ? node['patroni']['dir'] : node['postgresql']['dir'], 'data')
   end
 
   def postgresql_config

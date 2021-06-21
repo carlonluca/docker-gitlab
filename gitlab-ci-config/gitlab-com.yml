@@ -133,7 +133,7 @@
   image: "${RUBY_IMAGE}-alpine"
   stage: post-test
   cache: {}
-  dependencies: []
+  needs: []
   before_script:
     - gem install gitlab --no-doc
     # We need to download the script rather than clone the repo since the
@@ -145,8 +145,8 @@
   variables:
     GIT_STRATEGY: none
     DOCS_REVIEW_APPS_DOMAIN: 178.62.207.141.nip.io
-    # By default, deploy the Review App using the `master` branch of the `gitlab-org/gitlab-docs` project
-    DOCS_BRANCH: master
+    # By default, deploy the Review App using the `main` branch of the `gitlab-org/gitlab-docs` project
+    DOCS_BRANCH: main
   when: manual
   only:
     refs:
@@ -320,7 +320,6 @@ Centos 7 knapsack: *prepare_knapsack
 Centos 8 knapsack: *prepare_knapsack
 Debian 9 knapsack: *prepare_knapsack
 Debian 10 knapsack: *prepare_knapsack
-OpenSUSE 15.1 knapsack: *prepare_knapsack
 OpenSUSE 15.2 knapsack: *prepare_knapsack
 Ubuntu 16.04 knapsack: *prepare_knapsack
 Ubuntu 18.04 knapsack: *prepare_knapsack
@@ -368,12 +367,6 @@ Centos 8 specs :
   parallel: 6
   needs:
   - Centos 8 knapsack
-OpenSUSE 15.1 specs :
-  image: "registry.gitlab.com/gitlab-org/gitlab-build-images:omnibus-gitlab-opensuse15.1"
-  extends: .spec_template
-  parallel: 6
-  needs:
-  - OpenSUSE 15.1 knapsack
 OpenSUSE 15.2 specs :
   image: "registry.gitlab.com/gitlab-org/gitlab-build-images:omnibus-gitlab-opensuse15.2"
   extends: .spec_template
@@ -417,6 +410,9 @@ Trigger:package:
       junit: junit_ci_rspec.xml
   tags:
     - triggered-packages
+  needs:
+    - job: fetch-assets
+      optional: true
 
 Trigger:gitlab-docker:
   extends:
@@ -428,6 +424,9 @@ Trigger:gitlab-docker:
     - bundle exec rake docker:build:image
     - bundle exec rake docker:push:triggered
   <<: *com-trigger-only
+  needs:
+    - job: Trigger:package
+      artifacts: false
 
 Trigger:qa-docker:
   extends:
@@ -442,7 +441,7 @@ Trigger:qa-docker:
   except:
     variables:
       - $SKIP_QA_DOCKER == "true"
-  dependencies:
+  needs:
     - Trigger:package
 
 Trigger:qa-test:
@@ -452,7 +451,14 @@ Trigger:qa-test:
     - if [ -n "$TRIGGERED_USER" ] && [ -n "$TRIGGER_SOURCE" ]; then echo "Pipeline triggered by $TRIGGERED_USER at $TRIGGER_SOURCE"; fi
     - bundle exec rake qa:test
   <<: *com-trigger-only
-  dependencies: []
+  needs:
+    - job: Trigger:package
+      artifacts: false
+    - job: Trigger:gitlab-docker
+      artifacts: false
+    - job: Trigger:qa-docker
+      artifacts: false
+      optional: true
 
 Trigger:letsencrypt-test:
   extends: .docker_job
@@ -464,17 +470,9 @@ Trigger:letsencrypt-test:
     - chmod +x /usr/local/bin/docker-compose
     - bundle exec rake qa:test_letsencrypt
   <<: *com-trigger-only
-  dependencies: []
-
-Trigger:ha-validate:
-  stage: trigger-qa
-  image: "${RUBY_IMAGE}"
-  when: manual
-  script:
-      - bundle exec rake qa:ha:validate
-  <<: *com-trigger-only
-  dependencies:
-    - Trigger:ee-package
+  needs:
+    - job: Trigger:gitlab-docker
+      artifacts: false
 
 Trigger:RAT:
   stage: trigger-qa
@@ -483,7 +481,12 @@ Trigger:RAT:
   script:
     - bundle exec rake qa:rat:trigger
   <<: *com-trigger-only
-  dependencies: []
+  needs:
+    - job: Trigger:package
+      artifacts: false
+    - job: Trigger:qa-docker
+      artifacts: false
+      optional: true
 
 dependency_update:
   image: "${BUILDER_IMAGE_REGISTRY}/ruby_docker:${BUILDER_IMAGE_REVISION}"

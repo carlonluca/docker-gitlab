@@ -38,7 +38,7 @@ puma_rb = File.join(puma_etc_dir, "puma.rb")
 
 node.default['gitlab'][svc]['worker_processes'] = Puma.workers unless node['gitlab'][svc]['worker_processes']
 
-actioncable_in_app_enabled = node['gitlab']['actioncable']['enable'] && node['gitlab']['actioncable']['in_app']
+actioncable_in_app_enabled = node['gitlab']['actioncable']['enable']
 actioncable_worker_pool_size = node['gitlab']['actioncable']['worker_pool_size']
 
 [
@@ -100,8 +100,6 @@ runit_service svc do
     clean_metrics_dir: false
   }.merge(params))
   log_options node['gitlab']['logging'].to_hash.merge(node['gitlab'][svc].to_hash)
-
-  notifies :stop, 'unicorn_service[unicorn]', :before
 end
 
 if node['gitlab']['bootstrap']['enable']

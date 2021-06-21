@@ -145,8 +145,6 @@ node['gitlab']['gitlab-rails']['dependent_services'].each do |name|
 end
 
 dependent_services << "sidekiq_service[sidekiq]" if omnibus_helper.should_notify?('sidekiq')
-dependent_services << "sidekiq_service[sidekiq-cluster]" if omnibus_helper.should_notify?('sidekiq-cluster')
-dependent_services << "unicorn_service[unicorn]" if omnibus_helper.should_notify?('unicorn')
 
 secret_file = File.join(gitlab_rails_etc_dir, "secret")
 secret_symlink = File.join(gitlab_rails_source_dir, ".secret")
@@ -234,7 +232,7 @@ templatesymlink "Create a cable.yml and create a symlink to Rails root" do
   dependent_services.each { |svc| notifies :restart, svc }
 end
 
-%w(cache queues shared_state).each do |instance|
+%w(cache queues shared_state trace_chunks).each do |instance|
   filename = "redis.#{instance}.yml"
   url = node['gitlab']['gitlab-rails']["redis_#{instance}_instance"]
   sentinels = node['gitlab']['gitlab-rails']["redis_#{instance}_sentinels"]
@@ -299,9 +297,7 @@ templatesymlink "Create a gitlab.yml and create a symlink to Rails root" do
       mattermost_host: mattermost_host,
       mattermost_enabled: node['mattermost']['enable'] || !mattermost_host.nil?,
       sidekiq: node['gitlab']['sidekiq'],
-      unicorn: node['gitlab']['unicorn'],
       puma: node['gitlab']['puma'],
-      actioncable: node['gitlab']['actioncable'],
       gitlab_shell_authorized_keys_file: node['gitlab']['gitlab-shell']['auth_file'],
       prometheus_available: node['monitoring']['prometheus']['enable'] || !node['gitlab']['gitlab-rails']['prometheus_address'].nil?,
       prometheus_server_address: node['gitlab']['gitlab-rails']['prometheus_address'] || node['monitoring']['prometheus']['listen_address'],
@@ -433,7 +429,7 @@ remote_file File.join(gitlab_rails_dir, 'REVISION') do
 end
 
 # If a version of ruby changes restart dependent services. Otherwise, services like
-# unicorn will fail to reload until restarted
+# Puma will fail to reload until restarted
 version_file 'Create version file for Rails' do
   version_file_path File.join(gitlab_rails_dir, 'RUBY_VERSION')
   version_check_cmd '/opt/gitlab/embedded/bin/ruby --version'

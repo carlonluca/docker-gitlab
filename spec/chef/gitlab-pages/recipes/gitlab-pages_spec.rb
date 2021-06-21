@@ -209,7 +209,7 @@ RSpec.describe 'gitlab::gitlab-pages' do
             headers: ['X-XSS-Protection: 1; mode=block', 'X-Content-Type-Options: nosniff', 'Test: Header'],
             gitlab_client_http_timeout: "10s",
             gitlab_client_jwt_expiry: "30s",
-            domain_config_source: "disk",
+            use_legacy_storage: true,
             zip_cache_expiration: "120s",
             zip_cache_cleanup: "1m",
             zip_cache_refresh: "60s",
@@ -295,23 +295,6 @@ RSpec.describe 'gitlab::gitlab-pages' do
           .with_content('stackdriver?service=gitlab-pages')
         expect(chef_run).to render_file("/opt/gitlab/etc/gitlab-pages/env/SSL_CERT_DIR")
           .with_content('/opt/gitlab/embedded/ssl/certs')
-      end
-
-      context 'when http_proxy is specified' do
-        before do
-          stub_gitlab_rb(
-            external_url: 'https://gitlab.example.com',
-            pages_external_url: 'https://pages.example.com',
-            gitlab_pages: {
-              http_proxy: 'http://example:8081'
-            }
-          )
-        end
-
-        it 'renders an environment variable file with http_proxy' do
-          expect(chef_run).to render_file("/opt/gitlab/etc/gitlab-pages/env/http_proxy")
-            .with_content('http://example:8081')
-        end
       end
     end
 
