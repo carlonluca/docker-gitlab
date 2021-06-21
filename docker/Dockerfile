@@ -12,9 +12,9 @@ RUN apt-get update -q \
       busybox \
       ca-certificates \
       openssh-server \
+      tzdata \
       wget \
       vim \
-      tzdata \
       nano \
       less \
       libatomic1 \
