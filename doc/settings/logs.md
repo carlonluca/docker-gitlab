@@ -51,7 +51,7 @@ Run `sudo gitlab-ctl reconfigure` to configure your instance with these settings
 
 ## runit logs
 
-The [runit-managed](../architecture/README.md#runit) services in Omnibus GitLab generate log data using
+The [runit-managed](../architecture/index.md#runit) services in Omnibus GitLab generate log data using
 `svlogd`.
 
 - Logs are written to a file called `current`.
@@ -145,7 +145,7 @@ logging['udp_log_shipping_port'] = 1514 # Optional, defaults to 514 (syslog)
 
 NOTE:
 Setting `udp_log_shipping_host` will [add a `svlogd_prefix`](https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/files/gitlab-cookbooks/gitlab/libraries/logging.rb)
-for the specified hostname and service for each of the [runit-managed](../architecture/README.md#runit) services.
+for the specified hostname and service for each of the [runit-managed](../architecture/index.md#runit) services.
 
 Example log messages:
 
@@ -210,3 +210,27 @@ gitlab_pages['log_format'] = 'text'
 
 NOTE:
 There are a few variations in attribute names for the log format depending on the service involved (for example, Container Registry uses `log_formatter`, Gitaly and Praefect both use `logging_format`). See [Issue #4280](https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/4280) for more details.
+
+## Configuring log level/verbosity
+
+You can configure the minimum log levels (verbosity) for the Container
+Registry, GitLab Shell and Gitaly:
+
+1. Edit `/etc/gitlab/gitlab.rb` and set the log levels:
+
+   ```ruby
+   registry['log_level'] = 'info'
+   gitlab_shell['log_level'] = 'INFO'
+   gitaly['logging_level'] = 'warn'
+   ```
+
+1. Reconfigure GitLab:
+
+   ```shell
+   sudo gitlab-ctl reconfigure
+   ```
+
+NOTE:
+You [cannot edit](https://gitlab.com/groups/gitlab-org/-/epics/6034)
+the `log_level` for other GitLab logs, for example
+`production_json.log`, `sidekiq.log`, and so on.

@@ -64,7 +64,6 @@ variables:
   AUTO_DEPLOY_TAG_REGEX: '^\d+\.\d+\.\d+\+[^ ]{7,}\.[^ ]{7,}$'
   # Default environment for auto-deploy
   AUTO_DEPLOY_ENVIRONMENT: 'pre'
-  MAX_PACKAGE_SIZE_MB: "985"
   OMNIBUS_GITLAB_MIRROR_ID: "14588374"
   DOCS_GITLAB_REPO_SUFFIX: "omnibus"
 
@@ -154,6 +153,20 @@ fetch-assets:
       when: never
     # Run on dev.gitlab.org (except auto-deploy tag covered above) and
     # multi-project pipelines on omnibus-gitlab-mirror
+    - if: '$CI_PROJECT_PATH == "gitlab/omnibus-gitlab"'
+    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_PROJECT_PATH == "gitlab-org/build/omnibus-gitlab-mirror"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_PROJECT_PATH == "gitlab-org/build/omnibus-gitlab-mirror"'
+
+generate-facts:
+  stage: prepare-assets
+  image: "${BUILDER_IMAGE_REGISTRY}/ruby_docker:${BUILDER_IMAGE_REVISION}"
+  script:
+    - bundle exec rake build:generate_facts
+  artifacts:
+    paths:
+      - build_facts
+  rules:
+    # Run on dev.gitlab.org and multi-project pipelines on omnibus-gitlab-mirror
     - if: '$CI_PROJECT_PATH == "gitlab/omnibus-gitlab"'
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_PROJECT_PATH == "gitlab-org/build/omnibus-gitlab-mirror"'
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_PROJECT_PATH == "gitlab-org/build/omnibus-gitlab-mirror"'

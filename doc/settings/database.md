@@ -772,6 +772,13 @@ correct executables by running both the [backup](https://docs.gitlab.com/ee/rake
 
 ### Upgrade a non-packaged PostgreSQL database
 
+You can upgrade the external database as suggested by the provider after stopping all the processes that are connected to the database (Puma, Sidekiq):
+
+```shell
+sudo gitlab-ctl stop puma
+sudo gitlab-ctl stop sidekiq
+```
+
 Before proceeding with the upgrade, note the following:
 
 - Before upgrading, review the [GitLab and PostgreSQL version compatibility table](../package-information/postgresql_versions.md)
@@ -807,11 +814,15 @@ The following example demonstrates upgrading from a database host running Postgr
    sudo gitlab-ctl reconfigure
    ```
 
-1. Stop GitLab (note that this step will cause downtime):
+1. Stop GitLab (note that this step causes downtime):
 
    ```shell
    sudo gitlab-ctl stop
    ```
+
+WARNING:
+The backup command requires [additional parameters](https://docs.gitlab.com/ee/raketasks/backup_restore.html#backup-and-restore-for-installations-using-pgbouncer) 
+when your installation is using PgBouncer.
 
 1. Run the backup Rake task using the SKIP options to back up only the database.
    Make a note of the backup file name; you'll use it later to restore.
@@ -823,13 +834,17 @@ The following example demonstrates upgrading from a database host running Postgr
 1. Shutdown the PostgreSQL 11 database host.
 
 1. Edit `/etc/gitlab/gitlab.rb` and update the `gitlab_rails['db_host']` setting
-   to point to the PostgreSQL database 11 host.
+   to point to the PostgreSQL database 12 host.
 
 1. Reconfigure GitLab:
 
    ```shell
    sudo gitlab-ctl reconfigure
    ```
+
+   WARNING:
+   The backup command requires [additional parameters](https://docs.gitlab.com/ee/raketasks/backup_restore.html#backup-and-restore-for-installations-using-pgbouncer)
+   when your installation is using PgBouncer.
 
 1. Restore the database using the database backup file created earlier, and be
    sure to answer **no** when asked "This task will now rebuild the authorized_keys file":

@@ -38,7 +38,8 @@ These additional variables are available to override or enable different build b
 | SECRET_AWS_SECRET_ACCESS_KEY                  | Account secret to read the gpg private package signing key from a secure s3 bucket. |
 | SECRET_AWS_ACCESS_KEY_ID                      | Account ID to read the gpg private package signing key from a secure s3 bucket. |
 | GPG_PASSPHRASE                                | The passphrase needed to use the gpg private package signing key.        |
-| MAX_PACKAGE_SIZE_MB                           | The max package size in MB allowed before we fail the build and investigate. |
+| CE_MAX_PACKAGE_SIZE_MB                        | The max package size in MB allowed for CE packages before we alert the team and investigate. |
+| EE_MAX_PACKAGE_SIZE_MB                        | The max package size in MB allowed for EE packages before we alert the team and investigate. |
 | DEV_GITLAB_SSH_KEY                            | SSH private key for an account able to read repositories from `dev.gitlab.org`. Used for SSH Git fetch. |
 | BUILDER_IMAGE_REGISTRY                        | Registry to pull the CI Job images from. |
 | BUILD_LOG_LEVEL                               | Omnibus build log level. |
@@ -53,8 +54,8 @@ These additional variables are available to override or enable different build b
 | CVEIGNORE                                       | See document on [dependencies being reported as vulnerable](broken_master.md). |
 | CI_SLACK_WEBHOOK_URL                            | Webhook URL for Slack failure notifications. |
 | DANGER_GITLAB_API_TOKEN                         | GitLab API token for dangerbot to post comments to MRs. |
-| DEPS_GITLAB_TOKEN                               | Token used by [dependencies.io](https://docs.dependencies.io/gitlab-ci/) to create MRs. |
-| DEPS_TOKEN                                      | Token used by CI to auth to [dependencies.io](https://docs.dependencies.io/gitlab-ci/). |
+| DEPS_GITLAB_TOKEN                               | Token used by [dependencies.io](https://www.dependencies.io/gitlab-ci/) to create MRs. |
+| DEPS_TOKEN                                      | Token used by CI to auth to [dependencies.io](https://www.dependencies.io/gitlab-ci/). |
 | DOCS_API_TOKEN
 
 ## Release variables

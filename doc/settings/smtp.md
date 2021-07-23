@@ -117,6 +117,8 @@ gitlab_rails['smtp_domain'] = "mg.gitlab.com"
 
 ### Amazon Simple Email System (AWS SES)
 
+- Using STARTTLS
+
 ```ruby
 gitlab_rails['smtp_enable'] = true
 gitlab_rails['smtp_address'] = "email-smtp.region-1.amazonaws.com"
@@ -129,6 +131,22 @@ gitlab_rails['smtp_enable_starttls_auto'] = true
 ```
 
 Make sure to permit egress through port 587 in your ACL and security group.
+
+- Using TLS Wrapper
+
+```ruby
+gitlab_rails['smtp_enable'] = true
+gitlab_rails['smtp_address'] = "email-smtp.region-1.amazonaws.com"
+gitlab_rails['smtp_port'] = 465
+gitlab_rails['smtp_user_name'] = "IAMmailerKey"
+gitlab_rails['smtp_password'] = "IAMmailerSecret"
+gitlab_rails['smtp_domain'] = "yourdomain.com"
+gitlab_rails['smtp_authentication'] = "login"
+gitlab_rails['smtp_ssl'] = true
+gitlab_rails['smtp_force_ssl'] = true
+```
+
+Make sure to permit egress through port 465 in your ACL and security group.
 
 ### Mandrill
 
@@ -360,7 +378,7 @@ gitlab_rails['smtp_tls'] = false
 
 ### SendGrid with API Key authentication
 
-If you don't want to supply a username/password, you can use an [API key](https://sendgrid.com/docs/for-developers/sending-email/getting-started-smtp/):
+If you don't want to supply a username/password, you can use an [API key](https://docs.sendgrid.com/for-developers/sending-email/getting-started-smtp/):
 
 ```ruby
 gitlab_rails['smtp_enable'] = true
@@ -372,8 +390,8 @@ gitlab_rails['smtp_domain'] = "smtp.sendgrid.net"
 gitlab_rails['smtp_authentication'] = "plain"
 gitlab_rails['smtp_enable_starttls_auto'] = true
 gitlab_rails['smtp_tls'] = false
-# If use Single Sender Verification You must configure from. If not fail 
-# 550 The from address does not match a verified Sender Identity. Mail cannot be sent until this error is resolved. 
+# If use Single Sender Verification You must configure from. If not fail
+# 550 The from address does not match a verified Sender Identity. Mail cannot be sent until this error is resolved.
 # Visit https://sendgrid.com/docs/for-developers/sending-email/sender-identity/ to see the Sender Identity requirements
 gitlab_rails['gitlab_email_from'] = 'email@sender_owner_api'
 gitlab_rails['gitlab_email_reply_to'] = 'email@sender_owner_reply_api'
@@ -1095,7 +1113,20 @@ send a test email:
 Notify.test_email('destination_email@address.com', 'Message Subject', 'Message Body').deliver_now
 ```
 
-## Troubleshooting SSL/TLS
+## Troubleshooting 
+
+### Outgoing connections to port 25 is blocked on major cloud providers
+
+If you are using a cloud provider to host your GitLab instance and you are using port 25 for your
+SMTP server, it is possible that your cloud provider is blocking outgoing connections to port 25.
+This prevents GitLab from sending any outgoing mail. You can follow the instructions below to work
+around this depending on your cloud provider:
+
+- AWS: [How do I remove the restriction on port 25 from my Amazon EC2 instance or AWS Lambda function?](https://aws.amazon.com/premiumsupport/knowledge-center/ec2-port-25-throttle/)
+- Azure: [Troubleshoot outbound SMTP connectivity problems in Azure](https://docs.microsoft.com/en-us/azure/virtual-network/troubleshoot-outbound-smtp-connectivity)
+- GCP: [Sending email from an instance](https://cloud.google.com/compute/docs/tutorials/sending-mail)
+
+### Wrong version number when using SSL/TLS
 
 Many users run into the following error after configuring SMTP:
 

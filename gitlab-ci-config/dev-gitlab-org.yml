@@ -68,7 +68,6 @@
       when: never
     - <<: *if-tag
       when: manual
-      allow_failure: true
 
 .dev-tag-only-except-auto-deploy: &dev-tag-only-except-auto-deploy
   rules:
@@ -104,7 +103,6 @@
       when: never
     - <<: *if-tag
       when: manual
-      allow_failure: true
 
 .dev-ee-tag-only-except-auto-deploy: &dev-ee-tag-only-except-auto-deploy
   rules:
@@ -128,7 +126,6 @@
       when: never
     - <<: *if-ee-tag
       when: manual
-      allow_failure: true
 
 .dev-tag-only-except-auto-deploy-or-rc: &dev-tag-only-except-auto-deploy-or-rc
   rules:
@@ -162,6 +159,8 @@
       when: never
     - <<: *unless-dev
       when: never
+    - <<: *if-ee-tag
+      when: never
     - <<: *if-rc-tag
       when: never
     - <<: *if-auto-deploy-tag
@@ -182,7 +181,6 @@
       when: never
     - <<: *if-tag
       when: manual
-      allow_failure: true
 
 .dev-ce-tag-only-except-rc-manual: &dev-ce-tag-only-except-rc-manual
   rules:
@@ -190,11 +188,14 @@
       when: never
     - <<: *unless-dev
       when: never
+    - <<: *if-auto-deploy-tag
+      when: never
+    - <<: *if-ee-tag
+      when: never
     - <<: *if-rc-tag
       when: never
     - <<: *if-ce-tag
       when: manual
-      allow_failure: true
 
 .dev-ee-tag-only-except-auto-deploy-or-rc-manual: &dev-ee-tag-only-except-auto-deploy-or-rc-manual
   rules:
@@ -208,7 +209,6 @@
       when: never
     - <<: *if-ee-tag
       when: manual
-      allow_failure: true
 
 .dev-ce-branch-only-except-nightly: &dev-ce-branch-only-except-nightly
   rules:
@@ -255,9 +255,12 @@
       when: never
     - <<: *unless-dev
       when: never
+    - <<: *if-auto-deploy-tag
+      when: never
+    - <<: *if-ee-tag
+      when: never
     - <<: *if-ce-tag
       when: manual
-      allow_failure: true
 
 .dev-ee-tag-only: &dev-ee-tag-only
   rules:
@@ -275,7 +278,6 @@
       when: never
     - <<: *if-ee-tag
       when: manual
-      allow_failure: true
 
 .dev-tag-and-nightly: &dev-tag-and-nightly
   rules:
@@ -305,7 +307,6 @@
       when: never
     - <<: *if-nightly
       when: manual
-      allow_failure: true
 
 .dev-ee-nightly-only: &dev-ee-nightly-only
   rules:
@@ -348,17 +349,21 @@
     - bundle exec rake build:project build:package:sync
     - bundle exec rake cache:bundle
     - bundle exec rake build:component_shas
-    - bundle exec rspec --color --format RspecJunitFormatter --out junit_ci_rspec.xml --format documentation ci_build_specs
+    # Run package size checks on nightlies. The job will create alerts, so we
+    # don't need it to fail and block the pipeline. Hence the `|| true`.
+    - if [ -n "$NIGHTLY" ]; then
+      bundle exec rake check:package_size || true;
+      fi
   tags:
   - docker-builder
   <<: *dev-branches-only
-  artifacts:
-    <<: *package-artifacts
-    reports:
-      junit: junit_ci_rspec.xml
+  artifacts: *package-artifacts
   needs:
     - job: fetch-assets
       optional: true
+    - job: generate-facts
+      optional: true
+      artifacts: true
   cache: *branch-cache
   retry: 1
 
@@ -368,7 +373,7 @@
   variables:
     NO_SOURCEMAPS: "true"
   tags:
-  - docker-rpi-builder
+  - docker-arm-builder
   <<: *dev-ce-branch-only-except-nightly
   artifacts: *package-artifacts
   retry: 1
@@ -401,6 +406,9 @@
   needs:
     - job: fetch-assets
       optional: true
+    - job: generate-facts
+      optional: true
+      artifacts: true
   cache: *tag-cache
   retry: 1
 
@@ -410,7 +418,7 @@
   variables:
     NO_SOURCEMAPS: "true"
   tags:
-  - docker-rpi-builder
+  - docker-arm-builder
   <<: *dev-ce-tag-only
 
 ### This stage is used for uploading packages
@@ -470,7 +478,6 @@
   - export AWS_ACCESS_KEY_ID=$AWS_AMI_ACCESS_KEY_ID
   - export AWS_SECRET_ACCESS_KEY=$AWS_AMI_SECRET_ACCESS_KEY
   - bundle exec rake aws:ami:create
-  allow_failure: true
   tags:
   - docker-builder
   <<: *dev-tag-only-except-auto-deploy-or-rc-manual
@@ -482,7 +489,6 @@
 .aws_marketplace_release: &aws_marketplace_release
   image: "${BUILDER_IMAGE_REGISTRY}/ruby_docker:${BUILDER_IMAGE_REVISION}"
   stage: aws-marketplace-release
-  allow_failure: true
   script:
     - export AWS_ACCESS_KEY_ID=$AWS_AMI_ACCESS_KEY_ID
     - export AWS_SECRET_ACCESS_KEY=$AWS_AMI_SECRET_ACCESS_KEY
@@ -494,6 +500,7 @@
 ###########################
 
 # fetch-assets job from .gitlab-ci.yml file runs here
+# generate-assets job from .gitlab-ci.yml file runs here
 
 # We build package for deploying to GitLab.com first
 Ubuntu-16.04-branch:
@@ -566,6 +573,9 @@ Docker-branch:
   needs:
     - job: Ubuntu-20.04-branch
       artifacts: false
+    - job: generate-facts
+      optional: true
+      artifacts: true
   retry: 1
 
 QA-branch:
@@ -582,7 +592,6 @@ QA-branch:
     expire_in: 7d
     paths:
     - screenshots/
-  allow_failure: true
   <<: *dev-branches-only
   tags:
   - docker-builder
@@ -590,6 +599,9 @@ QA-branch:
   needs:
     - job: Ubuntu-20.04-branch
       artifacts: false
+    - job: generate-facts
+      optional: true
+      artifacts: true
   retry: 1
 
 Raspberry-Pi-2-Buster-branch:
@@ -649,7 +661,10 @@ Docker-QA:
   cache: *tag-cache
   tags:
   - docker-builder
-  needs: []
+  needs:
+    - job: generate-facts
+      optional: true
+      artifacts: true
   retry: 1
 
 ###########################################################
@@ -738,41 +753,6 @@ SLES-12.5:
   <<: *tag_build
   <<: *dev-ee-tag-only-except-auto-deploy
 
-create_omnibus_manifest:
-  image: "${BUILDER_IMAGE_REGISTRY}/debian_10:${BUILDER_IMAGE_REVISION}"
-  stage: prepare-assets
-  variables:
-    TERM: xterm-256color
-  script:
-    - bundle exec omnibus manifest gitlab -l nothing 2> /dev/null > version-manifest.json
-  <<: *dev-nightly-and-tag-except-auto-deploy
-  cache: *tag-cache
-  artifacts:
-    expire_in: 7 days
-    paths:
-      - version-manifest.json
-
-dependency_scanning:
-  image: "registry.gitlab.com/gitlab-org/security-products/gitlab-depscan:2.1.0"
-  stage: package
-  variables:
-    REPORT_PATH: ./
-    NVD_DB_UPDATE: "true"
-  before_script: []
-  script:
-    - echo ${CVEIGNORE} | sed -r "s/, */\n/g" >> .cveignore
-    - /gitlab-depscan.sh version-manifest.json
-  <<: *dev-nightly-and-tag-except-auto-deploy
-  needs:
-    - create_omnibus_manifest
-  artifacts:
-    expire_in: 7 days
-    when: on_failure
-    paths:
-      - dependency_report.txt
-      - gl-dependency-scanning-report.json
-      - .cveignore
-
 Docker:
   extends: .docker_job
   stage: image
@@ -786,6 +766,9 @@ Docker:
   needs:
     - job: Ubuntu-20.04
       artifacts: false
+    - job: generate-facts
+      optional: true
+      artifacts: true
   retry: 1
 
 ### Staging uploads
@@ -934,6 +917,9 @@ Docker-Release:
   cache: *tag-cache
   needs:
     - Docker
+    - job: generate-facts
+      optional: true
+      artifacts: true
 
 AWS:
   <<: *aws_ami_build
@@ -962,13 +948,15 @@ QA-Tag:
     expire_in: 7d
     paths:
     - screenshots/
-  allow_failure: true
   <<: *dev-tag-only-except-auto-deploy-manual
   tags:
   - docker-builder
   cache: *tag-cache
   needs:
     - Docker-QA
+    - job: generate-facts
+      optional: true
+      artifacts: true
   retry: 1
 
 license-upload:
@@ -976,7 +964,6 @@ license-upload:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_18.04:${BUILDER_IMAGE_REVISION}"
   script:
     - bundle exec rake license:upload
-  allow_failure: true
   <<: *dev-tag-only-except-auto-deploy-manual
   tags:
   - docker-builder
@@ -987,8 +974,6 @@ license-upload:
 RAT-Tag:
   stage: slow_jobs
   image: "dev.gitlab.org:5005/cookbooks/gitlab-omnibus-builder/ubuntu_16.04:${BUILDER_IMAGE_REVISION}"
-  variables:
-    CI_COMMIT_TAG: "1.2.3"
   script:
     - bundle exec rake qa:rat:tag
   cache: *tag-cache

@@ -371,6 +371,10 @@ nginx['listen_port'] = 80
 nginx['listen_https'] = false
 ```
 
+Additionally, the external load balancer may need access to a GitLab endpoint that returns a `200` status 
+code (for installations requiring login, the root page returns a `302` redirect to the login page). It is 
+recommended to leverage a [health check endpoint](https://docs.gitlab.com/ee/user/admin_area/monitoring/health_check.html).
+
 Other bundled components (Registry, Pages, etc) use a similar strategy for
 proxied SSL. Set the particular component's `*_external_url` with `https://` and
 prefix the `nginx[...]` configuration with the component name. For example, the
@@ -414,11 +418,11 @@ GitLab instance even once, it will remember to no longer attempt insecure connec
 even when the user is explicitly entering a `http://` URL. Such a URL will be automatically redirected by the browser to `https://` variant.
 
 ```ruby
-nginx['hsts_max_age'] = 31536000
+nginx['hsts_max_age'] = 63072000
 nginx['hsts_include_subdomains'] = false
 ```
 
-By default `max_age` is set for one year, this is how long browser will remember to only connect through HTTPS.
+By default `max_age` is set for two years, this is how long browser will remember to only connect through HTTPS.
 Setting `max_age` to 0 will disable this feature. For more information see:
 
 - <https://www.nginx.com/blog/http-strict-transport-security-hsts-and-nginx/>
@@ -881,9 +885,9 @@ To fix this, you will need to match the correct private key with your certificat
 To ensure you have the correct key and certificate, you can ensure that the modulus of the private key and certificate match:
 
 ```shell
-/opt/gitlab/embedded/bin/openssl rsa -in /etc/gitlab/ssl/gitlab.example.com.key -noout -modulus | openssl sha1
+/opt/gitlab/embedded/bin/openssl rsa -in /etc/gitlab/ssl/gitlab.example.com.key -noout -modulus | /opt/gitlab/embedded/bin/openssl sha256
 
-/opt/gitlab/embedded/bin/openssl x509 -in /etc/gitlab/ssl/gitlab.example.com.crt -noout -modulus| openssl sha1
+/opt/gitlab/embedded/bin/openssl x509 -in /etc/gitlab/ssl/gitlab.example.com.crt -noout -modulus| /opt/gitlab/embedded/bin/openssl sha256
 ```
 
 Once you verify that they match, you will need to reconfigure and reload NGINX:
