@@ -18,6 +18,9 @@ default['patroni']['remove_data_directory_on_diverged_timelines'] = false
 default['patroni']['use_slots'] = true
 default['patroni']['replication_password'] = nil
 default['patroni']['replication_slots'] = {}
+default['patroni']['callbacks'] = {}
+default['patroni']['recovery_conf'] = {}
+default['patroni']['tags'] = {}
 
 # Standby cluster replication settings
 default['patroni']['standby_cluster']['enable'] = false
@@ -56,3 +59,14 @@ default['patroni']['port'] = '8008'
 default['patroni']['connect_port'] = nil
 default['patroni']['username'] = nil
 default['patroni']['password'] = nil
+default['patroni']['allowlist'] = []
+default['patroni']['allowlist_include_members'] = false
+default['patroni']['tls_certificate_file'] = nil
+default['patroni']['tls_key_file'] = nil
+default['patroni']['tls_key_password'] = nil
+default['patroni']['tls_ca_file'] = nil
+default['patroni']['tls_ciphers'] = nil
+default['patroni']['tls_client_mode'] = nil
+default['patroni']['tls_client_certificate_file'] = nil
+default['patroni']['tls_client_key_file'] = nil
+default['patroni']['tls_verify'] = true

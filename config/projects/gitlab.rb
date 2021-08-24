@@ -82,7 +82,6 @@ if OhaiHelper.arm?
   end
 end
 
-dependency 'git'
 dependency 'jemalloc'
 dependency 'redis'
 dependency 'nginx'
@@ -97,37 +96,48 @@ dependency 'runit'
 dependency 'go-crond'
 dependency 'docker-distribution-pruner'
 
+dependency 'mail_room'
+dependency 'grafana-dashboards'
 if Build::Check.include_ee?
   dependency 'consul'
-  dependency 'gitlab-ctl-ee'
-  dependency 'gitlab-geo-psql'
-  dependency 'gitlab-pg-ctl'
   dependency 'pgbouncer-exporter'
 end
-
-dependency 'mattermost'
-dependency 'prometheus'
 dependency 'alertmanager'
-dependency 'grafana'
-dependency 'grafana-dashboards'
-dependency 'mail_room'
 dependency 'node-exporter'
 dependency 'redis-exporter'
 dependency 'postgres-exporter'
+dependency 'prometheus'
+dependency 'grafana'
 dependency 'gitlab-exporter'
-dependency 'gitlab-shell'
-dependency 'gitlab-pages'
+dependency 'mattermost'
+
+# Components that depend on the contents of this repository tends to dirty the
+# cache frequently than vendored components.
+if Build::Check.include_ee?
+  dependency 'gitlab-ctl-ee'
+  dependency 'gitlab-geo-psql'
+  dependency 'gitlab-pg-ctl'
+end
+dependency 'gitlab-cookbooks'
+dependency 'chef-acme'
 dependency 'gitlab-ctl'
 dependency 'gitlab-psql'
 dependency 'gitlab-redis-cli'
-dependency 'gitlab-kas'
 dependency 'gitlab-healthcheck'
-dependency 'gitlab-cookbooks'
-dependency 'chef-acme'
 dependency 'gitlab-selinux'
 dependency 'gitlab-scripts'
-dependency 'gitlab-config-template'
 dependency 'package-scripts'
+dependency 'gitlab-config-template'
+
+# Build GitLab components at the end because except for tag pipelines, we build
+# from `main`/`master`, and this can invalidate cache easily. Git is built from
+# gitaly sources, and hence falls under the same category.
+dependency 'gitlab-elasticsearch-indexer' if Build::Check.include_ee?
+
+dependency 'gitlab-kas'
+dependency 'gitlab-shell'
+dependency 'gitlab-pages'
+dependency 'git'
 
 # gitaly needs grpc to work correctly. These native extensions are built as part
 # of gitlab-rails build. So, gitlab-rails has to be built before gitaly. But

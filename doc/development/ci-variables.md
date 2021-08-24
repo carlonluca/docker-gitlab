@@ -34,6 +34,7 @@ These additional variables are available to override or enable different build b
 | CACHE_AWS_SECRET_ACCESS_KEY                   | Account secret to read/write from the s3 bucket containing the s3 software fetch cache. |
 | CACHE_AWS_BUCKET                              | S3 bucket name for the software fetch cache. |
 | CACHE_AWS_S3_REGION                           | S3 bucket region to write/read the software fetch cache. |
+| CACHE_AWS_S3_ENDPOINT                         | The HTTP or HTTPS endpoint to send requests to, when using s3 compatible service. |
 | CACHE_S3_ACCELERATE                           | Setting any value enables the s3 software fetch cache to pull using s3 accelerate. |
 | SECRET_AWS_SECRET_ACCESS_KEY                  | Account secret to read the gpg private package signing key from a secure s3 bucket. |
 | SECRET_AWS_ACCESS_KEY_ID                      | Account ID to read the gpg private package signing key from a secure s3 bucket. |
@@ -50,7 +51,10 @@ These additional variables are available to override or enable different build b
 | Environment Variable                            | Description |
 | ---------------------------------------------   | ----------- |
 | RAT_TRIGGER_TOKEN                               | Trigger token for the RAT pipeline. |
-| GITLAB_BOT_MULTI_PROJECT_PIPELINE_POLLING_TOKEN | Trigger token for building a test package. |
+| RAT_PROJECT_ACCESS_TOKEN                        | Project access token for trigerring a RAT pipeline. |
+| OMNIBUS_GITLAB_MIRROR_PROJECT_ACCESS_TOKEN      | Project access token for building a test package. |
+| GITLAB_QA_MIRROR_PROJECT_ACCESS_TOKEN           | Project access token for triggering a downstream pipeline for end-to-end testing. |
+| GITLAB_BOT_MULTI_PROJECT_PIPELINE_POLLING_TOKEN (deprecated) | Trigger token for building a test package. |
 | CVEIGNORE                                       | See document on [dependencies being reported as vulnerable](broken_master.md). |
 | CI_SLACK_WEBHOOK_URL                            | Webhook URL for Slack failure notifications. |
 | DANGER_GITLAB_API_TOKEN                         | GitLab API token for dangerbot to post comments to MRs. |
@@ -92,7 +96,6 @@ These additional variables are available to override or enable different build b
 | AUTO_DEPLOY_ENVIRONMENT                       | Deployment name used for the [`gitlab.com` deployer](https://gitlab.com/gitlab-org/release/docs/blob/master/general/deploy/gitlab-com-deployer.md) trigger if current ref is an auto-deploy tag. |
 | DEPLOYER_TRIGGER_PROJECT                      | GitLab project ID for the repository used for the [`gitlab.com` deployer](https://gitlab.com/gitlab-org/release/docs/blob/master/general/deploy/gitlab-com-deployer.md). |
 | DEPLOYER_TRIGGER_TOKEN                        | Trigger token for the various [`gitlab.com` deployer](https://gitlab.com/gitlab-org/release/docs/blob/master/general/deploy/gitlab-com-deployer.md) environments. |
-| AUTO_DEPLOY_OMNIBUS_TRIGGERS_DEPLOYER         | Setting to `false` disables auto deploys for the [`gitlab.com` deployer](https://gitlab.com/gitlab-org/release/docs/blob/master/general/deploy/gitlab-com-deployer.md). |
 | RELEASE_BUCKET                                | S3 bucket where release packages are pushed. |
 | BUILDS_BUCKET                                 | S3 bucket where regular branch packages are pushed. |
 | RELEASE_BUCKET_REGION                         | S3 bucket region. |

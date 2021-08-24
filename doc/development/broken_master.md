@@ -10,8 +10,10 @@ other scheduled work as per our [development guidelines](https://about.gitlab.co
 
 1. Check the job log and find out which component is marked `Vulnerable`
 
-1. Open a confidential issue in [`omnibus-gitlab` issue tracker](https://gitlab.com/gitlab-org/omnibus-gitlab/issues/)
-   giving details about the vulnerability and a link to the failed job.
+1. Visit the [Omnibus Vulnerability Report](https://gitlab.com/gitlab-org/omnibus-gitlab/-/security/vulnerability_report), locate the appropriate
+   vulnerability. If the vulnerability appears to be legitimate, use the `Create Issue` button to open a confidential issue in the
+   [`omnibus-gitlab` issue tracker](https://gitlab.com/gitlab-org/omnibus-gitlab/issues/). Additionally, change the vulnerability status to `Confirmed`. In
+   the event that it is a false positive, duplicate, or otherwise not actionable please change the status to `Dismiss`.
 
 1. Label the issue with the `security` and `For Scheduling` labels. The GitLab
    Security team will be made aware of this issue, thanks to the automation in
@@ -42,22 +44,8 @@ other scheduled work as per our [development guidelines](https://about.gitlab.co
    an item from the `.cveignore` file can be done through a public MR to the Omnibus
    repository.
 
-## Raspberry Pi jobs timed out in pending state waiting to be scheduled
-
-From time to time, we see Scaleway driver for `docker-machine` failing in properly
-provisioning and de-provisioning machines. THis will result in new machines not
-being spun up for builds, and the jobs end up timing out waiting for a machine.
-
-1. Follow [maintenance documentation](https://about.gitlab.com/handbook/engineering/development/enablement/distribution/maintenance/build-machines.html#when-builds-are-pending-on-devgitlaborg)
-   and delete all the machines that are not running.
-
-1. If machines are present in `Off` state (gray icon), you can manually batch
-   delete them.
-
-1. Ensure new machines are being started up.
-
-1. Retry the failed jobs (only Maintainers can do this) and ensure it gets
-   picked up by a machine.
+1. Visit the [Omnibus Vulnerability Report](https://gitlab.com/gitlab-org/omnibus-gitlab/-/security/vulnerability_report), locate the appropriate
+   vulnerability and set the status to `Resolved`.
 
 ## Jobs are stuck due to no runners being active
 

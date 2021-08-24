@@ -131,6 +131,7 @@ RSpec.describe 'patroni cookbook' do
         restapi: {
           listen: :'8008',
           connect_address: "#{Patroni.private_ipv4}:8008",
+          allowlist_include_members: false
         },
       }
     end
@@ -208,6 +209,7 @@ RSpec.describe 'patroni cookbook' do
         restapi: {
           listen: :'8008',
           connect_address: "#{Patroni.private_ipv4}:8008",
+          allowlist_include_members: false
         },
       }
     end
@@ -278,6 +280,8 @@ RSpec.describe 'patroni cookbook' do
           username: 'gitlab',
           password: 'restapipassword',
           replication_password: 'fakepassword',
+          allowlist: ['1.2.3.4/32', '127.0.0.1/32'],
+          allowlist_include_members: false,
           remove_data_directory_on_diverged_timelines: true,
           remove_data_directory_on_rewind_failure: true,
           replication_slots: {
@@ -290,6 +294,15 @@ RSpec.describe 'patroni cookbook' do
             wal_keep_segments: 16,
             max_wal_senders: 4,
             max_replication_slots: 4
+          },
+          tags: {
+            nofailover: true
+          },
+          callbacks: {
+            on_role_change: "/patroni/scripts/post-failover-maintenance.sh"
+          },
+          recovery_conf: {
+            restore_command: "/opt/wal-g/bin/wal-g wal-fetch %f %p"
           }
         }
       )
@@ -304,6 +317,9 @@ RSpec.describe 'patroni cookbook' do
           scope: 'test-scope',
           log: {
             level: 'DEBUG'
+          },
+          tags: {
+            nofailover: true
           }
         )
         expect(cfg[:consul][:service_check_interval]).to eq('20s')
@@ -317,12 +333,20 @@ RSpec.describe 'patroni cookbook' do
             password: 'fakepassword'
           }
         )
+        expect(cfg[:postgresql][:callbacks]).to eq(
+          on_role_change: "/patroni/scripts/post-failover-maintenance.sh"
+        )
+        expect(cfg[:postgresql][:recovery_conf]).to eq(
+          restore_command: "/opt/wal-g/bin/wal-g wal-fetch %f %p"
+        )
         expect(cfg[:restapi]).to include(
           connect_address: '1.2.3.4:18008',
           authentication: {
             username: 'gitlab',
             password: 'restapipassword'
-          }
+          },
+          allowlist: ['1.2.3.4/32', '127.0.0.1/32'],
+          allowlist_include_members: false
         )
         expect(cfg[:bootstrap][:dcs]).to include(
           loop_wait: 20,
@@ -642,6 +666,62 @@ RSpec.describe 'patroni cookbook' do
       chef_run
 
       expect_logged_warning(/Patroni is enabled but Consul seems to be disabled/)
+    end
+  end
+
+  context 'when tls is enabled' do
+    it 'should only set the path to the tls certificate and key' do
+      stub_gitlab_rb(
+        roles: %w(postgres_role),
+        patroni: {
+          enable: true,
+          tls_certificate_file: '/path/to/crt.pem',
+          tls_key_file: '/path/to/key.pem'
+        }
+      )
+
+      expect(chef_run).to render_file('/var/opt/gitlab/patroni/patroni.yaml').with_content { |content|
+        cfg = YAML.safe_load(content, permitted_classes: [Symbol], symbolize_names: true)
+
+        expect(cfg[:restapi][:certfile]).to eq('/path/to/crt.pem')
+        expect(cfg[:restapi][:keyfile]).to eq('/path/to/key.pem')
+        expect(cfg[:restapi][:keyfile_password]).to be(nil)
+        expect(cfg[:restapi][:cafile]).to be(nil)
+        expect(cfg[:restapi][:ciphers]).to be(nil)
+        expect(cfg[:restapi][:verify_client]).to be(nil)
+        expect(cfg[:ctl]).to be(nil)
+      }
+    end
+
+    it 'should set all available tls configuration including tls certificate and key paths' do
+      stub_gitlab_rb(
+        roles: %w(postgres_role),
+        patroni: {
+          enable: true,
+          tls_certificate_file: '/path/to/crt.pem',
+          tls_key_file: '/path/to/key.pem',
+          tls_key_password: 'fakepassword',
+          tls_ca_file: '/path/to/ca.pem',
+          tls_ciphers: 'CIPHERS LIST',
+          tls_client_mode: 'optional',
+          tls_client_certificate_file: '/path/to/client.pem',
+          tls_client_key_file: '/path/to/client.key'
+        }
+      )
+
+      expect(chef_run).to render_file('/var/opt/gitlab/patroni/patroni.yaml').with_content { |content|
+        cfg = YAML.safe_load(content, permitted_classes: [Symbol], symbolize_names: true)
+
+        expect(cfg[:restapi][:certfile]).to eq('/path/to/crt.pem')
+        expect(cfg[:restapi][:keyfile]).to eq('/path/to/key.pem')
+        expect(cfg[:restapi][:keyfile_password]).to eq('fakepassword')
+        expect(cfg[:restapi][:cafile]).to eq('/path/to/ca.pem')
+        expect(cfg[:restapi][:ciphers]).to eq('CIPHERS LIST')
+        expect(cfg[:restapi][:verify_client]).to eq('optional')
+        expect(cfg[:ctl][:insecure]).to eq(false)
+        expect(cfg[:ctl][:certfile]).to eq('/path/to/client.pem')
+        expect(cfg[:ctl][:keyfile]).to eq('/path/to/client.key')
+      }
     end
   end
 end

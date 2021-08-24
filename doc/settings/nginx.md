@@ -358,6 +358,17 @@ something else. For example, to use port 8081:
 nginx['listen_port'] = 8081
 ```
 
+## Verbosity level of NGINX logs
+
+By default NGINX will log at the `error` verbosity level. You may log at a different level
+by changing the log level. For example, to enable `debug` logging:
+
+```ruby
+nginx['error_log_level'] = "debug"
+```
+
+Valid values can be found from the [NGINX documentation](https://nginx.org/en/docs/ngx_core_module.html#error_log).
+
 ## External, proxy, and load balancer SSL termination
 
 By default, Omnibus GitLab auto-detects whether to use SSL if `external_url`
@@ -371,8 +382,8 @@ nginx['listen_port'] = 80
 nginx['listen_https'] = false
 ```
 
-Additionally, the external load balancer may need access to a GitLab endpoint that returns a `200` status 
-code (for installations requiring login, the root page returns a `302` redirect to the login page). It is 
+Additionally, the external load balancer may need access to a GitLab endpoint that returns a `200` status
+code (for installations requiring login, the root page returns a `302` redirect to the login page). It is
 recommended to leverage a [health check endpoint](https://docs.gitlab.com/ee/user/admin_area/monitoring/health_check.html).
 
 Other bundled components (Registry, Pages, etc) use a similar strategy for
@@ -388,7 +399,7 @@ GitLab Container Registry configuration is prefixed with `registry_`:
   registry_nginx['listen_port'] = 80
   registry_nginx['listen_https'] = false
   ```
-  
+
 - [GitLab Container Registry listening on a port under main GitLab domain](https://docs.gitlab.com/ee/administration/packages/container_registry.html#configure-container-registry-under-an-existing-gitlab-domain):
 
   ```ruby

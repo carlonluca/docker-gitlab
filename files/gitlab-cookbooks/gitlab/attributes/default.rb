@@ -427,6 +427,8 @@ default['gitlab']['gitlab-rails']['db_keepalives_count'] = nil
 default['gitlab']['gitlab-rails']['db_tcp_user_timeout'] = nil
 default['gitlab']['gitlab-rails']['db_application_name'] = nil
 
+default['gitlab']['gitlab-rails']['databases'] = {}
+
 # Automatic Database Reindexing
 # See https://docs.gitlab.com/omnibus/settings/database.html#automatic-database-reindexing
 default['gitlab']['gitlab-rails']['database_reindexing']['enable'] = false
@@ -625,6 +627,8 @@ default['gitlab']['gitlab-workhorse']['api_queue_duration'] = nil
 default['gitlab']['gitlab-workhorse']['api_queue_limit'] = nil
 default['gitlab']['gitlab-workhorse']['api_ci_long_polling_duration'] = nil
 default['gitlab']['gitlab-workhorse']['propagate_correlation_id'] = false
+default['gitlab']['gitlab-workhorse']['trusted_cidrs_for_x_forwarded_for'] = nil
+default['gitlab']['gitlab-workhorse']['trusted_cidrs_for_propagation'] = nil
 default['gitlab']['gitlab-workhorse']['log_format'] = "json"
 default['gitlab']['gitlab-workhorse']['env_directory'] = '/opt/gitlab/etc/gitlab-workhorse/env'
 default['gitlab']['gitlab-workhorse']['env'] = {
@@ -650,6 +654,7 @@ default['gitlab']['nginx']['enable'] = false
 default['gitlab']['nginx']['ha'] = false
 default['gitlab']['nginx']['dir'] = "/var/opt/gitlab/nginx"
 default['gitlab']['nginx']['log_directory'] = "/var/log/gitlab/nginx"
+default['gitlab']['nginx']['error_log_level'] = "error"
 default['gitlab']['nginx']['worker_processes'] = node['cpu']['total'].to_i
 default['gitlab']['nginx']['worker_connections'] = 10240
 default['gitlab']['nginx']['log_format'] = '$remote_addr - $remote_user [$time_local] "$request_method $filtered_request_uri $server_protocol" $status $body_bytes_sent "$filtered_http_referer" "$http_user_agent" $gzip_ratio' #  NGINX 'combined' format without query strings

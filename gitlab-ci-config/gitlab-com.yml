@@ -23,14 +23,13 @@
     - pipelines@gitlab-org/build/omnibus-gitlab-mirror
 
 .com-trigger-and-nightly-only: &com-trigger-and-nightly-only
-  only:
-    refs:
-      - triggers@gitlab-org/build/omnibus-gitlab-mirror
-      - pipelines@gitlab-org/build/omnibus-gitlab-mirror
-      - schedules@gitlab-org/build/omnibus-gitlab-mirror
-  except:
-    variables:
-      - $DEPS_PIPELINE || $CACHE_UPDATE || $DEPENDENCY_SCANNING
+  rules:
+    - if: '$DEPS_PIPELINE || $DEPENDENCY_SCANNING'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_PROJECT_PATH == "gitlab-org/build/omnibus-gitlab-mirror"'
+    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_PROJECT_PATH == "gitlab-org/build/omnibus-gitlab-mirror"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $NIGHTLY == "true" && $CI_PROJECT_PATH == "gitlab-org/build/omnibus-gitlab-mirror"'
+    - when: never
 
 .depscan-rules: &depscan-rules
   only:
@@ -47,7 +46,7 @@
 .knapsack-state:
   services: []
   cache:
-    key: "knapsack"
+    key: "knapsack${CACHE_KEY_SUFFIX}"
     paths:
       - knapsack/
   artifacts: *knapsack-artifacts
@@ -69,14 +68,14 @@
 
 .gems-cache:
   cache:
-    key: "gems-cache-${BUILDER_IMAGE_REVISION}"
+    key: "gems-cache-${BUILDER_IMAGE_REVISION}${CACHE_KEY_SUFFIX}"
     paths:
       - gems
     policy: pull
 
 .trigger-package-cache:
   cache:
-    key: "Ubuntu-20.04-branch-${BUILDER_IMAGE_REVISION}-v1"
+    key: "Ubuntu-20.04-branch-${BUILDER_IMAGE_REVISION}-${CACHE_EDITION}${CACHE_KEY_SUFFIX}"
     paths:
       - cache
       - gems
@@ -94,6 +93,7 @@
   - bundle exec rake cache:restore
   - bundle exec rake build:project
   - bundle exec rake cache:bundle
+  - bundle exec rake build:component_shas
 
 .spec_template:
   extends: .gems-cache
@@ -162,8 +162,6 @@
   variables:
     GIT_STRATEGY: none
     DOCS_REVIEW_APPS_DOMAIN: 178.62.207.141.nip.io
-    # By default, deploy the Review App using the `main` branch of the `gitlab-org/gitlab-docs` project
-    DOCS_BRANCH: main
   when: manual
   only:
     refs:
@@ -213,6 +211,7 @@ update-trigger-package-cache:
   only:
     refs:
       - schedules@gitlab-org/build/omnibus-gitlab-mirror  # Jobs that take advantage of this cache are exclusively in the mirror project
+      - pipelines@gitlab-org/build/omnibus-gitlab-mirror
     variables:
       - $CACHE_UPDATE
 
@@ -417,7 +416,6 @@ Trigger:package:
     # Renaming so we can easily generate the artifact URL
     - mv pkg/ubuntu-focal/*.deb pkg/ubuntu-focal/gitlab.deb
     - mv pkg/ubuntu-focal/*.deb.size pkg/ubuntu-focal/gitlab.deb.size
-    - bundle exec rake build:component_shas
   <<: *com-trigger-and-nightly-only
   artifacts:
     expire_in: 3 days

@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'net/http'
+require 'openssl'
 require 'optparse'
 
 module Patroni
@@ -220,31 +221,48 @@ module Patroni
   end
 
   def self.restart(options)
-    attributes = GitlabCtl::Util.get_node_attributes
-    Utils.patronictl("restart --force #{attributes['patroni']['scope']} #{attributes['patroni']['name']}")
+    patroni = patroni_attributes
+    Utils.patronictl("restart --force #{patroni['scope']} #{patroni['name']}")
   end
 
   def self.reload(options)
-    attributes = GitlabCtl::Util.get_node_attributes
-    Utils.patronictl("reload --force #{attributes['patroni']['scope']} #{attributes['patroni']['name']}")
+    patroni = patroni_attributes
+    Utils.patronictl("reload --force #{patroni['scope']} #{patroni['name']}")
   end
 
   def self.reinitialize_replica(options)
-    attributes = GitlabCtl::Util.get_node_attributes
+    patroni = patroni_attributes
     command = %w(reinit)
     command << '--force'
     command << '--wait' if options[:wait]
-    command << attributes['patroni']['scope']
-    command << (options[:member].nil? ? attributes['patroni']['name'] : options[:member])
+    command << patroni['scope']
+    command << (options[:member].nil? ? patroni['name'] : options[:member])
     Utils.patronictl(command, live: true)
+  end
+
+  def self.patroni_attributes
+    patroni = GitlabCtl::Util.get_node_attributes['patroni']
+    Utils.no_config_error! if patroni.nil?
+
+    patroni
   end
 
   class Utils
     def self.patronictl(cmd, user = 'root', live: false)
-      attributes = GitlabCtl::Util.get_public_node_attributes
+      patroni = GitlabCtl::Util.get_public_node_attributes['patroni']
+      no_config_error! if patroni.nil?
+
       GitlabCtl::Util.run_command(
-        "/opt/gitlab/embedded/bin/patronictl -c #{attributes['patroni']['config_dir']}/patroni.yaml #{cmd.respond_to?(:join) ? cmd.join(' ') : cmd.to_s}",
+        "/opt/gitlab/embedded/bin/patronictl -c #{patroni['config_dir']}/patroni.yaml #{cmd.respond_to?(:join) ? cmd.join(' ') : cmd.to_s}",
         user: user, live: live)
+    end
+
+    def self.no_config_error!
+      raise <<~EOS.freeze
+        This node has no Patroni configuration! This could mean:
+          - either your Omnibus is misconfigured,
+          - or you need to run this command on a database node.
+      EOS
     end
 
     def self.warn_and_exit(msg, code = 0)
@@ -260,7 +278,7 @@ module Patroni
 
     def initialize
       @attributes = GitlabCtl::Util.get_public_node_attributes
-      @uri = URI("http://#{@attributes['patroni']['api_address']}")
+      @uri = URI(attribute('api_address'))
     end
 
     def up?
@@ -297,8 +315,33 @@ module Patroni
 
     private
 
+    def attribute(name)
+      @attributes['patroni'][name]
+    end
+
+    def http_options
+      opts = {}
+
+      return opts unless @uri.scheme == 'https'
+
+      opts[:use_ssl] = true
+      if attribute('tls_verify')
+        opts[:ca_file] = attribute('ca_file')
+      else
+        opts[:verify_mode] = OpenSSL::SSL::VERIFY_NONE
+      end
+
+      opts.merge!(
+        verify_mode: OpenSSL::SSL::VERIFY_PEER,
+        cert: OpenSSL::X509::Certificate.new(File.read(attribute('client_cert'))),
+        key: OpenSSL::PKey.read(File.read(attribute('client_key')))
+      ) if attribute('verify_client')
+
+      opts.compact
+    end
+
     def get(endpoint, header = nil)
-      Net::HTTP.start(@uri.host, @uri.port) do |http|
+      Net::HTTP.start(@uri.host, @uri.port, http_options) do |http|
         http.request_get(endpoint, header) do |response|
           return yield response
         end
