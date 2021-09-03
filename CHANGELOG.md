@@ -6,6 +6,10 @@ omnibus-gitlab repository.
 ## 14.0.6 (2021-07-20)
 
 No changes.
+## 14.2.3 (2021-09-01)
+
+No changes.
+
 ## 14.2.2 (2021-08-31)
 
 ### Security (1 change)
