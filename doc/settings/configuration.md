@@ -7,7 +7,7 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 # Configuration options
 
 GitLab is configured by setting the relevant options in
-`/etc/gitlab/gitlab.rb`. See [package defaults](../package-information/defaults.md)
+`/etc/gitlab/gitlab.rb`. See [package defaults](https://docs.gitlab.com/ee/administration/package_information/defaults.html)
 for a list of default settings and visit the
 [`gitlab.rb.template`](https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/files/gitlab-config-template/gitlab.rb.template)
 for a complete list of available options.
@@ -218,7 +218,7 @@ sudo gitlab-ctl stop
 
 # Note there is _no_ slash behind 'repositories', but there _is_ a
 # slash behind 'git-data'.
-sudo rsync -av /var/opt/gitlab/git-data/repositories /mnt/nas/git-data/
+sudo rsync -av --delete /var/opt/gitlab/git-data/repositories /mnt/nas/git-data/
 
 # Start the necessary processes and run reconfigure to fix permissions
 # if necessary
@@ -659,7 +659,7 @@ gitlab_rails['content_security_policy'] = {
     directives: {
       default_src: "'self'",
       script_src: "'self' 'unsafe-inline' 'unsafe-eval' https://www.recaptcha.net https://apis.google.com",
-      frame_ancestor: "'self'",
+      frame_ancestors: "'self'",
       frame_src: "'self' https://www.recaptcha.net/ https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com https://content-cloudresourcemanager.googleapis.com",
       img_src: "* data: blob:",
       style_src: "'self' 'unsafe-inline'"
@@ -753,7 +753,7 @@ See [OmniAuth documentation](https://docs.gitlab.com/ee/integration/omniauth.htm
 
 ## Adjusting Puma settings
 
-See [Puma documentation](puma.md)
+See [Puma documentation](https://docs.gitlab.com/ee/administration/operations/puma.html)
 
 ## Setting the NGINX listen address or addresses
 

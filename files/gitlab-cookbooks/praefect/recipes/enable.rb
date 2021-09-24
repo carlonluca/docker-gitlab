@@ -87,7 +87,9 @@ version_file 'Create Praefect version file' do
   notifies :hup, "runit_service[praefect]"
 end
 
-consul_service 'praefect' do
+consul_service node['praefect']['consul_service_name'] do
+  id 'praefect'
+  meta node['praefect']['consul_service_meta']
   action Prometheus.service_discovery_action
   socket_address node['praefect']['prometheus_listen_addr']
   reload_service false unless node['consul']['enable']

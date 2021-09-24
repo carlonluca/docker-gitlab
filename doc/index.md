@@ -11,12 +11,12 @@ Omnibus GitLab is a way to package different services and tools required to run 
 
 ## Package information
 
-- [Checking the versions of bundled software](package-information/index.md#checking-the-versions-of-bundled-software)
-- [Package defaults](package-information/defaults.md)
+- [Checking the versions of bundled software](https://docs.gitlab.com/ee/administration/package_information/index.html#checking-the-versions-of-bundled-software)
+- [Package defaults](https://docs.gitlab.com/ee/administration/package_information/defaults.html)
 - [Components included](https://docs.gitlab.com/ee/development/architecture.html#component-list)
-- [Deprecated Operating Systems](package-information/deprecated_os.md)
-- [Signed Packages](package-information/signed_packages.md)
-- [Deprecation Policy](package-information/deprecation_policy.md)
+- [Deprecated Operating Systems](https://docs.gitlab.com/ee/administration/package_information/deprecated_os.html)
+- [Signed Packages](https://docs.gitlab.com/ee/administration/package_information/signed_packages.html)
+- [Deprecation Policy](https://docs.gitlab.com/ee/administration/package_information/deprecation_policy.html)
 - [Licenses of bundled dependencies](https://gitlab-org.gitlab.io/omnibus-gitlab/licenses.html)
 
 ## Installation
@@ -51,7 +51,7 @@ to work best with the available resources. Check out the [documentation](setting
 - [SMTP](settings/smtp.md)
 - [NGINX](settings/nginx.md)
 - [LDAP](https://docs.gitlab.com/ee/administration/auth/ldap/index.html)
-- [Puma](settings/puma.md)
+- [Puma](https://docs.gitlab.com/ee/administration/operations/puma.html)
 - [ActionCable](settings/actioncable.md)
 - [Redis](settings/redis.md)
 - [Logs](settings/logs.md)
@@ -62,16 +62,16 @@ to work best with the available resources. Check out the [documentation](setting
 - [Backups](settings/backups.md)
 - [Pages](https://docs.gitlab.com/ee/administration/pages/index.html)
 - [SSL](settings/ssl.md)
-- [GitLab and Registry](architecture/registry/index.md)
+- [GitLab and Registry](https://docs.gitlab.com/ee/administration/packages/container_registry.html)
 - [Configuring an asset proxy server](https://docs.gitlab.com/ee/security/asset_proxy.html)
 - [Image scaling](settings/image_scaling.md)
 
 ## Updating
 
-- [Upgrade guidance](https://docs.gitlab.com/ee/update/index.html), including [supported upgrade paths](https://docs.gitlab.com/ee/update/index.html#upgrade-paths).
-- [Upgrade from Community Edition to Enterprise Edition](update/index.md#update-community-edition-to-enterprise-edition)
-- [Update to the latest version](update/index.md#update-using-the-official-repositories)
-- [Downgrade to an earlier version](update/index.md#downgrade)
+- [Upgrade guidance](https://docs.gitlab.com/ee/update/package/), including [supported upgrade paths](https://docs.gitlab.com/ee/update/index.html#upgrade-paths).
+- [Upgrade from Community Edition to Enterprise Edition](https://docs.gitlab.com/ee/update/package/convert_to_ee.html)
+- [Update to the latest version](https://docs.gitlab.com/ee/update/package/#upgrade-using-the-official-repositories)
+- [Downgrade to an earlier version](https://docs.gitlab.com/ee/update/package/downgrade.html)
 - [Upgrade from a non-Omnibus installation to an Omnibus installation using a backup](update/convert_to_omnibus.md#upgrading-from-non-omnibus-postgresql-to-an-omnibus-installation-using-a-backup)
 - [Upgrade from non-Omnibus PostgreSQL to an Omnibus installation in-place](update/convert_to_omnibus.md#upgrading-from-non-omnibus-postgresql-to-an-omnibus-installation-in-place)
 - [Upgrade from non-Omnibus MySQL to an Omnibus installation (version 6.8+)](update/convert_to_omnibus.md#upgrading-from-non-omnibus-mysql-to-an-omnibus-installation-version-68)

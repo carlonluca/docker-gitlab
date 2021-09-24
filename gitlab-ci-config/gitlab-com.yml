@@ -4,6 +4,16 @@
 #############
 # Templates #
 #############
+.com-docs-except-triggers: &com-docs-except-triggers
+  except:
+    refs:
+      - /./@gitlab/omnibus-gitlab
+      - triggers
+      - /^deps/
+      - /./@gitlab-org/build/omnibus-gitlab-mirror
+    variables:
+      - $DEPS_PIPELINE || $CACHE_UPDATE || $DEPENDENCY_SCANNING
+      - $CI_COMMIT_REF_NAME =~ /^[0-9]+-[0-9]+-auto-deploy-[0-9]+$/
 
 .com-except-triggers: &com-except-triggers
   except:
@@ -146,6 +156,18 @@
   needs: []
   timeout: 3h
 
+.trigger-pipeline:
+  stage: trigger-qa
+  image: "${RUBY_IMAGE}"
+  when: manual
+  <<: *com-trigger-only
+  needs:
+    - job: Trigger:package
+      artifacts: false
+    - job: Trigger:qa-docker
+      artifacts: false
+      optional: true
+
 .review-docs:
   image: "${RUBY_IMAGE}-alpine"
   stage: post-test
@@ -240,7 +262,7 @@ rubocop:
 
 # Perform documentation linting on Markdown files
 docs-lint markdown:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.13-vale-2.10.2-markdownlint-0.26.0
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.14-vale-2.10.4-markdownlint-0.28.1
   stage: check
   cache: {}
   needs: []
@@ -250,19 +272,11 @@ docs-lint markdown:
     - vale --minAlertLevel error doc
     # Lint Markdown
     - markdownlint --config .markdownlint.yml 'doc/**/*.md'
-  except:
-    refs:
-      - /./@gitlab/omnibus-gitlab
-      - triggers
-      - /^deps/
-      - /./@gitlab-org/build/omnibus-gitlab-mirror
-    variables:
-      - $DEPS_PIPELINE || $CACHE_UPDATE || $DEPENDENCY_SCANNING
-      - $CI_COMMIT_REF_NAME =~ /^[0-9]+-[0-9]+-auto-deploy-[0-9]+$/
+  <<: *com-docs-except-triggers
 
 # Perform link checks on published HTML files
 docs-lint links:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-html:alpine-3.13-ruby-2.7.2
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-html:alpine-3.14-ruby-2.7.4-db71f027
   stage: check
   cache: {}
   needs: []
@@ -277,15 +291,26 @@ docs-lint links:
     - bundle exec nanoc check internal_links
     # Check the internal anchor links
     - bundle exec nanoc check internal_anchors
-  except:
-    refs:
-      - /./@gitlab/omnibus-gitlab
-      - triggers
-      - /^deps/
-      - /./@gitlab-org/build/omnibus-gitlab-mirror
-    variables:
-      - $DEPS_PIPELINE || $CACHE_UPDATE || $DEPENDENCY_SCANNING
-      - $CI_COMMIT_REF_NAME =~ /^[0-9]+-[0-9]+-auto-deploy-[0-9]+$/
+  <<: *com-docs-except-triggers
+
+yard:
+  extends: .gems-cache
+  image: "${RUBY_IMAGE}"
+  stage: check
+  needs: []
+  before_script:
+    # These jobs will not be run on dev, so we set ALTERNATIVE_SOURCES to true
+    # so tests run fine on forks
+    - export ALTERNATIVE_SOURCES="true";
+    - *install-gems
+  script:
+    - bundle exec yardoc
+  <<: *com-docs-except-triggers
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - yard/*
+
 
 # Trigger a docs build in gitlab-docs
 # Useful to preview the docs changes live
@@ -431,7 +456,7 @@ Trigger:package:
       optional: true
       artifacts: true
 
-Trigger:package_size_check:
+package_size_check:
   extends: .trigger-package-cache
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04:${BUILDER_IMAGE_REVISION}"
   stage: trigger-qa
@@ -479,7 +504,7 @@ Trigger:qa-docker:
       optional: true
       artifacts: true
 
-Trigger:qa-test:
+qa-test:
   stage: trigger-qa
   image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/ruby_docker:${BUILDER_IMAGE_REVISION}"
   script:
@@ -495,7 +520,7 @@ Trigger:qa-test:
       artifacts: false
       optional: true
 
-Trigger:letsencrypt-test:
+letsencrypt-test:
   extends: .docker_job
   stage: trigger-qa
   script:
@@ -509,7 +534,7 @@ Trigger:letsencrypt-test:
     - job: Trigger:gitlab-docker
       artifacts: false
 
-Trigger:RAT:
+RAT:
   stage: trigger-qa
   image: "${RUBY_IMAGE}"
   when: manual
@@ -522,6 +547,11 @@ Trigger:RAT:
     - job: Trigger:qa-docker
       artifacts: false
       optional: true
+
+GET:Geo:
+  extends: .trigger-pipeline
+  script:
+    - bundle exec rake qa:get:geo:trigger
 
 create_omnibus_manifest:
   extends: .trigger-package-cache
@@ -545,9 +575,9 @@ dependency_scanning:
     NVD_DB_UPDATE: "true"
   before_script: []
   script:
-    - echo ${CVEIGNORE} | sed -r "s/, */\n/g" >> .cveignore
     - /gitlab-depscan.sh version-manifest.json
   <<: *depscan-rules
+  allow_failure: true
   needs:
     - create_omnibus_manifest
   artifacts:
@@ -604,12 +634,15 @@ validate_packer_changes:
 ##############################
 
 pages:
-  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/ubuntu_16.04:${BUILDER_IMAGE_REVISION}"
+  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/ubuntu_20.04:${BUILDER_IMAGE_REVISION}"
   stage: prepare
+  needs:
+    - yard
   script:
     - bundle exec rake license:generate_pages
     - mv ${LICENSE_S3_BUCKET} public
     - cp support/webpages/* public
+    - cp -R yard/* public
   artifacts:
     paths:
       - public

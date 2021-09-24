@@ -6,7 +6,7 @@ module GeoPostgresql
       Gitlab['geo_postgresql']['unix_socket_directory'] ||= postgresql_dir
       Gitlab['geo_postgresql']['home'] ||= postgresql_dir
 
-      parse_gitlab_cluster_overrides
+      parse_wal_keep_size
     end
 
     def node
@@ -15,9 +15,16 @@ module GeoPostgresql
 
     private
 
-    # GitLab cluster settings overrides setttings from /etc/gitlab/gitlab.rb
-    def parse_gitlab_cluster_overrides
-      Gitlab.gitlab_cluster_settings.merge!('geo_postgresql', 'enable')
+    def parse_wal_keep_size
+      wal_segment_size = 16
+      wal_keep_segments = Gitlab['geo_postgresql']['wal_keep_segments'] || node['gitlab']['geo-postgresql']['wal_keep_segments']
+      wal_keep_size = Gitlab['geo_postgresql']['wal_keep_size'] || node['gitlab']['geo-postgresql']['wal_keep_size']
+
+      Gitlab['geo_postgresql']['wal_keep_size'] = if wal_keep_size.nil?
+                                                    wal_keep_segments.to_i * wal_segment_size
+                                                  else
+                                                    wal_keep_size
+                                                  end
     end
   end
 end

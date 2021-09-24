@@ -117,7 +117,7 @@ The Redis version packaged with Omnibus GitLab has been updated to Redis 5.0.7.
 You will need to restart Redis after the upgrade so that the new version will be
 active. To restart Redis, run `sudo gitlab-ctl restart redis`. If your instance
 has Redis HA with Sentinel, follow the upgrade steps documented in
-[Update GitLab installed with the Omnibus GitLab package](index.md#use-redis-ha-using-sentinel)
+[Update GitLab installed with the Omnibus GitLab package](https://docs.gitlab.com/ee/update/zero_downtime.md#use-redis-ha-using-sentinel)
 to avoid downtime.
 
 Unicorn memory limits should also be adjusted to the following values:
@@ -146,7 +146,7 @@ to make sure your web server settings carry over correctly.
 NOTE:
 PostgreSQL 9.6 and PostgreSQL 10 will be removed from the Omnibus package in the next release: GitLab 13.0. The minimum
 supported PostgreSQL version will be 11. In order to upgrade to GitLab 13.0, you will need to be upgrading from 12.10, and
-already using a PostgreSQL 11 database. For more information, please see which [PostgreSQL versions are shipped with an Omnibus install](../package-information/postgresql_versions.md).
+already using a PostgreSQL 11 database. For more information, please see which [PostgreSQL versions are shipped with an Omnibus install](https://docs.gitlab.com/ee/administration/package_information/postgresql_versions.html).
 
 PostgreSQL will automatically be upgraded to 11.x except for the following cases:
 

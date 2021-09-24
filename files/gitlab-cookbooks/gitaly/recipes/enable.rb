@@ -67,7 +67,7 @@ node.default['gitaly']['env'] = {
   'PATH' => "#{node['package']['install-dir']}/bin:#{node['package']['install-dir']}/embedded/bin:/bin:/usr/bin",
   'TZ' => ':/etc/localtime',
   # This is needed by gitlab-markup to import Python docutils
-  'PYTHONPATH' => "#{node['package']['install-dir']}/embedded/lib/python3.7/site-packages",
+  'PYTHONPATH' => "#{node['package']['install-dir']}/embedded/lib/python3.9/site-packages",
   # Charlock Holmes and libicu will report U_FILE_ACCESS_ERROR if this is not set to the right path
   # See https://gitlab.com/gitlab-org/gitlab-foss/issues/17415#note_13868167
   'ICU_DATA' => "#{node['package']['install-dir']}/embedded/share/icu/current",
@@ -83,6 +83,7 @@ env_dir env_directory do
 end
 
 gitlab_url, gitlab_relative_path = WebServerHelper.internal_api_url(node)
+custom_hooks_dir = node.dig('gitlab', 'gitlab-shell', 'custom_hooks_dir') || node.dig('gitaly', 'custom_hooks_dir')
 
 template "Create Gitaly config.toml" do
   path config_path
@@ -93,7 +94,8 @@ template "Create Gitaly config.toml" do
   variables node['gitaly'].to_hash.merge(
     { gitlab_shell: node['gitlab']['gitlab-shell'].to_hash,
       gitlab_url: gitlab_url,
-      gitlab_relative_path: gitlab_relative_path }
+      gitlab_relative_path: gitlab_relative_path,
+      custom_hooks_dir: custom_hooks_dir }
   )
   notifies :hup, "runit_service[gitaly]" if omnibus_helper.should_notify?('gitaly')
 end
@@ -134,7 +136,9 @@ version_file 'Create Ruby version file for Gitaly' do
   notifies :hup, "runit_service[gitaly]"
 end
 
-consul_service 'gitaly' do
+consul_service node['gitaly']['consul_service_name'] do
+  id 'gitaly'
+  meta node['gitaly']['consul_service_meta']
   action Prometheus.service_discovery_action
   socket_address node['gitaly']['prometheus_listen_addr']
   reload_service false unless node['consul']['enable']
