@@ -346,6 +346,7 @@ default['gitlab']['gitlab-rails']['omniauth_external_providers'] = nil
 default['gitlab']['gitlab-rails']['omniauth_providers'] = []
 default['gitlab']['gitlab-rails']['omniauth_cas3_session_duration'] = nil
 default['gitlab']['gitlab-rails']['omniauth_allow_bypass_two_factor'] = nil
+default['gitlab']['gitlab-rails']['omniauth_saml_message_max_byte_size'] = nil
 
 default['gitlab']['gitlab-rails']['forti_authenticator_enabled'] = false
 default['gitlab']['gitlab-rails']['forti_authenticator_host'] = nil
@@ -454,6 +455,8 @@ default['gitlab']['gitlab-rails']['redis_trace_chunks_instance'] = nil
 default['gitlab']['gitlab-rails']['redis_trace_chunks_sentinels'] = []
 default['gitlab']['gitlab-rails']['redis_actioncable_instance'] = nil
 default['gitlab']['gitlab-rails']['redis_actioncable_sentinels'] = []
+default['gitlab']['gitlab-rails']['redis_rate_limiting_instance'] = nil
+default['gitlab']['gitlab-rails']['redis_rate_limiting_sentinels'] = []
 
 default['gitlab']['gitlab-rails']['smtp_enable'] = false
 default['gitlab']['gitlab-rails']['smtp_address'] = nil

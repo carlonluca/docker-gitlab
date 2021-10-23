@@ -4,7 +4,7 @@ group: Memory
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/engineering/ux/technical-writing/#designated-technical-writers
 ---
 
-# Running GitLab in a memory-constrained environment
+# Running GitLab in a memory-constrained environment **(FREE SELF)**
 
 GitLab requires a significant amount of memory when running with all features enabled.
 There are use-cases such as running GitLab on smaller installations where not all functionality
@@ -58,7 +58,7 @@ of your system is good enough to run GitLab on a constrained environment.
 
 These systems provide adequate performance to run a small installations of GitLab:
 
-- [Raspberry PI 4 2GB](https://www.raspberrypi.org/products/raspberry-pi-4-model-b/).
+- [Raspberry PI 4 2GB](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/).
 - [DigitalOcean Basic 2GB with SSD](https://www.digitalocean.com/pricing/).
 - [Scaleway DEV1-S 2GB/20GB](https://www.scaleway.com/en/pricing/).
 - [GCS e2-small](https://cloud.google.com/compute/docs/machine-types).

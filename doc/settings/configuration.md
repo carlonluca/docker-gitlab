@@ -4,7 +4,7 @@ group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/engineering/ux/technical-writing/#designated-technical-writers
 ---
 
-# Configuration options
+# Configuration options **(FREE SELF)**
 
 GitLab is configured by setting the relevant options in
 `/etc/gitlab/gitlab.rb`. See [package defaults](https://docs.gitlab.com/ee/administration/package_information/defaults.html)
@@ -19,7 +19,7 @@ all the options of the template as of installation listed in
 
 NOTE:
 Before you change the external URL, determine if you have previously
-defined a custom **Home page URL** or **After sign out a path** by
+defined a custom **Home page URL** or **After sign-out path** by
 selecting **Menu >** **{admin}** **Admin** in the top bar, and on the left
 sidebar selecting **Settings > General > Sign-in restrictions**. If URLs are
 defined, either update them or remove them completely. Both of these settings
@@ -603,7 +603,7 @@ gitlab_rails['rack_attack_git_basic_auth'] = {
 ## Disable impersonation
 
 Disabling impersonation is documented in
-[the API docs](https://docs.gitlab.com/ee/api/README.html#disable-impersonation).
+[the API docs](https://docs.gitlab.com/ee/api/index.html#disable-impersonation).
 
 ## Error Reporting and Logging with Sentry
 

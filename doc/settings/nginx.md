@@ -4,7 +4,7 @@ group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/engineering/ux/technical-writing/#designated-technical-writers
 ---
 
-# NGINX settings
+# NGINX settings **(FREE SELF)**
 
 ## Service-specific NGINX settings
 
@@ -102,6 +102,9 @@ To enable HTTPS for the domain `gitlab.example.com`:
    ```
 
 When the reconfigure finishes, your GitLab instance should be reachable at `https://gitlab.example.com`.
+
+NOTE:
+If you are updating existing certificates, you will need to follow a [different process](#update-the-ssl-certificates).
 
 If you are using a firewall you may have to open port 443 to allow inbound
 HTTPS traffic.
@@ -418,7 +421,7 @@ forward certain headers (e.g. `Host`, `X-Forwarded-Ssl`, `X-Forwarded-For`,
 you forget this step. For more information, see:
 
 - <https://stackoverflow.com/questions/16042647/whats-the-de-facto-standard-for-a-reverse-proxy-to-tell-the-backend-ssl-is-used>
-- <https://websiteforstudents.com/setup-apache2-reverse-proxy-nginx-ubuntu-17-04-17-10/>
+- <https://websiteforstudents.com/how-to-setup-apache-reverse-proxy/'>
 Some cloud provider services, such as AWS Certificate Manager (ACM), do not allow the download of certificates. This prevents them from being used to terminate on the GitLab instance. If SSL is desired between such a cloud service and the GitLab instance, another certificate must be used on the GitLab instance.
 
 ## Setting HTTP Strict Transport Security

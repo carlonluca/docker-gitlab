@@ -4,7 +4,7 @@ group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/engineering/ux/technical-writing/#designated-technical-writers
 ---
 
-# Configuring Redis
+# Configuring Redis **(FREE SELF)**
 
 ## Using an alternate local Redis instance
 
@@ -108,9 +108,9 @@ redis['tcp_keepalive'] = "300"
 
 Using multiple Redis instances allows you to configure Redis as a [Least
 Recently Used cache](https://redis.io/topics/lru-cache). Note you should only
-do this for the Redis cache instance; the Redis queues and shared state instances
-should never be configured as an LRU, since they contain data (e.g. Sidekiq
-jobs) that is expected to be persistent.
+do this for the Redis cache and rate-limiting instances; the Redis queues, shared
+state instances, and tracechunks instances should never be configured as an LRU,
+since they contain data (e.g. Sidekiq jobs) that is expected to be persistent.
 
 To cap memory usage at 32GB, you can use:
 
