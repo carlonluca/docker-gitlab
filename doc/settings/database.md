@@ -145,8 +145,16 @@ After you have these files, enable SSL:
 
 To determine whether SSL is being used by clients, you can run:
 
+In [GitLab 14.2 and later](https://gitlab.com/gitlab-org/gitlab/-/issues/341210):
+
 ```shell
-gitlab-rails dbconsole
+sudo gitlab-rails dbconsole --database main
+```
+
+In GitLab 14.1 and earlier:
+
+```shell
+sudo gitlab-rails dbconsole
 ```
 
 At startup, you should see a banner as the following:
@@ -603,6 +611,14 @@ If you need to connect to the bundled PostgreSQL database and are using the
 default Omnibus GitLab database configuration, you can connect as the
 application user:
 
+In [GitLab 14.2 and later](https://gitlab.com/gitlab-org/gitlab/-/issues/341210):
+
+```shell
+sudo gitlab-rails dbconsole --database main
+```
+
+In GitLab 14.1 and earlier:
+
 ```shell
 sudo gitlab-rails dbconsole
 ```
@@ -932,20 +948,20 @@ PostgreSQL server included with Omnibus GitLab.
 If you have multiple GitLab servers sharing a database, you will want to limit the
 number of nodes that are performing the migration steps during reconfiguration.
 
-Edit `/etc/gitlab/gitlab.rb`:
+Edit `/etc/gitlab/gitlab.rb` to append:
 
 ```ruby
 # Enable or disable automatic database migrations
+# on all hosts except the designated deploy node
 gitlab_rails['auto_migrate'] = false
 ```
-
-Don't forget to remove the `#` comment characters at the beginning of this
-line.
 
 `/etc/gitlab/gitlab.rb` should have file permissions `0600` because it contains
 plain-text passwords.
 
-The next time a reconfigure is triggered, the migration steps will not be performed.
+The next time hosts carrying the above configuration are reconfigured, the migration steps are not performed.
+
+To avoid schema related post-upgrade errors, the host marked as [the deploy node](https://docs.gitlab.com/ee/update/zero_downtime.html#multi-node--ha-deployment) must have `gitlab_rails['auto_migrate'] = true` during upgrades.
 
 ### Setting client statement_timeout
 

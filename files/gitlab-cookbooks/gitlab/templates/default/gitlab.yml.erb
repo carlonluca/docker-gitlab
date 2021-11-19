@@ -337,6 +337,7 @@ production: &base
     enabled: <%= @gitlab_kas_enabled %>
     internal_url: <%= @gitlab_kas_internal_url %>
     external_url: <%= @gitlab_kas_external_url %>
+    external_k8s_proxy_url: <%= @gitlab_kas_external_k8s_proxy_url %>
 
   ## Error Reporting and Logging with Sentry
   sentry:
@@ -496,6 +497,12 @@ production: &base
     <% unless @ssh_keys_expiring_soon_notification_worker_cron.nil? %>
     ssh_keys_expiring_soon_notification_worker:
       cron: "<%= @ssh_keys_expiring_soon_notification_worker_cron %>"
+    <% end %>
+
+    # Orphaned record cleanup with the loose foreign key feature
+    <% unless @loose_foreign_keys_cleanup_worker_cron.nil? %>
+    loose_foreign_keys_cleanup_worker:
+      cron: "<%= @loose_foreign_keys_cleanup_worker_cron %>"
     <% end %>
 
     ##
@@ -996,6 +1003,11 @@ production: &base
     <% if @extra_google_tag_manager_id %>
     ## Google tag manager. Include your google_tag_manager_id to enable
     google_tag_manager_id: <%= quote(@extra_google_tag_manager_id) %>
+    <% end %>
+
+    <% if @extra_one_trust_id %>
+    ## OneTrust
+    one_trust_id: <%= quote(@extra_one_trust_id) %>
     <% end %>
 
     <% if @extra_matomo_url %>

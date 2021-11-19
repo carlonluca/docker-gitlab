@@ -58,7 +58,6 @@ build do
     '--disable-dependency-tracking',
     '--enable-ipv6',
     "--without-libidn2",
-    '--without-gnutls',
     '--without-librtmp',
     "--without-zsh-functions-dir",
     "--without-fish-functions-dir",
@@ -70,7 +69,8 @@ build do
     "--with-ca-fallback"
   ]
 
-  configure_command << "--with-ssl=#{install_dir}/embedded" unless Build::Check.use_system_ssl?
+  openssl_library_path = "=#{install_dir}/embedded" unless Build::Check.use_system_ssl?
+  configure_command << "--with-openssl#{openssl_library_path}"
 
   command "autoreconf -fi", env: env
   command configure_command.join(' '), env: env

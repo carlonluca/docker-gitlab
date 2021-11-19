@@ -142,6 +142,7 @@ default['gitlab']['gitlab-rails']['analytics_usage_trends_count_job_trigger_work
 default['gitlab']['gitlab-rails']['member_invitation_reminder_emails_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['user_status_cleanup_batch_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['pseudonymizer_worker_cron'] = nil
+default['gitlab']['gitlab-rails']['loose_foreign_keys_cleanup_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['elastic_index_bulk_cron'] = nil
 default['gitlab']['gitlab-rails']['incoming_email_enabled'] = false
 default['gitlab']['gitlab-rails']['incoming_email_address'] = nil
@@ -394,6 +395,7 @@ default['gitlab']['gitlab-rails']['gitlab_shell_git_timeout'] = 10800
 default['gitlab']['gitlab-rails']['git_bin_path'] = "#{node['package']['install-dir']}/embedded/bin/git"
 default['gitlab']['gitlab-rails']['extra_google_analytics_id'] = nil
 default['gitlab']['gitlab-rails']['extra_google_tag_manager_id'] = nil
+default['gitlab']['gitlab-rails']['extra_one_trust_id'] = nil
 default['gitlab']['gitlab-rails']['extra_matomo_url'] = nil
 default['gitlab']['gitlab-rails']['extra_matomo_site_id'] = nil
 default['gitlab']['gitlab-rails']['extra_matomo_disable_cookies'] = nil
@@ -457,6 +459,8 @@ default['gitlab']['gitlab-rails']['redis_actioncable_instance'] = nil
 default['gitlab']['gitlab-rails']['redis_actioncable_sentinels'] = []
 default['gitlab']['gitlab-rails']['redis_rate_limiting_instance'] = nil
 default['gitlab']['gitlab-rails']['redis_rate_limiting_sentinels'] = []
+default['gitlab']['gitlab-rails']['redis_sessions_instance'] = nil
+default['gitlab']['gitlab-rails']['redis_sessions_sentinels'] = []
 
 default['gitlab']['gitlab-rails']['smtp_enable'] = false
 default['gitlab']['gitlab-rails']['smtp_address'] = nil
@@ -517,6 +521,7 @@ default['gitlab']['gitlab-rails']['prometheus_address'] = nil
 default['gitlab']['gitlab-rails']['gitlab_kas_enabled'] = nil
 default['gitlab']['gitlab-rails']['gitlab_kas_external_url'] = nil
 default['gitlab']['gitlab-rails']['gitlab_kas_internal_url'] = nil
+default['gitlab']['gitlab-rails']['gitlab_kas_external_k8s_proxy_url'] = nil
 
 ####
 # Puma
@@ -546,7 +551,6 @@ default['gitlab']['puma']['consul_service_meta'] = nil
 ####
 # ActionCable
 ####
-default['gitlab']['actioncable']['enable'] = false
 default['gitlab']['actioncable']['worker_pool_size'] = 4
 
 ####
