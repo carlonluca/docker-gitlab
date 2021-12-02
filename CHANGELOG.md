@@ -9,6 +9,12 @@ No changes.
 ## 14.2.4 (2021-09-17)
 
 No changes.
+## 14.5.1 (2021-12-01)
+
+### Fixed (1 change)
+
+- [Fix Google Memorystore support for Action Cable](gitlab-org/omnibus-gitlab@2da850830b22ca01d7ee1449b9c7d505d6b4af43) ([merge request](gitlab-org/omnibus-gitlab!5764))
+
 ## 14.5.0 (2021-11-19)
 
 ### Added (11 changes)
