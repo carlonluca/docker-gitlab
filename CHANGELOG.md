@@ -9,6 +9,12 @@ No changes.
 ## 14.2.4 (2021-09-17)
 
 No changes.
+## 14.5.2 (2021-12-03)
+
+### Security (1 change)
+
+- [Bump Mattermost to 5.39.2](gitlab-org/security/omnibus-gitlab@3095b598767458e264db42d820c14784c8e46ec1) ([merge request](gitlab-org/security/omnibus-gitlab!163))
+
 ## 14.5.1 (2021-12-01)
 
 ### Fixed (1 change)
