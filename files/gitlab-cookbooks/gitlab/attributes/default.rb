@@ -396,6 +396,7 @@ default['gitlab']['gitlab-rails']['git_bin_path'] = "#{node['package']['install-
 default['gitlab']['gitlab-rails']['extra_google_analytics_id'] = nil
 default['gitlab']['gitlab-rails']['extra_google_tag_manager_id'] = nil
 default['gitlab']['gitlab-rails']['extra_one_trust_id'] = nil
+default['gitlab']['gitlab-rails']['extra_google_tag_manager_nonce_id'] = nil
 default['gitlab']['gitlab-rails']['extra_matomo_url'] = nil
 default['gitlab']['gitlab-rails']['extra_matomo_site_id'] = nil
 default['gitlab']['gitlab-rails']['extra_matomo_disable_cookies'] = nil
@@ -562,13 +563,19 @@ default['gitlab']['sidekiq']['log_directory'] = "/var/log/gitlab/sidekiq"
 default['gitlab']['sidekiq']['log_format'] = "json"
 default['gitlab']['sidekiq']['shutdown_timeout'] = 25
 default['gitlab']['sidekiq']['concurrency'] = 25
-default['gitlab']['sidekiq']['metrics_enabled'] = true
-default['gitlab']['sidekiq']['exporter_log_enabled'] = false
 default['gitlab']['sidekiq']['routing_rules'] = []
 
-# Sidekiq http listener
+# Sidekiq metrics server defaults
+default['gitlab']['sidekiq']['metrics_enabled'] = true
+default['gitlab']['sidekiq']['exporter_log_enabled'] = false
 default['gitlab']['sidekiq']['listen_address'] = "127.0.0.1"
 default['gitlab']['sidekiq']['listen_port'] = 8082
+
+# Sidekiq health-check server defaults
+default['gitlab']['sidekiq']['health_checks_enabled'] = nil
+default['gitlab']['sidekiq']['health_checks_log_enabled'] = nil
+default['gitlab']['sidekiq']['health_checks_listen_address'] = nil
+default['gitlab']['sidekiq']['health_checks_listen_port'] = nil
 
 # Cluster specific settings
 default['gitlab']['sidekiq']['queue_selector'] = false

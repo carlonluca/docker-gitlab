@@ -15,7 +15,7 @@
 #
 
 name 'acme-client'
-default_version '2.0.8'
+default_version '2.0.9'
 
 license 'MIT'
 license_file 'LICENSE.txt'
@@ -25,6 +25,8 @@ skip_transitive_dependency_licensing true
 dependency 'ruby'
 
 build do
+  patch source: 'add-license-file.patch'
+
   env = with_standard_compiler_flags(with_embedded_path)
   gem "install acme-client --no-document --version #{version}", env: env
 end

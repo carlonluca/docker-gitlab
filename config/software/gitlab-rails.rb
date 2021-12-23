@@ -33,6 +33,10 @@ combined_licenses_file = "#{install_dir}/embedded/lib/ruby/gems/gitlab-gem-licen
 
 license 'MIT'
 license_file 'LICENSE'
+
+# TODO: Compare contents of this file with the output of license_finder and
+# tackle the missing ones and stop using this workaround.
+# https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/6517
 license_file combined_licenses_file
 
 dependency 'pkg-config-lite'
@@ -76,7 +80,12 @@ build do
 
   bundle_without = %w(development test)
   bundle_without << 'mysql'
-  bundle 'config build.rugged --no-use-system-libraries', env: env
+
+  if Build::Check.use_system_ssl?
+    env['CMAKE_FLAGS'] = OpenSSLHelper.cmake_flags
+    env['PKG_CONFIG_PATH'] = OpenSSLHelper.pkg_config_dirs
+  end
+
   bundle 'config build.gpgme --use-system-libraries', env: env
   bundle "config build.nokogiri --use-system-libraries --with-xml2-include=#{install_dir}/embedded/include/libxml2 --with-xslt-include=#{install_dir}/embedded/include/libxslt", env: env
   bundle 'config build.grpc --with-ldflags="-latomic"', env: env if OhaiHelper.os_platform == 'raspbian'
@@ -143,11 +152,6 @@ build do
     sync "#{Gitlab::Util.get_env('CI_PROJECT_DIR')}/#{Gitlab::Util.get_env('ASSET_PATH')}", 'public/assets/'
   end
 
-  # Move folders for caching. GitLab CI permits only relative path for Cache
-  # and Artifacts. So we need these folder in the root directory.
-  move "#{Omnibus::Config.source_dir}/gitlab-rails/tmp/cache", "#{Omnibus::Config.project_root}/assets_cache"
-  move "#{Omnibus::Config.source_dir}/gitlab-rails/node_modules", Omnibus::Config.project_root.to_s
-
   bundle "exec license_finder report --decisions-file=config/dependency_decisions.yml --format=json --columns name version licenses texts notice --save=rails-license.json", env: env
   command "license_finder report --decisions-file=#{Omnibus::Config.project_root}/support/dependency_decisions.yml --format=json --columns name version licenses texts notice --save=workhorse-license.json", cwd: "#{Omnibus::Config.source_dir}/gitlab-rails/workhorse"
 
@@ -160,6 +164,11 @@ build do
     File.write("#{install_dir}/licenses/gitlab-rails.json", JSON.pretty_generate(output))
   end
 
+  # Move folders for caching. GitLab CI permits only relative path for Cache
+  # and Artifacts. So we need these folder in the root directory.
+  move "#{Omnibus::Config.source_dir}/gitlab-rails/tmp/cache", "#{Omnibus::Config.project_root}/assets_cache"
+  move "#{Omnibus::Config.source_dir}/gitlab-rails/node_modules", Omnibus::Config.project_root.to_s
+
   # Tear down now that gitlab:assets:compile is done.
   delete 'config/gitlab.yml'
   delete 'config/database.yml'
@@ -170,6 +179,7 @@ build do
   delete '.gitlab_shell_secret'
   delete '.gitlab_workhorse_secret'
   delete '.gitlab_pages_secret'
+  delete '.gitlab_kas_secret'
 
   # Remove directories that will be created by `gitlab-ctl reconfigure`
   delete 'log'

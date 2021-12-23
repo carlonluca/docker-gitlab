@@ -39,6 +39,10 @@ module Praefect
 
         parse_common_options!(options, opts)
         parse_repository_options!(options, opts)
+
+        opts.on('--apply', 'When --apply is used, the repository will be removed from the database and any gitaly nodes on which they reside.') do |apply|
+          options[:apply] = true
+        end
       end,
 
       'track-repository' => OptionParser.new do |opts|
@@ -51,6 +55,12 @@ module Praefect
                                                         Repository data on this storage will be used to overwrite corresponding repository data on other
                                                         nodes. ') do |authoritative_storage|
           options[:authoritative_storage] = authoritative_storage
+        end
+
+        opts.on('--replicate-immediately', "Causes track-repository to replicate the repository to its secondaries immediately. Without this flag,
+                                            replication jobs will be added to the queue and replication will eventually be executed through Praefect's
+                                            background process.") do
+          options[:replicate_immediately] = true
         end
       end,
 
@@ -141,7 +151,12 @@ module Praefect
     end
 
     # command specific arguments
-    command += ["-authoritative-storage", options[:authoritative_storage]] if options[:command] == 'track-repository' && options.key?(:authoritative_storage)
+    if options[:command] == 'track-repository'
+      command += ["-authoritative-storage", options[:authoritative_storage]] if options.key?(:authoritative_storage)
+      command += ["-replicate-immediately"] if options.key?(:replicate_immediately)
+    end
+
+    command += ["-apply"] if options[:command] == 'remove-repository' && options.key?(:apply)
 
     status = Kernel.system(*command)
     Kernel.exit!(1) unless status

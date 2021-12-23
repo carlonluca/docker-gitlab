@@ -15,7 +15,7 @@
 #
 
 name 'mail_room'
-default_version '0.0.14'
+default_version '0.0.15'
 
 license 'MIT'
 license_file 'LICENSE.txt'
@@ -25,6 +25,8 @@ skip_transitive_dependency_licensing true
 dependency 'ruby'
 
 build do
+  patch source: 'add-license-file.patch'
+
   env = with_standard_compiler_flags(with_embedded_path)
   gem "install gitlab-mail_room --no-document --version #{version}", env: env
 end

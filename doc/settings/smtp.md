@@ -33,7 +33,10 @@ gitlab_rails['smtp_openssl_verify_mode'] = 'peer'
 gitlab_rails['gitlab_email_from'] = 'gitlab@example.com'
 gitlab_rails['gitlab_email_reply_to'] = 'noreply@example.com'
 
-# If your SMTP server is using self signed certificates you can specify a custom ca file
+# If your SMTP server is using a self signed certificate or a certificate which 
+# is signed by a CA which is not trusted by default, you can specify a custom ca file.
+# Please note that the certificates from /etc/gitlab/trusted-certs/ are
+# not used for the verification of the SMTP server certificate.
 gitlab_rails['smtp_ca_file'] = '/path/to/your/cacert.pem'
 ```
 
@@ -174,7 +177,7 @@ gitlab_rails['smtp_password'] = "password"
 gitlab_rails['smtp_domain'] = "mg.gitlab.com"
 ```
 
-### Amazon Simple Email System (AWS SES)
+### Amazon Simple Email Service (AWS SES)
 
 - Using STARTTLS
 
@@ -218,6 +221,31 @@ gitlab_rails['smtp_password'] = "MandrillApiKey" # https://mandrillapp.com/setti
 gitlab_rails['smtp_authentication'] = "login"
 gitlab_rails['smtp_enable_starttls_auto'] = true
 ```
+
+### SMTP.com
+
+You can use the [SMTP.com](https://smtp.com/) email service. [Retrieve your sender login and password](https://kb.smtp.com/article/1043-my-account-1)
+from your account.
+
+To improve delivery by authorizing `SMTP.com` to send emails on behalf of your domain, you should:
+
+- Specify `from` and `reply_to` addresses using your GitLab domain name.
+- [Set up SPF and DKIM for the domain](https://kb.smtp.com/article/1039-email-authentication-spf-dkim-dmarc).
+
+```ruby
+gitlab_rails['smtp_enable'] = true
+gitlab_rails['smtp_address'] = 'send.smtp.com'
+gitlab_rails['smtp_port'] = 25 # If your outgoing port 25 is blocked, try 2525, 2082
+gitlab_rails['smtp_enable_starttls_auto'] = true
+gitlab_rails['smtp_authentication'] = 'plain'
+gitlab_rails['smtp_user_name'] = 'your_sender_login' 
+gitlab_rails['smtp_password'] = 'your_sender_password'
+gitlab_rails['smtp_domain'] = 'your.gitlab.domain.com'
+gitlab_rails['gitlab_email_from'] = 'user@your.gitlab.domain.com' 
+gitlab_rails['gitlab_email_reply_to'] = 'user@your.gitlab.domain.com' 
+```
+
+Check the [SMTP.com Knowledge Base](https://kb.smtp.com/) for further assistance.
 
 ### SparkPost
 
@@ -1188,6 +1216,22 @@ gitlab_rails['smtp_password'] = "authentication code"
 gitlab_rails['smtp_authentication'] = "login"
 gitlab_rails['smtp_enable_starttls_auto'] = true
 gitlab_rails['smtp_tls'] = true
+```
+
+### Hostpoint
+
+For more information about Hostpoint email visit their [help page](https://support.hostpoint.ch/en/technical/e-mail/frequently-asked-questions/e-mail-settings-at-a-glance#hp-section3)
+
+```ruby
+gitlab_rails['smtp_enable'] = true
+gitlab_rails['smtp_address'] = "asmtp.mail.hostpoint.ch"
+gitlab_rails['smtp_port'] = 587
+gitlab_rails['smtp_user_name'] = "username@example.com"
+gitlab_rails['smtp_password'] = "authentication code"
+gitlab_rails['smtp_domain'] = "asmtp.mail.hostpoint.ch"
+gitlab_rails['smtp_authentication'] = "plain"
+gitlab_rails['smtp_enable_starttls_auto'] = true
+gitlab_rails['gitlab_email_from'] = 'username@example.com'
 ```
 
 ### More examples are welcome
