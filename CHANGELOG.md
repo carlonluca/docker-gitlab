@@ -9,6 +9,12 @@ No changes.
 ## 14.2.4 (2021-09-17)
 
 No changes.
+## 14.6.3 (2022-01-18)
+
+### Fixed (1 change)
+
+- [Revert chef-acme cookbook update](gitlab-org/omnibus-gitlab@387e132a3d8b2a3b25591e2a79102713f1ab3eb1) ([merge request](gitlab-org/omnibus-gitlab!5856))
+
 ## 14.6.2 (2022-01-11)
 
 No changes.
