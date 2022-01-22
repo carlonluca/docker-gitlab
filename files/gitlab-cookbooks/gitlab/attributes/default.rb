@@ -76,7 +76,9 @@ default['gitlab']['gitlab-rails']['env'] = {
   'EXECJS_RUNTIME' => 'Disabled',
   # Prevent excessive system calls: #3530,
   # Details: https://blog.packagecloud.io/eng/2017/02/21/set-environment-variable-save-thousands-of-system-calls/
-  'TZ' => ':/etc/localtime'
+  'TZ' => ':/etc/localtime',
+  'SSL_CERT_DIR' => "#{node['package']['install-dir']}/embedded/ssl/certs/",
+  'SSL_CERT_FILE' => "#{node['package']['install-dir']}/embedded/ssl/cert.pem"
 }
 default['gitlab']['gitlab-rails']['enable_jemalloc'] = true
 
@@ -722,6 +724,7 @@ default['gitlab']['nginx']['proxy_set_headers'] = {
   "Upgrade" => "$http_upgrade",
   "Connection" => "$connection_upgrade"
 }
+default['gitlab']['nginx']['proxy_protocol'] = false
 default['gitlab']['nginx']['referrer_policy'] = 'strict-origin-when-cross-origin'
 default['gitlab']['nginx']['http2_enabled'] = true
 # Cache up to 1GB of HTTP responses from GitLab on disk
@@ -840,6 +843,7 @@ default['gitlab']['pages-nginx']['proxy_set_headers'] = {
 default['gitlab']['registry-nginx'] = default['gitlab']['nginx'].dup
 default['gitlab']['registry-nginx']['enable'] = true
 default['gitlab']['registry-nginx']['https'] = false
+default['gitlab']['registry-nginx']['http2_enabled'] = false
 default['gitlab']['registry-nginx']['proxy_set_headers'] = {
   "Host" => "$http_host",
   "X-Real-IP" => "$remote_addr",

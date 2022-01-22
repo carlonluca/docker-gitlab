@@ -20,7 +20,7 @@ service separately. Settings given via `nginx['foo']` WILL NOT be replicated to
 service specific NGINX configuration (as `registry_nginx['foo']` or
 `mattermost_nginx['foo']`, etc.). For example, to configure HTTP to HTTPS
 redirection for GitLab, Mattermost and Registry, the following settings should
-be added to `gitlab.rb`
+be added to `gitlab.rb`:
 
 ```ruby
 nginx['redirect_http_to_https'] = true
@@ -90,8 +90,8 @@ To enable HTTPS for the domain `gitlab.example.com`:
    NOTE:
    If the `certificate.key` file is password protected, NGINX will not ask for
    the password when you reconfigure GitLab. In that case, Omnibus GitLab will
-   fail silently with no error messages. 
-   
+   fail silently with no error messages.
+
    To remove the password from the key, run:
 
    ```shell
@@ -132,7 +132,7 @@ redirect all HTTP traffic to HTTPS you can use the `redirect_http_to_https`
 setting.
 
 NOTE:
-This behavior is enabled by default.
+This behavior is enabled by default when using Let's Encrypt.
 
 ```ruby
 external_url "https://gitlab.example.com"
@@ -164,7 +164,7 @@ Run `sudo gitlab-ctl reconfigure` for the change to take effect.
 
 If the content of your SSL certificates has been updated, but no configuration
 changes have been made to `gitlab.rb`, then `gitlab-ctl reconfigure` will not
-affect NGINX. Instead, run `sudo gitlab-ctl hup nginx` to cause NGINX to
+affect NGINX. Instead, run `sudo gitlab-ctl hup nginx registry` to cause NGINX to
 [reload the existing configuration and new certificates](http://nginx.org/en/docs/control.html)
 gracefully.
 
@@ -230,6 +230,27 @@ in from those IPs.
 
 Save the file and [reconfigure GitLab](https://docs.gitlab.com/ee/administration/restart_gitlab.html#omnibus-gitlab-reconfigure)
 for the changes to take effect.
+
+## Configuring the PROXY protocol
+
+If you want to use a proxy like HAProxy in front of GitLab using the [PROXY protocol](https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt),
+you need to enable this setting. Do not forget to set the `real_ip_trusted_addresses` also as needed:
+
+1. Edit `/etc/gitlab/gitlab.rb`:
+
+   ```ruby
+   # Enable termination of ProxyProtocol by NGINX
+   nginx['proxy_protocol'] = true
+   # Configure trusted upstream proxies. Required if `proxy_protocol` is enabled.
+   nginx['real_ip_trusted_addresses'] = [ "127.0.0.0/8", "IP_OF_THE_PROXY/32"]
+   ```
+
+1. Save the file and
+   [reconfigure GitLab](https://docs.gitlab.com/ee/administration/restart_gitlab.html#omnibus-gitlab-reconfigure)
+   for the changes to take effect.
+
+Once enabled, NGINX only accepts PROXY protocol traffic on these listeners.
+Ensure to also adjust any other environments you might have, like monitoring checks.
 
 ## Configuring HTTP2 protocol
 
@@ -510,14 +531,15 @@ To require web clients to authenticate with a trusted certificate, you can enabl
 
 ```ruby
   nginx['ssl_verify_client'] = "on"
+  nginx['ssl_client_certificate'] = "/etc/pki/tls/certs/root-certs.pem"
 ```
 
 and running reconfigure.
 
-These additional options NGINX supports for configuring SSL client authentication can also be configured:
+Optionally, you can configure how deeply in the certificate chain NGINX should verify
+before deciding that the clients don't have a valid certificate (default is `1`):
 
 ```ruby
-  nginx['ssl_client_certificate'] = "/etc/pki/tls/certs/root-certs.pem"
   nginx['ssl_verify_depth'] = "2"
 ```
 
