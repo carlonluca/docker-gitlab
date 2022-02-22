@@ -29,10 +29,11 @@ redis_host, redis_port, redis_password = redis_helper.redis_params
 redis_sentinels = node['gitlab']['gitlab-rails']['redis_sentinels']
 redis_sentinels_master_name = node['redis']['master_name']
 gitlab_kas_redis_password_file = File.join(working_dir, 'redis_password_file')
+redis_default_port = URI::Redis::DEFAULT_PORT
 redis_network = redis_helper.redis_url.scheme == 'unix' ? 'unix' : 'tcp'
 redis_ssl = node['gitlab']['gitlab-rails']['redis_ssl']
 redis_address = if redis_network == 'tcp'
-                  "#{redis_host}:#{redis_port}"
+                  "#{redis_host}:#{redis_port || redis_default_port}"
                 else
                   node['gitlab']['gitlab-rails']['redis_socket']
                 end
@@ -47,6 +48,17 @@ redis_address = if redis_network == 'tcp'
     mode '0700'
     recursive true
   end
+end
+
+ruby_block 'websocket TLS termination' do
+  block do
+    message = [
+      "Enabling gitlab-kas API TLS termination and websocket tunnelling at the same time is not supported.",
+      "See <https://gitlab.com/gitlab-org/cluster-integration/gitlab-agent/-/issues/217>"
+    ]
+    LoggingHelper.warning(message.join("\n\n"))
+  end
+  only_if { node['gitlab-kas']['listen_websocket'] && node['gitlab-kas']['certificate_file'] && node['gitlab-kas']['key_file'] }
 end
 
 version_file 'Create version file for Gitlab KAS' do
@@ -92,6 +104,7 @@ template gitlab_kas_config_file do
       redis_network: redis_network,
       redis_address: redis_address,
       redis_ssl: redis_ssl,
+      redis_default_port: redis_default_port,
       redis_password_file: redis_password ? gitlab_kas_redis_password_file : nil,
       redis_sentinels_master_name: redis_sentinels_master_name,
       redis_sentinels: redis_sentinels
