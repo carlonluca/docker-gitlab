@@ -83,6 +83,15 @@ if OhaiHelper.arm?
   end
 end
 
+# FIPs requires system OpenSSL packages to run
+if Build::Check.use_system_ssl?
+  if rhel?
+    runtime_dependency 'openssl-perl'
+  else
+    runtime_dependency 'openssl'
+  end
+end
+
 dependency 'cacerts'
 dependency 'jemalloc'
 dependency 'redis'
@@ -103,6 +112,8 @@ dependency 'grafana-dashboards'
 if Build::Check.include_ee?
   dependency 'consul'
   dependency 'pgbouncer-exporter'
+  dependency 'spamcheck'
+  dependency 'spam-classifier'
 end
 dependency 'alertmanager'
 dependency 'node-exporter'

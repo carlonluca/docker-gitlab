@@ -41,6 +41,7 @@ module Gitlab
   role('consul').use { ConsulRole }
   role('pages').use { PagesRole }
   role('sidekiq').use { SidekiqRole }
+  role('spamcheck').use { SpamcheckRole }
 
   ## Attributes directly on the node
   attribute('package').use { Package }
@@ -53,6 +54,7 @@ module Gitlab
   attribute('repmgr')
   attribute('repmgrd')
   attribute('consul')
+  attribute('spamcheck')
   attribute('patroni').use { Patroni }
   attribute('gitaly').use { Gitaly }
   attribute('praefect').use { Praefect }
@@ -108,7 +110,7 @@ module Gitlab
     attribute('manage_storage_directories')
     attribute('user')
     attribute('gitlab_ci')
-    attribute('sidekiq')
+    attribute('sidekiq').use { Sidekiq }
     attribute('mattermost_nginx')
     attribute('pages_nginx')
     attribute('registry_nginx')

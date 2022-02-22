@@ -8,6 +8,8 @@ class OhaiHelper
 
       return "#{os}-#{codename}-#{arch}" if arm64?
 
+      return "#{os}-#{codename}-fips" if Build::Check.use_system_ssl?
+
       "#{os}-#{codename}"
     end
 
@@ -94,6 +96,8 @@ class OhaiHelper
 
     def get_suse_version
       case ohai['platform_version']
+      when /^15\.2/
+        '15.2'
       when /^12\.2/
         '12.2'
       when /^12\.5/
