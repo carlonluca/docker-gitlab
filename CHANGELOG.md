@@ -9,6 +9,10 @@ No changes.
 ## 14.2.4 (2021-09-17)
 
 No changes.
+## 14.8.2 (2022-02-25)
+
+No changes.
+
 ## 14.8.1 (2022-02-23)
 
 No changes.
