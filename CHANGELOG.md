@@ -9,6 +9,12 @@ No changes.
 ## 14.2.4 (2021-09-17)
 
 No changes.
+## 14.8.4 (2022-03-16)
+
+### Security (1 change)
+
+- [Update OpenSSL to v1.1.1n](gitlab-org/omnibus-gitlab@f20bc5b7ae7f093a302b08d5766d306b5ca22d2f) ([merge request](gitlab-org/omnibus-gitlab!5983))
+
 ## 14.8.3 (2022-03-14)
 
 No changes.
