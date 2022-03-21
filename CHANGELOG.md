@@ -9,6 +9,49 @@ No changes.
 ## 14.2.4 (2021-09-17)
 
 No changes.
+## 14.9.0 (2022-03-21)
+
+### Added (9 changes)
+
+- [Make GitLab Pages server shutdown timeout configurable](gitlab-org/omnibus-gitlab@ad23a2ae7fd982edf5cb82559bbd02868806bd13) by @HuseyinEmreAksoy ([merge request](gitlab-org/omnibus-gitlab!5965))
+- [Exclude unnecessary files in gitlab-grpc gem](gitlab-org/omnibus-gitlab@7d8542a247df1245b81211a0ad500b7c3bd84cfc) ([merge request](gitlab-org/omnibus-gitlab!5968))
+- [Add webhook delivery method to mailroom](gitlab-org/omnibus-gitlab@c5b5872edf9a32615cbdc23ae992441c4cddc054) ([merge request](gitlab-org/omnibus-gitlab!5927))
+- [Add possibility to change nginx proxy buffer size](gitlab-org/omnibus-gitlab@6a680200bb6d52c2211f0db21ee5f0c53bb1a466) ([merge request](gitlab-org/omnibus-gitlab!5930))
+- [Add gitlab_kas['log_level'] customization](gitlab-org/omnibus-gitlab@68986fe1a6e4b2589a53bd3ed1ae2107d19cf2f5) ([merge request](gitlab-org/omnibus-gitlab!5921))
+- [Add bizible settings](gitlab-org/omnibus-gitlab@a9e9df87ecb223b0c4f233ca41d36a22b061a854) ([merge request](gitlab-org/omnibus-gitlab!5911))
+- [Add tls rate-limiting options for GitLab Pages](gitlab-org/omnibus-gitlab@aa77e638d3dc491f9e96ca0ce3d67602f0f53610) ([merge request](gitlab-org/omnibus-gitlab!5926))
+- [Add role for Spamcheck](gitlab-org/omnibus-gitlab@e366c575f4b46fe54a1ade3afa947189ef949fdf) ([merge request](gitlab-org/omnibus-gitlab!5893))
+- [Add gitaly concurrency queue limit configs](gitlab-org/omnibus-gitlab@0c6c4ec78e570565b7c0833fcc6075e1c584c2e4) ([merge request](gitlab-org/omnibus-gitlab!5892))
+
+### Fixed (4 changes)
+
+- [Allow ACME challenge over HTTPS](gitlab-org/omnibus-gitlab@45eed63f3d42fa269e4ea9778547c4b60c89f8c1) ([merge request](gitlab-org/omnibus-gitlab!5916))
+- [Enable C99 in CentOS 7 and SLES for building Git](gitlab-org/omnibus-gitlab@7656cc049abb180f4bfc9b3d8f6f805161354762) ([merge request](gitlab-org/omnibus-gitlab!5948))
+- [gitlab-redis-cli: Fix passing of args to redis-cli](gitlab-org/omnibus-gitlab@7e1ff775cf4034a5aeaa8167a956cf9c0640b1a1) ([merge request](gitlab-org/omnibus-gitlab!5929))
+- [Fix Gitaly max_queue_wait TOML config](gitlab-org/omnibus-gitlab@4652c08bd215f8c51d6f4bb0d1884a132e287f2d) ([merge request](gitlab-org/omnibus-gitlab!5935))
+
+### Changed (5 changes)
+
+- [Upgrade MailRoom to v0.0.20](gitlab-org/omnibus-gitlab@5f505cde8a1801387981410b397c8ea92ef6eadb) ([merge request](gitlab-org/omnibus-gitlab!5978))
+- [Bump BUILDER_IMAGE_REVISION to v2.14.0](gitlab-org/omnibus-gitlab@162d3862b648d368f2e7942cb2ec21e411af145f) ([merge request](gitlab-org/omnibus-gitlab!5972))
+- [Default enable separate metrics for Praefect](gitlab-org/omnibus-gitlab@fa7c52e32eb27e831855c872e2402af5436ff673) ([merge request](gitlab-org/omnibus-gitlab!5887))
+- [Bump Container Registry to v3.31.0-gitlab](gitlab-org/omnibus-gitlab@3c267261bdc4b5d5a12208811d3b42b439e6eafa) ([merge request](gitlab-org/omnibus-gitlab!5944))
+- [gitaly: enable bundled git as default and set a default binary](gitlab-org/omnibus-gitlab@b157bbe564298b47c136507d13a2996a5ab4823d) ([merge request](gitlab-org/omnibus-gitlab!5885))
+
+### Security (5 changes)
+
+- [Update OpenSSL to v1.1.1n](gitlab-org/omnibus-gitlab@5a4dcf2bcb7d361029760ced56c0b13c07eb3e7c) ([merge request](gitlab-org/omnibus-gitlab!5979))
+- [Verifies full certificate rather than just CA](gitlab-org/omnibus-gitlab@9e005c447ac13549aef71c778103f5cd589304ed) ([merge request](gitlab-org/omnibus-gitlab!5963))
+- [Update Bundler version to 2.2.33](gitlab-org/omnibus-gitlab@82e3d3e2618569de796a823dd1b93231d71ad4d7) ([merge request](gitlab-org/omnibus-gitlab!5889))
+- [Upgrade gitlab-exporter to 11.11.0](gitlab-org/omnibus-gitlab@07fd1058c347a69177e4fa7bf879dbf88a4b1d56) ([merge request](gitlab-org/omnibus-gitlab!5915))
+- [Upgrade gitlab-exporter to 11.10.0](gitlab-org/omnibus-gitlab@a54f42c2fec705774602efe7df9a48a4c45c2745) ([merge request](gitlab-org/omnibus-gitlab!5898))
+
+### Other (3 changes)
+
+- [Improve success message after promoting secondary nodes](gitlab-org/omnibus-gitlab@d19ed935875778233151fe9b19a07134d757f133) ([merge request](gitlab-org/omnibus-gitlab!5959))
+- [Enable live stdout/stderr](gitlab-org/omnibus-gitlab@ae79d717a0f7735442463ec65121b1b19b67ec8a) ([merge request](gitlab-org/omnibus-gitlab!5958))
+- [Update Mattermost to 6.4.0](gitlab-org/omnibus-gitlab@2db39bba83bede1ec856b519289eb6f44b003882) by @angelos.kyratzakos ([merge request](gitlab-org/omnibus-gitlab!5919))
+
 ## 14.8.4 (2022-03-16)
 
 ### Security (1 change)
@@ -74,6 +117,17 @@ No changes.
 
 - [Add a warning if Sidekiq exporter and health checks are on the same port](gitlab-org/omnibus-gitlab@2f142b79d1c9d8a7cd879df736255ae223cffb2a) ([merge request](gitlab-org/omnibus-gitlab!5844))
 
+## 14.7.5 (2022-03-09)
+
+No changes.
+
+## 14.7.4 (2022-02-25)
+
+### Security (2 changes)
+
+- [Mattermost February security updates](gitlab-org/security/omnibus-gitlab@a33d088a428e9f390352cd971fc63afa2f8eb5c6) ([merge request](gitlab-org/security/omnibus-gitlab!186))
+- [Bump Grafana to 7.5.12](gitlab-org/security/omnibus-gitlab@29c7f7f88385d3b0d822466f866feb43bfa92da5) ([merge request](gitlab-org/security/omnibus-gitlab!183))
+
 ## 14.7.3 (2022-02-15)
 
 ### Fixed (1 change)
@@ -124,6 +178,19 @@ No changes.
 ### Other (1 change)
 
 - [Update Mattermost to 6.2.1](gitlab-org/omnibus-gitlab@05a5869b18ab109fffb7d0723ab04cb6da68ecf9) by @hmhealey ([merge request](gitlab-org/omnibus-gitlab!5828))
+
+## 14.6.6 (2022-03-01)
+
+### Fixed (1 change)
+
+- [Ensure EE services are added when gitlab-ee::config recipe is included](gitlab-org/omnibus-gitlab@b90e485b01e3ca821c27b8884aef09b08d91c1c8) ([merge request](gitlab-org/omnibus-gitlab!5940))
+
+## 14.6.5 (2022-02-25)
+
+### Security (2 changes)
+
+- [Mattermost February security updates](gitlab-org/security/omnibus-gitlab@96536555ac828a91719b680a9b2ada22b5cd33da) ([merge request](gitlab-org/security/omnibus-gitlab!187))
+- [Bump Grafana to 7.5.12](gitlab-org/security/omnibus-gitlab@ca5139ba89ff852bbbd2ffdca4e0985ad7e98e20) ([merge request](gitlab-org/security/omnibus-gitlab!184))
 
 ## 14.6.4 (2022-02-03)
 

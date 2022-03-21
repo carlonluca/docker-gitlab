@@ -160,6 +160,8 @@ default['gitlab']['gitlab-rails']['incoming_email_log_file'] = "/var/log/gitlab/
 default['gitlab']['gitlab-rails']['incoming_email_expunge_deleted'] = nil
 default['gitlab']['gitlab-rails']['incoming_email_inbox_method'] = "imap"
 default['gitlab']['gitlab-rails']['incoming_email_inbox_options'] = nil
+default['gitlab']['gitlab-rails']['incoming_email_delivery_method'] = "sidekiq"
+default['gitlab']['gitlab-rails']['incoming_email_auth_token'] = nil
 
 default['gitlab']['gitlab-rails']['service_desk_email_enabled'] = false
 default['gitlab']['gitlab-rails']['service_desk_email_address'] = nil
@@ -174,6 +176,9 @@ default['gitlab']['gitlab-rails']['service_desk_email_idle_timeout'] = nil
 default['gitlab']['gitlab-rails']['service_desk_email_log_file'] = "/var/log/gitlab/mailroom/mail_room_json.log" # file path of internal `mail_room` JSON logs
 default['gitlab']['gitlab-rails']['service_desk_email_inbox_method'] = "imap"
 default['gitlab']['gitlab-rails']['service_desk_email_inbox_inbox_options'] = nil
+default['gitlab']['gitlab-rails']['service_desk_email_delivery_method'] = "sidekiq"
+default['gitlab']['gitlab-rails']['service_desk_email_auth_token'] = nil
+
 default['gitlab']['gitlab-rails']['namespaces_in_product_marketing_emails_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['ssh_keys_expired_notification_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['ssh_keys_expiring_soon_notification_worker_cron'] = nil
@@ -406,6 +411,7 @@ default['gitlab']['gitlab-rails']['extra_google_analytics_id'] = nil
 default['gitlab']['gitlab-rails']['extra_google_tag_manager_id'] = nil
 default['gitlab']['gitlab-rails']['extra_one_trust_id'] = nil
 default['gitlab']['gitlab-rails']['extra_google_tag_manager_nonce_id'] = nil
+default['gitlab']['gitlab-rails']['extra_bizible'] = false
 default['gitlab']['gitlab-rails']['extra_matomo_url'] = nil
 default['gitlab']['gitlab-rails']['extra_matomo_site_id'] = nil
 default['gitlab']['gitlab-rails']['extra_matomo_disable_cookies'] = nil
@@ -674,6 +680,8 @@ default['gitlab']['mailroom']['enable'] = false
 default['gitlab']['mailroom']['ha'] = false
 default['gitlab']['mailroom']['log_directory'] = "/var/log/gitlab/mailroom"
 default['gitlab']['mailroom']['exit_log_format'] = "plain" # If mail_room crashes, the structure of the final exception message
+default['gitlab']['mailroom']['incoming_email_auth_token'] = nil
+default['gitlab']['mailroom']['service_desk_email_auth_token'] = nil
 
 ####
 # Nginx
@@ -732,6 +740,7 @@ default['gitlab']['nginx']['proxy_set_headers'] = {
   "Connection" => "$connection_upgrade"
 }
 default['gitlab']['nginx']['proxy_protocol'] = false
+default['gitlab']['nginx']['proxy_custom_buffer_size'] = nil
 default['gitlab']['nginx']['referrer_policy'] = 'strict-origin-when-cross-origin'
 default['gitlab']['nginx']['http2_enabled'] = true
 # Cache up to 1GB of HTTP responses from GitLab on disk

@@ -81,7 +81,7 @@ RSpec.describe Geo::Promote, '#execute' do
             allow(command).to receive(:run_reconfigure)
             allow(command).to receive(:restart_services)
 
-            expect(command).not_to receive(:run_task).with('geo:set_secondary_as_primary')
+            expect(command).not_to receive(:run_command).with("#{base_path}/bin/gitlab-rake geo:set_secondary_as_primary", live: true)
 
             command.execute
           end
@@ -96,7 +96,7 @@ RSpec.describe Geo::Promote, '#execute' do
           it 'promotes the secondary site to primary site' do
             allow(command).to receive(:restart_services)
 
-            expect(command).to receive(:run_task).with('geo:set_secondary_as_primary').once.and_return(double(error?: false))
+            expect(command).to receive(:run_command).with("#{base_path}/bin/gitlab-rake geo:set_secondary_as_primary", live: true).once.and_return(double(error?: false))
 
             command.execute
           end
@@ -451,7 +451,7 @@ RSpec.describe Geo::Promote, '#execute' do
 
       it 'prints a success message' do
         expect { command.execute }.to output(
-          /You successfully promoted the current node!/).to_stdout
+          /You successfully promoted the current node! It might take some time to reload the services, and for the changes to take effect./).to_stdout
       end
     end
 
@@ -465,15 +465,15 @@ RSpec.describe Geo::Promote, '#execute' do
     end
 
     def stub_primary_node
-      allow(command).to receive(:run_task).with('geo:site:role').and_return(double(error?: false, stdout: 'primary'))
+      allow(command).to receive(:run_command).with("#{base_path}/bin/gitlab-rake geo:site:role", live: true).and_return(double(error?: false, stdout: 'primary'))
     end
 
     def stub_secondary_node
-      allow(command).to receive(:run_task).with('geo:site:role').and_return(double(error?: false, stdout: 'secondary'))
+      allow(command).to receive(:run_command).with("#{base_path}/bin/gitlab-rake geo:site:role", live: true).and_return(double(error?: false, stdout: 'secondary'))
     end
 
     def stub_misconfigured_node
-      allow(command).to receive(:run_task).with('geo:site:role').and_return(double(error?: true, stdout: 'misconfigured'))
+      allow(command).to receive(:run_command).with("#{base_path}/bin/gitlab-rake geo:site:role", live: true).and_return(double(error?: true, stdout: 'misconfigured'))
     end
 
     def stub_single_server_secondary_site

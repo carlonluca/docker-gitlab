@@ -49,6 +49,25 @@ random password for the admin user as a security measure. However, in that case
 you will have to [reset the password manually](#resetting-the-admin-password)
 to access the admin user.
 
+## Enable Grafana alerts
+
+Grafana can provide the ability to [create alerts](https://grafana.com/docs/grafana/latest/alerting/old-alerting/create-alerts/)
+based on rules that you configure in your dashboard. By default, alerts are disabled in the bundled Grafana instance.
+
+To enable Grafana alerts:
+
+1. Edit `/etc/gitlab/gitlab.rb` and add the following line:
+
+   ```ruby
+   grafana['alerting_enabled'] = true
+   ```
+
+1. Save the file and reconfigure GitLab:
+
+   ```shell
+   sudo gitlab-ctl reconfigure
+   ```
+
 ## Disabling Grafana
 
 1. Edit `/etc/gitlab/gitlab.rb` and add/edit the following lines:
@@ -222,7 +241,7 @@ These errors may happen if the GitLab Grafana OAuth application does not exist o
 the settings in `/etc/gitlab/gitlab-secrets.json` are no longer consistent with each other.
 
 WARNING:
-The following steps may lead to data loss if the `/etc/gitlab/gitlab-secrets.json` file is corrupted. 
+The following steps may lead to data loss if the `/etc/gitlab/gitlab-secrets.json` file is corrupted.
 Make sure to create a backup before applying any changes.
 
 To fix it:
@@ -244,7 +263,7 @@ To fix it:
    "admin_password": "...",
    "metrics_basic_auth_password": null
    },
-   ``` 
+   ```
 
 1. Reconfigure GitLab to re-create the **GitLab Grafana** application and regenerate the values in `/etc/gitlab/gitlab-secrets.json`:
 

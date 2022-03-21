@@ -25,6 +25,7 @@ license_file 'LICENSE'
 
 skip_transitive_dependency_licensing true
 
+dependency 'bundler'
 dependency 'rubygems'
 
 source git: version.remote

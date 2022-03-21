@@ -42,6 +42,7 @@ default['gitlab-pages']['sentry_environment'] = nil
 default['gitlab-pages']['headers'] = nil
 default['gitlab-pages']['api_secret_key'] = nil
 default['gitlab-pages']['gitlab_client_http_timeout'] = nil
+default['gitlab-pages']['server_shutdown_timeout'] = nil
 default['gitlab-pages']['gitlab_client_jwt_expiry'] = nil
 default['gitlab-pages']['env_directory'] = '/opt/gitlab/etc/gitlab-pages/env'
 # Serving from zip archives fine grained configuration.
@@ -63,3 +64,7 @@ default['gitlab-pages']['rate_limit_source_ip'] = nil
 default['gitlab-pages']['rate_limit_source_ip_burst'] = nil
 default['gitlab-pages']['rate_limit_domain'] = nil
 default['gitlab-pages']['rate_limit_domain_burst'] = nil
+default['gitlab-pages']['rate_limit_tls_source_ip'] = nil
+default['gitlab-pages']['rate_limit_tls_source_ip_burst'] = nil
+default['gitlab-pages']['rate_limit_tls_domain'] = nil
+default['gitlab-pages']['rate_limit_tls_domain_burst'] = nil

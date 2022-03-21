@@ -204,6 +204,7 @@ RSpec.describe 'gitlab::gitlab-pages' do
             sentry_dsn: 'https://b44a0828b72421a6d8e99efd68d44fa8@example.com/40',
             sentry_environment: 'production',
             headers: ['X-XSS-Protection: 1; mode=block', 'X-Content-Type-Options: nosniff', 'Test: Header'],
+            server_shutdown_timeout: "30s",
             gitlab_client_http_timeout: "10s",
             gitlab_client_jwt_expiry: "30s",
             zip_cache_expiration: "120s",
@@ -221,6 +222,10 @@ RSpec.describe 'gitlab::gitlab-pages' do
             rate_limit_source_ip_burst: 50,
             rate_limit_domain: 1000,
             rate_limit_domain_burst: 10000,
+            rate_limit_tls_source_ip: 101,
+            rate_limit_tls_source_ip_burst: 51,
+            rate_limit_tls_domain: 1001,
+            rate_limit_tls_domain_burst: 10001,
             enable_disk: true,
             env: {
               GITLAB_CONTINUOUS_PROFILING: "stackdriver?service=gitlab-pages",
@@ -262,6 +267,7 @@ RSpec.describe 'gitlab::gitlab-pages' do
             insecure-ciphers
             tls-min-version=tls1.0
             tls-max-version=tls1.2
+            server-shutdown-timeout=30s
             gitlab-client-http-timeout=10s
             gitlab-client-jwt-expiry=30s
             listen-http=external_pages.example.com,localhost:9000
@@ -280,6 +286,10 @@ RSpec.describe 'gitlab::gitlab-pages' do
             rate-limit-source-ip-burst=50
             rate-limit-domain=1000
             rate-limit-domain-burst=10000
+            rate-limit-tls-source-ip=101
+            rate-limit-tls-source-ip-burst=51
+            rate-limit-tls-domain=1001
+            rate-limit-tls-domain-burst=10001
         EOS
 
         expect(chef_run).to render_file("/var/opt/gitlab/pages/gitlab-pages-config").with_content(expected_content)

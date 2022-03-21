@@ -15,7 +15,18 @@
       - $DEPS_PIPELINE || $CACHE_UPDATE || $DEPENDENCY_SCANNING
       - $CI_COMMIT_REF_NAME =~ /^[0-9]+-[0-9]+-auto-deploy-[0-9]+$/
 
-.com-except-triggers: &com-except-triggers
+.com-except-triggers-and-docs: &com-except-triggers-and-docs
+  except:
+    refs:
+      - /./@gitlab/omnibus-gitlab
+      - triggers
+      - /(^docs[\/-].*|.*-docs$)/
+      - /./@gitlab-org/build/omnibus-gitlab-mirror
+    variables:
+      - $DEPS_PIPELINE || $CACHE_UPDATE || $DEPENDENCY_SCANNING
+      - $CI_COMMIT_REF_NAME =~ /^[0-9]+-[0-9]+-auto-deploy-[0-9]+$/
+
+.com-except-triggers-docs-and-deps: &com-except-triggers-docs-and-deps
   except:
     refs:
       - /./@gitlab/omnibus-gitlab
@@ -26,6 +37,18 @@
     variables:
       - $DEPS_PIPELINE || $CACHE_UPDATE || $DEPENDENCY_SCANNING
       - $CI_COMMIT_REF_NAME =~ /^[0-9]+-[0-9]+-auto-deploy-[0-9]+$/
+
+.com-branches-except-triggers-docs-and-deps: &com-branches-except-triggers-docs-and-deps
+  only:
+    - branches@gitlab-org/omnibus-gitlab
+    - branches@gitlab-org/security/omnibus-gitlab
+  <<: *com-except-triggers-docs-and-deps
+
+.com-branches-except-triggers-and-docs: &com-branches-except-triggers-and-docs
+  only:
+    - branches@gitlab-org/omnibus-gitlab
+    - branches@gitlab-org/security/omnibus-gitlab
+  <<: *com-except-triggers-and-docs
 
 .com-trigger-only: &com-trigger-only
   only:
@@ -71,7 +94,7 @@
     - export DISTRO_VERSION=${JOB_NAME[1]}
     - mkdir -p knapsack/
     - '[[ -f knapsack/${DISTRO_NAME}_${DISTRO_VERSION}_main_rspec_report.json ]] || echo "{}" > knapsack/${DISTRO_NAME}_${DISTRO_VERSION}_main_rspec_report.json'
-  <<: *com-except-triggers
+  <<: *com-except-triggers-docs-and-deps
   retry: 1
   needs:
     - rubocop
@@ -127,7 +150,7 @@
     - rm -f knapsack/*.json
     - mv ${KNAPSACK_REPORT_PATH}.bak ${KNAPSACK_REPORT_PATH}
     - bundle exec rake "knapsack:rspec[--color --format RspecJunitFormatter --out junit_rspec.xml --format documentation]"
-  <<: *com-except-triggers
+  <<: *com-except-triggers-docs-and-deps
   artifacts:
     <<: *knapsack-artifacts
     reports:
@@ -135,31 +158,43 @@
   retry: 1
 
 .trigger-job:
-  extends: .gems-cache
-  image: "${RUBY_IMAGE}"
   stage: trigger-package
+  inherit:
+    variables: false
+  variables:
+    ALTERNATIVE_SOURCES: 'true'
+    BUILDER_IMAGE_REVISION: ${BUILDER_IMAGE_REVISION}
+    BUILDER_IMAGE_REGISTRY: ${BUILDER_IMAGE_REGISTRY}
+    PUBLIC_BUILDER_IMAGE_REGISTRY: ${PUBLIC_BUILDER_IMAGE_REGISTRY}
+    COMPILE_ASSETS: ${COMPILE_ASSETS}
+    GITLAB_VERSION: ${GITLAB_VERSION}
+    GITLAB_SHELL_VERSION: ${GITLAB_SHELL_VERSION}
+    GITLAB_PAGES_VERSION: ${GITLAB_PAGES_VERSION}
+    GITALY_VERSION: ${GITALY_SERVER_VERSION}
+    GITLAB_ELASTICSEARCH_INDEXER_VERSION: ${GITLAB_ELASTICSEARCH_INDEXER_VERSION}
+    GITLAB_KAS_VERSION: ${GITLAB_KAS_VERSION}
+    TOP_UPSTREAM_SOURCE_PROJECT: ${TOP_UPSTREAM_SOURCE_PROJECT}
+    TOP_UPSTREAM_SOURCE_JOB: ${TOP_UPSTREAM_SOURCE_JOB}
+    TOP_UPSTREAM_SOURCE_SHA: ${TOP_UPSTREAM_SOURCE_SHA}
+    TOP_UPSTREAM_SOURCE_REF: ${TOP_UPSTREAM_SOURCE_REF}
+    QA_BRANCH: ${QA_BRANCH}
   when: manual
-  script:
-    - support/wait_for_sha
-    - bundle exec rake build:trigger
-  only:
-    - branches@gitlab-org/omnibus-gitlab
-    - branches@gitlab-org/security/omnibus-gitlab
-  except:
-    refs:
-      - triggers
-      - /^deps/
-      - /(^docs[\/-].*|.*-docs$)/
-    variables:
-      - $DEPS_PIPELINE || $CACHE_UPDATE || $DEPENDENCY_SCANNING
-      - $CI_COMMIT_REF_NAME =~ /^[0-9]+-[0-9]+-auto-deploy-[0-9]+$/
-  needs: []
-  timeout: 3h
+  trigger:
+    project: 'gitlab-org/build/omnibus-gitlab-mirror'
+    branch: $CI_COMMIT_REF_NAME
+    strategy: depend
+  <<: *com-branches-except-triggers-docs-and-deps
+  needs:
+    - job: generate-facts
+      artifacts: true
+    - job: check-for-sha-in-mirror
+      artifacts: false
 
 .trigger-pipeline:
   stage: trigger-qa
   image: "${RUBY_IMAGE}"
   when: manual
+  allow_failure: true
   <<: *com-trigger-only
   needs:
     - job: Trigger:package
@@ -179,8 +214,8 @@
     # review-docs-cleanup job will not be able to run when the branch gets
     # deleted (when merging the MR).
     - apk add --update openssl
-    - wget https://gitlab.com/gitlab-org/gitlab/-/raw/master/scripts/trigger-build
-    - chmod 755 trigger-build
+    - wget https://gitlab.com/gitlab-org/gitlab/-/raw/master/scripts/trigger-build.rb
+    - chmod 755 trigger-build.rb
   variables:
     GIT_STRATEGY: none
     DOCS_REVIEW_APPS_DOMAIN: 178.62.207.141.nip.io
@@ -191,6 +226,7 @@
   except:
     variables:
       - $CI_COMMIT_REF_NAME =~ /^[0-9]+-[0-9]+-auto-deploy-[0-9]+$/
+      - $CI_COMMIT_REF_NAME =~ /^deps/
       - $DEPS_PIPELINE || $CACHE_UPDATE || $DEPENDENCY_SCANNING
 
 #####################
@@ -244,6 +280,16 @@ update-trigger-package-cache:
 #     Branch pipeline     #
 ###########################
 
+check-for-sha-in-mirror:
+  extends: .gems-cache
+  stage: check
+  image: "${RUBY_IMAGE}"
+  script:
+    - support/wait_for_sha
+  <<: *com-branches-except-triggers-and-docs
+  timeout: 3h
+  needs: []
+
 Trigger:ce-package:
   extends: .trigger-job
 
@@ -260,7 +306,7 @@ rubocop:
     - *install-gems
   script:
     - bundle exec rubocop --parallel
-  <<: *com-except-triggers
+  <<: *com-except-triggers-docs-and-deps
   needs: []
 
 # Perform documentation linting on Markdown files
@@ -329,7 +375,7 @@ review-docs-deploy:
     url: http://${DOCS_BRANCH}-${DOCS_GITLAB_REPO_SUFFIX}-${CI_COMMIT_REF_SLUG}.${DOCS_REVIEW_APPS_DOMAIN}/${DOCS_GITLAB_REPO_SUFFIX}
     on_stop: review-docs-cleanup
   script:
-    - ./trigger-build docs deploy
+    - ./trigger-build.rb docs deploy
 
 # Cleanup remote environment of gitlab-docs
 review-docs-cleanup:
@@ -339,7 +385,7 @@ review-docs-cleanup:
     name: review-docs/branch-${CI_COMMIT_REF_SLUG}
     action: stop
   script:
-    - ./trigger-build docs cleanup
+    - ./trigger-build.rb docs cleanup
 
 danger-review:
   image: registry.gitlab.com/gitlab-org/gitlab-build-images:danger
@@ -370,6 +416,7 @@ OpenSUSE 15.3 knapsack: *prepare_knapsack
 Ubuntu 16.04 knapsack: *prepare_knapsack
 Ubuntu 18.04 knapsack: *prepare_knapsack
 Ubuntu 20.04 knapsack: *prepare_knapsack
+AmazonLinux 2 knapsack: *prepare_knapsack
 
 Ubuntu 16.04 specs:
   image: "registry.gitlab.com/gitlab-org/gitlab-build-images:omnibus-gitlab-xenial"
@@ -425,6 +472,12 @@ OpenSUSE 15.3 specs :
   parallel: 6
   needs:
   - OpenSUSE 15.3 knapsack
+AmazonLinux 2 specs :
+  image: "registry.gitlab.com/gitlab-org/gitlab-build-images:omnibus-gitlab-amazonlinux2"
+  extends: .spec_template
+  parallel: 6
+  needs:
+  - AmazonLinux 2 knapsack
 
 update-knapsack:
   extends: .knapsack-state
@@ -434,7 +487,7 @@ update-knapsack:
   script:
     - support/merge-reports knapsack
     - rm -f knapsack/*node*
-  <<: *com-except-triggers
+  <<: *com-except-triggers-docs-and-deps
   retry: 1
 
 ############################
@@ -446,7 +499,6 @@ Trigger:package:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04:${BUILDER_IMAGE_REVISION}"
   stage: trigger-package
   script:
-    - if [ -n "$TRIGGERED_USER" ] && [ -n "$TRIGGER_SOURCE" ]; then echo "Pipeline triggered by $TRIGGERED_USER at $TRIGGER_SOURCE"; fi
     - *build-package
     # Renaming so we can easily generate the artifact URL
     - mv pkg/ubuntu-focal/*.deb pkg/ubuntu-focal/gitlab.deb
@@ -484,7 +536,6 @@ Trigger:gitlab-docker:
     - .gems-cache
   stage: trigger-docker
   script:
-    - if [ -n "$TRIGGERED_USER" ] && [ -n "$TRIGGER_SOURCE" ]; then echo "Pipeline triggered by $TRIGGERED_USER at $TRIGGER_SOURCE"; fi
     - bundle exec rake docker:build:image
     - bundle exec rake docker:push:triggered
   <<: *com-trigger-only
@@ -501,7 +552,6 @@ Trigger:qa-docker:
     - .gems-cache
   stage: trigger-docker
   script:
-    - if [ -n "$TRIGGERED_USER" ] && [ -n "$TRIGGER_SOURCE" ]; then echo "Pipeline triggered by $TRIGGERED_USER at $TRIGGER_SOURCE"; fi
     - bundle exec rake qa:build
     - bundle exec rake qa:push:triggered
   <<: *com-trigger-only
@@ -551,7 +601,6 @@ letsencrypt-test:
   extends: .docker_job
   stage: trigger-qa
   script:
-    - if [ -n "$TRIGGERED_USER" ] && [ -n "$TRIGGER_SOURCE" ]; then echo "Pipeline triggered by $TRIGGERED_USER at $TRIGGER_SOURCE"; fi
     - echo "${CI_REGISTRY_PASSWORD}" | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
     - curl -L "https://github.com/docker/compose/releases/download/1.29.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     - chmod +x /usr/local/bin/docker-compose
@@ -565,6 +614,7 @@ RAT:
   stage: trigger-qa
   image: "${RUBY_IMAGE}"
   when: manual
+  allow_failure: true
   script:
     - bundle exec rake qa:rat:trigger
   <<: *com-trigger-only
@@ -628,13 +678,10 @@ dependency_update:
       - $DEPS_PIPELINE
 
 dependencies_io_check:
+  extends: .trigger-job
+  when: always
   variables:
     ee: "true"
-  image: "${RUBY_IMAGE}"
-  stage: trigger-package
-  script:
-    - support/wait_for_sha
-    - bundle exec rake build:trigger
   only:
     refs:
       - /^deps.*/@gitlab-org/omnibus-gitlab
@@ -642,7 +689,6 @@ dependencies_io_check:
     refs:
       - triggers
       - branches@gitlab/omnibus-gitlab
-  needs: []
 
 validate_packer_changes:
   before_script: []
@@ -654,7 +700,7 @@ validate_packer_changes:
   only:
     changes:
       - support/packer/*
-  <<: *com-except-triggers
+  <<: *com-except-triggers-docs-and-deps
 
 ##############################
 #     Scheduled pipeline     #

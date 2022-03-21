@@ -91,6 +91,9 @@ tls-min-version=<%= @tls_min_version %>
 <%- if @tls_max_version-%>
 tls-max-version=<%= @tls_max_version %>
 <%- end -%>
+<%- if @server_shutdown_timeout -%>
+server-shutdown-timeout=<%= @server_shutdown_timeout %>
+<%- end -%>
 <%- if @gitlab_client_http_timeout -%>
 gitlab-client-http-timeout=<%= @gitlab_client_http_timeout %>
 <%- end -%>
@@ -142,4 +145,16 @@ rate-limit-domain=<%= @rate_limit_domain %>
 <%-end -%>
 <%- if @rate_limit_domain_burst -%>
 rate-limit-domain-burst=<%= @rate_limit_domain_burst %>
+<%-end -%>
+<%- if @rate_limit_tls_source_ip -%>
+rate-limit-tls-source-ip=<%= @rate_limit_tls_source_ip %>
+<%-end -%>
+<%- if @rate_limit_tls_source_ip_burst -%>
+rate-limit-tls-source-ip-burst=<%= @rate_limit_tls_source_ip_burst %>
+<%-end -%>
+<%- if @rate_limit_tls_domain -%>
+rate-limit-tls-domain=<%= @rate_limit_tls_domain %>
+<%-end -%>
+<%- if @rate_limit_tls_domain_burst -%>
+rate-limit-tls-domain-burst=<%= @rate_limit_tls_domain_burst %>
 <%-end -%>

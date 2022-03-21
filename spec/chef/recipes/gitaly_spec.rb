@@ -29,6 +29,7 @@ RSpec.describe 'gitaly' do
   let(:ruby_rugged_git_config_search_path) { '/path/to/opt/gitlab/embedded/etc' }
   let(:git_catfile_cache_size) { 50 }
   let(:git_bin_path) { '/path/to/usr/bin/git' }
+  let(:use_bundled_git) { true }
   let(:open_files_ulimit) { 10000 }
   let(:default_vars) do
     {
@@ -141,9 +142,12 @@ RSpec.describe 'gitaly' do
       expect(chef_run).not_to render_file(config_path)
         .with_content(%r{catfile_cache_size})
       expect(chef_run).not_to render_file(config_path)
-        .with_content('bin_path = ')
-      expect(chef_run).not_to render_file(config_path)
         .with_content('[pack_objects_cache]')
+    end
+
+    it 'populates gitaly config.toml with default git binary path' do
+      expect(chef_run).to render_file(config_path)
+        .with_content("bin_path = '/opt/gitlab/embedded/bin/git'")
     end
 
     it 'populates gitaly config.toml with default storages' do
@@ -198,6 +202,7 @@ RSpec.describe 'gitaly' do
           ruby_num_workers: ruby_num_workers,
           git_catfile_cache_size: git_catfile_cache_size,
           git_bin_path: git_bin_path,
+          use_bundled_git: true,
           open_files_ulimit: open_files_ulimit,
           ruby_rugged_git_config_search_path: ruby_rugged_git_config_search_path,
           daily_maintenance_start_hour: daily_maintenance_start_hour,
@@ -260,6 +265,8 @@ RSpec.describe 'gitaly' do
         .with_content("graceful_restart_timeout = '#{graceful_restart_timeout}'")
       expect(chef_run).to render_file(config_path)
         .with_content("bin_path = '#{git_bin_path}'")
+      expect(chef_run).to render_file(config_path)
+        .with_content("use_bundled_binaries = true")
 
       gitaly_logging_section = Regexp.new([
         %r{\[logging\]},
@@ -559,6 +566,81 @@ RSpec.describe 'gitaly' do
       end
 
       it_behaves_like 'empty concurrency configuration'
+    end
+
+    context 'when max_queue_size and max_queue_wait are empty' do
+      before do
+        stub_gitlab_rb(
+          {
+            gitaly: {
+              concurrency: [
+                {
+                  'rpc' => "/gitaly.SmartHTTPService/PostReceivePack",
+                  'max_per_repo' => 20,
+                }, {
+                  'rpc' => "/gitaly.SSHService/SSHUploadPack",
+                  'max_per_repo' => 5,
+                }
+              ]
+            }
+          }
+        )
+      end
+
+      it 'populates gitaly config.toml without max_queue_size and max_queue_wait' do
+        expect(chef_run).to render_file(config_path).with_content { |content|
+          expect(content).not_to include("max_queue_size")
+          expect(content).not_to include("max_queue_wait")
+        }
+      end
+    end
+
+    context 'when max_per_repo is empty' do
+      before do
+        stub_gitlab_rb(
+          {
+            gitaly: {
+              concurrency: [
+                {
+                  'rpc' => "/gitaly.SmartHTTPService/PostReceivePack",
+                  'max_queue_size' => '10s'
+                }, {
+                  'rpc' => "/gitaly.SSHService/SSHUploadPack",
+                  'max_queue_size' => '10s'
+                }
+              ]
+            }
+          }
+        )
+      end
+
+      it 'populates gitaly config.toml without max_per_repo' do
+        expect(chef_run).to render_file(config_path).with_content { |content|
+          expect(content).not_to include("max_per_repo")
+        }
+      end
+    end
+
+    context 'when max_queue_wait is set' do
+      before do
+        stub_gitlab_rb(
+          {
+            gitaly: {
+              concurrency: [
+                {
+                  'rpc' => "/gitaly.SmartHTTPService/PostReceivePack",
+                  'max_queue_wait' => "10s",
+                }
+              ]
+            }
+          }
+        )
+      end
+
+      it 'populates gitaly config.toml with quoted max_queue_wait' do
+        expect(chef_run).to render_file(config_path)
+        .with_content(%r{\[\[concurrency\]\]\s+rpc = "/gitaly.SmartHTTPService/PostReceivePack"\s+max_queue_wait = "10s"})
+      end
     end
   end
 

@@ -40,6 +40,7 @@ license_file 'LICENSE'
 license_file combined_licenses_file
 
 dependency 'pkg-config-lite'
+dependency 'bundler'
 dependency 'rubygems'
 dependency 'libxml2'
 dependency 'libxslt'
@@ -180,6 +181,8 @@ build do
   delete '.gitlab_workhorse_secret'
   delete '.gitlab_pages_secret'
   delete '.gitlab_kas_secret'
+  delete '.gitlab_incoming_email_secret'
+  delete '.gitlab_service_desk_email_secret'
 
   # Remove directories that will be created by `gitlab-ctl reconfigure`
   delete 'log'

@@ -17,10 +17,10 @@
 #
 
 name 'mattermost'
-default_version '6.3.3'
+default_version '6.4.0'
 
 source url: "https://releases.mattermost.com/#{version}/mattermost-team-#{version}-linux-amd64.tar.gz",
-       md5: 'fc4e881aca82a3f16ba5fc14d65f8106'
+       md5: 'e9ddd382611fcf22925ce3508cab0a42'
 
 relative_path 'mattermost'
 
@@ -34,6 +34,7 @@ skip_transitive_dependency_licensing true
 
 build do
   move 'bin/mattermost', "#{install_dir}/embedded/bin/mattermost"
+  move 'bin/mmctl', "#{install_dir}/embedded/bin/mmctl"
 
   command "mkdir -p #{install_dir}/embedded/service/mattermost"
   copy 'templates', "#{install_dir}/embedded/service/mattermost/templates"

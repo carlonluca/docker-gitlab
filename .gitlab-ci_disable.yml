@@ -63,7 +63,7 @@ variables:
   # will use images from that registry and not depend on GitLab.com
   BUILDER_IMAGE_REGISTRY: "registry.gitlab.com/gitlab-org/gitlab-omnibus-builder"
   PUBLIC_BUILDER_IMAGE_REGISTRY: "registry.gitlab.com/gitlab-org/gitlab-omnibus-builder"
-  BUILDER_IMAGE_REVISION: "2.12.0"
+  BUILDER_IMAGE_REVISION: "2.15.0"
   # The registry to pull the assets image from
   ASSET_REGISTRY: "${CI_REGISTRY}"
   ASSET_SYNC_EXISTING_REMOTE_FILES: "keep"
@@ -184,10 +184,24 @@ generate-facts:
     reports:
       dotenv: build_facts/env_vars
   rules:
-    # Run on dev.gitlab.org and multi-project pipelines on omnibus-gitlab-mirror
-    - if: '$CI_PROJECT_PATH == "gitlab/omnibus-gitlab"'
-    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $CI_PROJECT_PATH == "gitlab-org/build/omnibus-gitlab-mirror"'
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_PROJECT_PATH == "gitlab-org/build/omnibus-gitlab-mirror"'
+    - if: '$DEPS_PIPELINE || $DEPENDENCY_SCANNING'
+      when: never
+    # The CACHE_UPDATE variable has two use cases:
+    # 1. Scheduled nightly builds in omnibus-gitlab-mirror that update the
+    #    cache to improve speed for package-and-qa builds from
+    #    omnibus-gitlab merge requests.
+    # 1. The gitlab-org/gitlab project schedules a pipeline with
+    #    CACHE_UPDATE every two hours. The resulting package-and-qa
+    #    pipeline refreshes the cache and reduces build times for
+    #    other GitLab merge requests that trigger package-and-qa.
+    # The first one doesn't have a qa-test job, and hence doesn't need
+    # the generate-facts job.
+    - if: '$CACHE_UPDATE && $CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - if: '$CI_BRANCH_NAME =~ /^[0-9]+-[0-9]+-auto-deploy-[0-9]+$/'
+      when: never
+    - when: always
+  needs: []
 
 include:
   - '/gitlab-ci-config/gitlab-com.yml'
