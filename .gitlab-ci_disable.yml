@@ -63,7 +63,7 @@ variables:
   # will use images from that registry and not depend on GitLab.com
   BUILDER_IMAGE_REGISTRY: "registry.gitlab.com/gitlab-org/gitlab-omnibus-builder"
   PUBLIC_BUILDER_IMAGE_REGISTRY: "registry.gitlab.com/gitlab-org/gitlab-omnibus-builder"
-  BUILDER_IMAGE_REVISION: "2.15.0"
+  BUILDER_IMAGE_REVISION: "3.2.0"
   # The registry to pull the assets image from
   ASSET_REGISTRY: "${CI_REGISTRY}"
   ASSET_SYNC_EXISTING_REMOTE_FILES: "keep"
@@ -82,6 +82,7 @@ variables:
   CACHE_KEY_SUFFIX: '-v1'
   CACHE_EDITION: "CE"
   QA_BRANCH: 'master'
+  ISSUE_BOT_LABELS_EXTRA: "group::distribution"
 
 ### For services that need a docker daemon
 .docker_job: &docker_job
@@ -204,8 +205,12 @@ generate-facts:
   needs: []
 
 include:
-  - '/gitlab-ci-config/gitlab-com.yml'
-  - '/gitlab-ci-config/dev-gitlab-org.yml'
+  - local: '/gitlab-ci-config/gitlab-com.yml'
+    rules:
+      - if: '$CI_SERVER_HOST == "gitlab.com"'
+  - local: '/gitlab-ci-config/dev-gitlab-org.yml'
+    rules:
+      - if: '$CI_SERVER_HOST == "dev.gitlab.org"'
 
 .notify:
   before_script:

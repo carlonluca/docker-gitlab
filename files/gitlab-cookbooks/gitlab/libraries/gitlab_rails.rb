@@ -18,7 +18,9 @@ require_relative 'nginx.rb'
 require_relative '../../gitaly/libraries/gitaly.rb'
 
 module GitlabRails
-  ALLOWED_DATABASES = %w[main ci].freeze
+  ALLOWED_DATABASES = %w[main ci geo].freeze
+  MAIN_DATABASES = %w[main geo].freeze
+  SHARED_DATABASE_ATTRIBUTES = %w[db_host db_port db_database].freeze
 
   class << self
     def parse_variables
@@ -195,7 +197,10 @@ module GitlabRails
       # Set default value for attributes of main database based on top level
       # `gitlab_rails['db_*']` settings.
       database_attributes.each do |attribute|
-        Gitlab['gitlab_rails']['databases']['main'][attribute] ||= Gitlab['gitlab_rails'][attribute] || Gitlab['node']['gitlab']['gitlab-rails'][attribute]
+        next unless Gitlab['gitlab_rails']['databases']['main'][attribute].nil?
+
+        Gitlab['gitlab_rails']['databases']['main'][attribute] =
+          [Gitlab['gitlab_rails'][attribute], Gitlab['node']['gitlab']['gitlab-rails'][attribute]].compact.first
       end
     end
 
@@ -204,9 +209,9 @@ module GitlabRails
       # settings
       generate_main_database
 
-      # Weed out the databases that are either not allowed or not enabled explicitly (except for main)
+      # Weed out the databases that are either not allowed or not enabled explicitly (except for main and geo)
       Gitlab['gitlab_rails']['databases'].to_h.each do |database, settings|
-        if database != 'main' && settings['enable'] != true
+        if !MAIN_DATABASES.include?(database) && settings['enable'] != true
           Gitlab['gitlab_rails']['databases'].delete(database)
           next
         end
@@ -217,14 +222,20 @@ module GitlabRails
         end
       end
 
-      # Set default value of settings for other databases based on values used
-      # in `main` database.
+      # Set default value of settings for other databases based on values used in `main` database.
       Gitlab['gitlab_rails']['databases'].each_key do |database|
-        next if database == 'main'
+        next if MAIN_DATABASES.include?(database)
 
         database_attributes.each do |attribute|
-          Gitlab['gitlab_rails']['databases'][database][attribute] ||= Gitlab['gitlab_rails']['databases']['main'][attribute]
+          next unless Gitlab['gitlab_rails']['databases'][database][attribute].nil?
+
+          Gitlab['gitlab_rails']['databases'][database][attribute] = Gitlab['gitlab_rails']['databases']['main'][attribute]
         end
+
+        # If additional database shares attributes with main
+        # it should be skipped from database_tasks (running migrations)
+        database_same_as_main = SHARED_DATABASE_ATTRIBUTES.all? { |attribute| Gitlab['gitlab_rails']['databases'][database][attribute] == Gitlab['gitlab_rails']['databases']['main'][attribute] }
+        Gitlab['gitlab_rails']['databases'][database]['db_database_tasks'] = false if database_same_as_main
       end
     end
 

@@ -9,6 +9,34 @@ No changes.
 ## 14.2.4 (2021-09-17)
 
 No changes.
+## 14.10.0 (2022-04-21)
+
+### Added (3 changes)
+
+- [Gitaly: Add rate_limiting section to config toml](gitlab-org/omnibus-gitlab@89d8f26a49063b1ec55b613d139e6de4f081e3ab) ([merge request](gitlab-org/omnibus-gitlab!6023))
+- [Add pages http server timeout options](gitlab-org/omnibus-gitlab@50ba3875f12a5c7e754e1c9d13162cfe3d3e588d) ([merge request](gitlab-org/omnibus-gitlab!6029))
+- [Expose `db_database_tasks` attribute](gitlab-org/omnibus-gitlab@c17057d17fbefeccef1f93768b4d90414e10e8ed) ([merge request](gitlab-org/omnibus-gitlab!5982))
+
+### Fixed (3 changes)
+
+- [consul: Disable logging of timestamps if JSON log enabled](gitlab-org/omnibus-gitlab@d376b30f25472a4c09e317135495b8a41af4c040) ([merge request](gitlab-org/omnibus-gitlab!6034))
+- [ruby: Enable OPENSSL_FIPS macro for system SSL builds](gitlab-org/omnibus-gitlab@cb0137add87ad37aa266a05f30313a1cd32ffb63) ([merge request](gitlab-org/omnibus-gitlab!6030))
+- [Always disable proxy_intercept_errors for kas](gitlab-org/omnibus-gitlab@2c76574dc69483a8c41bdadda3a0a83e810422f8) ([merge request](gitlab-org/omnibus-gitlab!5995))
+
+### Changed (5 changes)
+
+- [Update Mattermost to 6.5.0](gitlab-org/omnibus-gitlab@090603d39ddf8ebfe64ece70e6019e2d9779a084) by @stavros.foteinopoulos ([merge request](gitlab-org/omnibus-gitlab!5996))
+- [gitaly: Set up newly introduced runtime directory](gitlab-org/omnibus-gitlab@00534f346f11d02a5fe550257f5424b6e998bee1) ([merge request](gitlab-org/omnibus-gitlab!5999))
+- [Migrate Geo Tracking database configuration into database.yml](gitlab-org/omnibus-gitlab@4b88e899ecb99a0c0eef9dec8ef7b9df2903f2d0) ([merge request](gitlab-org/omnibus-gitlab!5962))
+- [add pages zip http client timeout option](gitlab-org/omnibus-gitlab@d6d0a17bc97505ff12205b05b943cf2ec355f02c) ([merge request](gitlab-org/omnibus-gitlab!5975))
+- [Update Mattermost to 6.4.2](gitlab-org/omnibus-gitlab@0e2ebff67f9ccf71c8d5f93d1f2c5893683d1809) by @stylianosrigas ([merge request](gitlab-org/omnibus-gitlab!5966))
+
+### Security (3 changes)
+
+- [mark credentials as sensitive](gitlab-org/omnibus-gitlab@9354ccc5d43df012eaacf46029e67ff4ecc2d482) ([merge request](gitlab-org/omnibus-gitlab!5971))
+- [Upgrade zlib version](gitlab-org/omnibus-gitlab@056875b6497087a33fa837e5549baa1ecea33674) by @srslypascal ([merge request](gitlab-org/omnibus-gitlab!6015))
+- [Update grafana version to 7.5.15](gitlab-org/omnibus-gitlab@5e98cbfb95cc3176fbaf5f38de99775d9cae512e)
+
 ## 14.9.3 (2022-04-12)
 
 No changes.
@@ -67,6 +95,13 @@ No changes.
 - [Enable live stdout/stderr](gitlab-org/omnibus-gitlab@ae79d717a0f7735442463ec65121b1b19b67ec8a) ([merge request](gitlab-org/omnibus-gitlab!5958))
 - [Update Mattermost to 6.4.0](gitlab-org/omnibus-gitlab@2db39bba83bede1ec856b519289eb6f44b003882) by @angelos.kyratzakos ([merge request](gitlab-org/omnibus-gitlab!5919))
 
+## 14.8.5 (2022-03-31)
+
+### Security (2 changes)
+
+- [Update Mattermost version](gitlab-org/security/omnibus-gitlab@3ceef837a8d28b68eced040158bbc70d2a7ec66b) ([merge request](gitlab-org/security/omnibus-gitlab!194))
+- [Update grafana version to 7.5.15](gitlab-org/security/omnibus-gitlab@dd99aa32346b2074167e2b0168d4fad23fc76678) ([merge request](gitlab-org/security/omnibus-gitlab!192))
+
 ## 14.8.4 (2022-03-16)
 
 ### Security (1 change)
@@ -112,7 +147,6 @@ No changes.
 ### Changed (16 changes)
 
 - [Add QA_BRANCH trigger var](gitlab-org/omnibus-gitlab@c495e01de5bf8bd9c5ccb3fae514a1cc4a4653e2) ([merge request](gitlab-org/omnibus-gitlab!5910))
-- [Update Mattermost to 6.3.3](gitlab-org/omnibus-gitlab@50bf80c439f2c37c6de0b6436ff4f0301bc785ba) ([merge request](gitlab-org/omnibus-gitlab!5884))
 - [Update Mattermost to 6.3.3](gitlab-org/omnibus-gitlab@59859b16cc9f97959212364a2683bda18baca6c4) by @spirosoik ([merge request](gitlab-org/omnibus-gitlab!5884))
 - [Bump Container Registry to v3.24.1-gitlab](gitlab-org/omnibus-gitlab@6a72ffff1458266fa679063bdb5c56d1e863fc87) ([merge request](gitlab-org/omnibus-gitlab!5899))
 - [Update libjpeg-turbo/libjpeg-turbo from 2.1.0 to 2.1.2](gitlab-org/omnibus-gitlab@f48e3a506d123a3d234505d9ed32619ff13207b1) ([merge request](gitlab-org/omnibus-gitlab!5534))
@@ -131,6 +165,19 @@ No changes.
 ### Deprecated (1 change)
 
 - [Add a warning if Sidekiq exporter and health checks are on the same port](gitlab-org/omnibus-gitlab@2f142b79d1c9d8a7cd879df736255ae223cffb2a) ([merge request](gitlab-org/omnibus-gitlab!5844))
+
+## 14.7.7 (2022-03-31)
+
+### Security (2 changes)
+
+- [Update Mattermost version](gitlab-org/security/omnibus-gitlab@c79f7657299a014485d73154726e380ee838c3be) ([merge request](gitlab-org/security/omnibus-gitlab!195))
+- [Update grafana version to 7.5.15](gitlab-org/security/omnibus-gitlab@bbf79c23818c10906577d4168be2c44949e8a26a) ([merge request](gitlab-org/security/omnibus-gitlab!191))
+
+## 14.7.6 (2022-03-24)
+
+### Security (1 change)
+
+- [Update OpenSSL to v1.1.1n](gitlab-org/omnibus-gitlab@4021e806ff4db72e0e2b956f137cefb20d633078) ([merge request](gitlab-org/omnibus-gitlab!5986))
 
 ## 14.7.5 (2022-03-09)
 
@@ -193,6 +240,12 @@ No changes.
 ### Other (1 change)
 
 - [Update Mattermost to 6.2.1](gitlab-org/omnibus-gitlab@05a5869b18ab109fffb7d0723ab04cb6da68ecf9) by @hmhealey ([merge request](gitlab-org/omnibus-gitlab!5828))
+
+## 14.6.7 (2022-03-31)
+
+### Security (1 change)
+
+- [Update OpenSSL to v1.1.1n](gitlab-org/omnibus-gitlab@8a4fdc5fa226e5f17c235dc49317d64cf4731d43) ([merge request](gitlab-org/omnibus-gitlab!6001))
 
 ## 14.6.6 (2022-03-01)
 

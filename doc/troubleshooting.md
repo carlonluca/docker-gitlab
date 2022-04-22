@@ -435,7 +435,7 @@ sudo chown -R git:git /var/opt/gitlab/gitlab-rails/tmp/cache
 
 ## 'Short read or OOM loading DB' error
 
-Try [cleaning the old Redis session](https://docs.gitlab.com/ee/administration/operations/cleaning_up_redis_sessions.html).
+Try [cleaning the old Redis session](https://docs.gitlab.com/ee/administration/operations/index.html).
 
 ## Apt error 'The requested URL returned error: 403'
 
@@ -468,9 +468,6 @@ when GitLab tries to connect with the internal services like GitLab Shell.
 To fix these errors, see the [Install Custom Public Certificates](settings/ssl.md#install-custom-public-certificates) section.
 
 ## error: proxyRoundTripper: XXX failed with: "net/http: timeout awaiting response headers"
-
-Starting with version 8.3, GitLab Workorse is the default router for any requests
-going to GitLab.
 
 If GitLab Workhorse doesn't receive an answer from
 GitLab within 1 minute (default), it will serve a 502 page.

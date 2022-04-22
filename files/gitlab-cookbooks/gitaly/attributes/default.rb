@@ -1,7 +1,8 @@
 default['gitaly']['enable'] = false
 default['gitaly']['ha'] = false
 default['gitaly']['dir'] = "/var/opt/gitlab/gitaly"
-default['gitaly']['internal_socket_dir'] = "#{node['gitaly']['dir']}/internal_sockets"
+default['gitaly']['runtime_dir'] = "#{node['gitaly']['dir']}/run"
+default['gitaly']['internal_socket_dir'] = nil
 default['gitaly']['log_directory'] = "/var/log/gitlab/gitaly"
 default['gitaly']['env_directory'] = "/opt/gitlab/etc/gitaly/env"
 default['gitaly']['graceful_restart_timeout'] = nil
@@ -32,6 +33,7 @@ default['gitaly']['ruby_restart_delay'] = nil
 default['gitaly']['ruby_num_workers'] = nil
 default['gitaly']['ruby_rugged_git_config_search_path'] = "/opt/gitlab/embedded/etc"
 default['gitaly']['concurrency'] = nil
+default['gitaly']['rate_limiting'] = nil
 default['gitaly']['daily_maintenance_start_hour'] = nil
 default['gitaly']['daily_maintenance_start_minute'] = nil
 default['gitaly']['daily_maintenance_duration'] = nil

@@ -51,6 +51,7 @@ default['gitlab-pages']['zip_cache_expiration'] = nil
 default['gitlab-pages']['zip_cache_cleanup'] = nil
 default['gitlab-pages']['zip_cache_refresh'] = nil
 default['gitlab-pages']['zip_open_timeout'] = nil
+default['gitlab-pages']['zip_http_client_timeout'] = nil
 # API-based fine grained configuration.
 # The recommended default values are set inside GitLab Pages.
 default['gitlab-pages']['gitlab_cache_expiry'] = nil
@@ -68,3 +69,8 @@ default['gitlab-pages']['rate_limit_tls_source_ip'] = nil
 default['gitlab-pages']['rate_limit_tls_source_ip_burst'] = nil
 default['gitlab-pages']['rate_limit_tls_domain'] = nil
 default['gitlab-pages']['rate_limit_tls_domain_burst'] = nil
+# HTTP Server timeouts
+default['gitlab-pages']['server_read_timeout'] = nil
+default['gitlab-pages']['server_read_header_timeout'] = nil
+default['gitlab-pages']['server_write_timeout'] = nil
+default['gitlab-pages']['server_keep_alive'] = nil

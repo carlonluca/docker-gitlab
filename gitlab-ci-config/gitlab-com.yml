@@ -218,7 +218,7 @@
     - chmod 755 trigger-build.rb
   variables:
     GIT_STRATEGY: none
-    DOCS_REVIEW_APPS_DOMAIN: 178.62.207.141.nip.io
+    DOCS_REVIEW_APPS_DOMAIN: 35.193.151.162.nip.io
   when: manual
   only:
     refs:
@@ -311,7 +311,7 @@ rubocop:
 
 # Perform documentation linting on Markdown files
 docs-lint markdown:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.15-vale-2.15.0-markdownlint-0.31.0
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.15-vale-2.15.5-markdownlint-0.31.1
   stage: check
   cache: {}
   needs: []
@@ -645,7 +645,7 @@ create_omnibus_manifest:
       - version-manifest.json
 
 dependency_scanning:
-  image: "registry.gitlab.com/gitlab-org/security-products/gitlab-depscan:2.2.0"
+  image: "registry.gitlab.com/gitlab-org/security-products/gitlab-depscan:2.3.0"
   stage: package
   variables:
     REPORT_PATH: ./
