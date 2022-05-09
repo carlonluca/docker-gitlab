@@ -9,6 +9,12 @@ No changes.
 ## 14.2.4 (2021-09-17)
 
 No changes.
+## 14.10.2 (2022-05-04)
+
+### Other (1 change)
+
+- [Update deprecations for 15.0](gitlab-org/omnibus-gitlab@a16dc47312d81f47875cbbf960291234f77b0737) ([merge request](gitlab-org/omnibus-gitlab!6075))
+
 ## 14.10.1 (2022-04-29)
 
 No changes.
