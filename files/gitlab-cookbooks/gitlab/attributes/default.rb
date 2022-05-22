@@ -143,7 +143,6 @@ default['gitlab']['gitlab-rails']['geo_repository_verification_secondary_schedul
 default['gitlab']['gitlab-rails']['analytics_usage_trends_count_job_trigger_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['member_invitation_reminder_emails_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['user_status_cleanup_batch_worker_cron'] = nil
-default['gitlab']['gitlab-rails']['pseudonymizer_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['loose_foreign_keys_cleanup_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['elastic_index_bulk_cron'] = nil
 default['gitlab']['gitlab-rails']['incoming_email_enabled'] = false
@@ -183,6 +182,8 @@ default['gitlab']['gitlab-rails']['namespaces_in_product_marketing_emails_worker
 default['gitlab']['gitlab-rails']['ssh_keys_expired_notification_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['ssh_keys_expiring_soon_notification_worker_cron'] = nil
 
+default['gitlab']['gitlab-rails']['ci_runners_stale_group_runners_prune_worker_cron'] = nil
+
 # Consolidated object storage config
 default['gitlab']['gitlab-rails']['object_store']['enabled'] = false
 default['gitlab']['gitlab-rails']['object_store']['connection'] = {}
@@ -211,10 +212,6 @@ default['gitlab']['gitlab-rails']['object_store']['objects']['pages']['bucket'] 
 default['gitlab']['gitlab-rails']['artifacts_enabled'] = true
 default['gitlab']['gitlab-rails']['artifacts_path'] = nil
 default['gitlab']['gitlab-rails']['artifacts_object_store_enabled'] = false
-default['gitlab']['gitlab-rails']['artifacts_object_store_direct_upload'] = false
-# TODO: Deprecate once direct upload is implemented
-# https://gitlab.com/gitlab-org/gitlab-foss/issues/57372
-default['gitlab']['gitlab-rails']['artifacts_object_store_background_upload'] = true
 default['gitlab']['gitlab-rails']['artifacts_object_store_proxy_download'] = false
 default['gitlab']['gitlab-rails']['artifacts_object_store_remote_directory'] = 'artifacts'
 default['gitlab']['gitlab-rails']['artifacts_object_store_connection'] = {}
@@ -222,50 +219,30 @@ default['gitlab']['gitlab-rails']['external_diffs_enabled'] = nil
 default['gitlab']['gitlab-rails']['external_diffs_when'] = nil
 default['gitlab']['gitlab-rails']['external_diffs_storage_path'] = nil
 default['gitlab']['gitlab-rails']['external_diffs_object_store_enabled'] = false
-default['gitlab']['gitlab-rails']['external_diffs_object_store_direct_upload'] = false
-# TODO: Deprecate once direct upload is implemented
-# https://gitlab.com/gitlab-org/gitlab-foss/issues/57372
-default['gitlab']['gitlab-rails']['external_diffs_object_store_background_upload'] = true
 default['gitlab']['gitlab-rails']['external_diffs_object_store_proxy_download'] = false
 default['gitlab']['gitlab-rails']['external_diffs_object_store_remote_directory'] = 'external-diffs'
 default['gitlab']['gitlab-rails']['external_diffs_object_store_connection'] = {}
 default['gitlab']['gitlab-rails']['lfs_enabled'] = nil
 default['gitlab']['gitlab-rails']['lfs_storage_path'] = nil
 default['gitlab']['gitlab-rails']['lfs_object_store_enabled'] = false
-default['gitlab']['gitlab-rails']['lfs_object_store_direct_upload'] = false
-# TODO: Deprecate once direct upload is implemented
-# https://gitlab.com/gitlab-org/gitlab-foss/issues/57372
-default['gitlab']['gitlab-rails']['lfs_object_store_background_upload'] = true
 default['gitlab']['gitlab-rails']['lfs_object_store_proxy_download'] = false
 default['gitlab']['gitlab-rails']['lfs_object_store_remote_directory'] = 'lfs-objects'
 default['gitlab']['gitlab-rails']['lfs_object_store_connection'] = {}
 default['gitlab']['gitlab-rails']['uploads_storage_path'] = nil
 default['gitlab']['gitlab-rails']['uploads_base_dir'] = nil
 default['gitlab']['gitlab-rails']['uploads_object_store_enabled'] = false
-default['gitlab']['gitlab-rails']['uploads_object_store_direct_upload'] = false
-# TODO: Deprecate once direct upload is implemented
-# https://gitlab.com/gitlab-org/gitlab-foss/issues/57372
-default['gitlab']['gitlab-rails']['uploads_object_store_background_upload'] = true
 default['gitlab']['gitlab-rails']['uploads_object_store_proxy_download'] = false
 default['gitlab']['gitlab-rails']['uploads_object_store_remote_directory'] = 'uploads'
 default['gitlab']['gitlab-rails']['uploads_object_store_connection'] = {}
 default['gitlab']['gitlab-rails']['packages_enabled'] = nil
 default['gitlab']['gitlab-rails']['packages_storage_path'] = nil
 default['gitlab']['gitlab-rails']['packages_object_store_enabled'] = false
-default['gitlab']['gitlab-rails']['packages_object_store_direct_upload'] = false
-# TODO: Deprecate once direct upload is implemented
-# https://gitlab.com/gitlab-org/gitlab-foss/issues/57372
-default['gitlab']['gitlab-rails']['packages_object_store_background_upload'] = true
 default['gitlab']['gitlab-rails']['packages_object_store_proxy_download'] = false
 default['gitlab']['gitlab-rails']['packages_object_store_remote_directory'] = 'packages'
 default['gitlab']['gitlab-rails']['packages_object_store_connection'] = {}
 default['gitlab']['gitlab-rails']['dependency_proxy_enabled'] = nil
 default['gitlab']['gitlab-rails']['dependency_proxy_storage_path'] = nil
 default['gitlab']['gitlab-rails']['dependency_proxy_object_store_enabled'] = false
-default['gitlab']['gitlab-rails']['dependency_proxy_object_store_direct_upload'] = false
-# TODO: Deprecate once direct upload is implemented
-# https://gitlab.com/gitlab-org/gitlab-foss/issues/57372
-default['gitlab']['gitlab-rails']['dependency_proxy_object_store_background_upload'] = true
 default['gitlab']['gitlab-rails']['dependency_proxy_object_store_proxy_download'] = false
 default['gitlab']['gitlab-rails']['dependency_proxy_object_store_remote_directory'] = 'dependency_proxy'
 default['gitlab']['gitlab-rails']['dependency_proxy_object_store_connection'] = {}
@@ -389,10 +366,6 @@ default['gitlab']['gitlab-rails']['backup_multipart_chunk_size'] = nil
 default['gitlab']['gitlab-rails']['backup_encryption'] = nil
 default['gitlab']['gitlab-rails']['backup_encryption_key'] = nil
 default['gitlab']['gitlab-rails']['backup_storage_class'] = nil
-
-default['gitlab']['gitlab-rails']['pseudonymizer_manifest'] = nil
-default['gitlab']['gitlab-rails']['pseudonymizer_upload_remote_directory'] = nil
-default['gitlab']['gitlab-rails']['pseudonymizer_upload_connection'] = {}
 
 # Path to the GitLab Shell installation
 # defaults to /opt/gitlab/embedded/service/gitlab-shell/. The install-dir path is set at build time
@@ -549,6 +522,14 @@ default['gitlab']['puma']['log_directory'] = "/var/log/gitlab/puma"
 default['gitlab']['puma']['listen'] = "127.0.0.1"
 default['gitlab']['puma']['port'] = 8080
 default['gitlab']['puma']['socket'] = '/var/opt/gitlab/gitlab-rails/sockets/gitlab.socket'
+default['gitlab']['puma']['ssl_listen'] = nil
+default['gitlab']['puma']['ssl_port'] = nil
+default['gitlab']['puma']['ssl_certificate'] = nil
+default['gitlab']['puma']['ssl_certificate_key'] = nil
+default['gitlab']['puma']['ssl_client_certificate'] = nil
+default['gitlab']['puma']['ssl_cipher_filter'] = nil
+default['gitlab']['puma']['ssl_verify_mode'] = 'none'
+
 default['gitlab']['puma']['somaxconn'] = 1024
 # Path to the puma server Process ID file
 # defaults to /opt/gitlab/var/puma/puma.pid. The install-dir path is set at build time
@@ -588,10 +569,9 @@ default['gitlab']['sidekiq']['listen_address'] = "127.0.0.1"
 default['gitlab']['sidekiq']['listen_port'] = 8082
 
 # Sidekiq health-check server defaults
-default['gitlab']['sidekiq']['health_checks_enabled'] = nil
-default['gitlab']['sidekiq']['health_checks_log_enabled'] = nil
-default['gitlab']['sidekiq']['health_checks_listen_address'] = nil
-default['gitlab']['sidekiq']['health_checks_listen_port'] = nil
+default['gitlab']['sidekiq']['health_checks_enabled'] = true
+default['gitlab']['sidekiq']['health_checks_listen_address'] = "127.0.0.1"
+default['gitlab']['sidekiq']['health_checks_listen_port'] = 8092
 
 # Cluster specific settings
 default['gitlab']['sidekiq']['queue_selector'] = false
@@ -614,7 +594,6 @@ default['gitlab']['gitlab-shell']['audit_usernames'] = nil
 default['gitlab']['gitlab-shell']['http_settings'] = nil
 default['gitlab']['gitlab-shell']['auth_file'] = nil
 default['gitlab']['gitlab-shell']['git_trace_log_file'] = nil
-default['gitlab']['gitlab-shell']['custom_hooks_dir'] = nil
 default['gitlab']['gitlab-shell']['migration'] = { enabled: true, features: [] }
 default['gitlab']['gitlab-shell']['ssl_cert_dir'] = "#{node['package']['install-dir']}/embedded/ssl/certs/"
 # DEPRECATED! Not used by gitlab-shell
@@ -716,10 +695,7 @@ default['gitlab']['nginx']['ssl_verify_client'] = nil # do not enable 2-way SSL 
 default['gitlab']['nginx']['ssl_verify_depth'] = "1" # n/a if ssl_verify_client off
 default['gitlab']['nginx']['ssl_certificate'] = "/etc/gitlab/ssl/#{node['fqdn']}.crt"
 default['gitlab']['nginx']['ssl_certificate_key'] = "/etc/gitlab/ssl/#{node['fqdn']}.key"
-# Ciphers are from https://ssl-config.mozilla.org/#server=nginx&version=1.17.7&config=intermediate&openssl=1.1.1d&ocsp=false&guideline=5.6
-# AES256-GCM-SHA384 is added because instances using AWS Classic Load Balancer
-# with a certificate provided by ACM needs a cipher using RSA for key exchange.
-default['gitlab']['nginx']['ssl_ciphers'] = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:AES256-GCM-SHA384"
+default['gitlab']['nginx']['ssl_ciphers'] = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384" # settings from by https://ssl-config.mozilla.org/#server=nginx&version=1.17.7&config=intermediate&openssl=1.1.1d&ocsp=false&guideline=5.6
 default['gitlab']['nginx']['ssl_prefer_server_ciphers'] = "off" # settings from by https://ssl-config.mozilla.org/#server=nginx&version=1.17.7&config=intermediate&openssl=1.1.1d&ocsp=false&guideline=5.6
 default['gitlab']['nginx']['ssl_protocols'] = "TLSv1.2 TLSv1.3" # recommended by https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html & https://cipherli.st/
 default['gitlab']['nginx']['ssl_session_cache'] = "shared:SSL:10m"

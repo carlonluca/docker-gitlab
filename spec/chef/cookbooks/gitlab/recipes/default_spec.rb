@@ -137,30 +137,27 @@ RSpec.describe 'gitlab::default' do
   end
 
   context 'with sidekiq exporter settings' do
-    context 'when Sidekiq exporter and Sidekiq health checks port are the same' do
+    context 'when Sidekiq exporter is not enabled' do
       before do
         stub_gitlab_rb(
           sidekiq:
             {
-              metrics_enabled: true,
+              metrics_enabled: false,
               listen_address: 'localhost',
               listen_port: 3807,
               health_checks_enabled: true,
-              health_checks_listen_address: 'localhost',
+              health_checks_listen_address: '127.0.0.1',
               health_checks_listen_port: 3807
             }
         )
       end
 
-      it 'logs a warning' do
-        allow(LoggingHelper).to receive(:deprecation)
-        expect(LoggingHelper).to receive(:deprecation).with("Sidekiq exporter and health checks are set to the same address and port. This is deprecated and will result in an error in version 15.0. See https://docs.gitlab.com/ee/administration/sidekiq.html")
-
-        chef_run
+      it 'does not raise an error' do
+        expect { chef_run }.not_to raise_error
       end
     end
 
-    context 'when Sidekiq exporter and Sidekiq health checks port are different' do
+    context 'when Sidekiq health checks is not enabled' do
       before do
         stub_gitlab_rb(
           sidekiq:
@@ -168,26 +165,84 @@ RSpec.describe 'gitlab::default' do
               metrics_enabled: true,
               listen_address: 'localhost',
               listen_port: 3807,
-              health_checks_enabled: true,
-              health_checks_listen_address: 'localhost',
-              health_checks_listen_port: 3907
+              health_checks_enabled: false,
+              health_checks_listen_address: '127.0.0.1',
+              health_checks_listen_port: 3807
             }
         )
       end
 
-      it 'does not log a warning' do
-        expect(LoggingHelper).not_to receive(:deprecation).with("Sidekiq exporter and health checks are set to the same address and port. This is deprecated and will result in an error in version 15.0. See https://docs.gitlab.com/ee/administration/sidekiq.html")
+      it 'does not raise an error' do
+        expect { chef_run }.not_to raise_error
+      end
+    end
 
-        chef_run
+    context 'when both Sidekiq exporter and Sidekiq health checks are enabled' do
+      context 'when Sidekiq exporter and Sidekiq health checks addresses are both loopback addresses and the ports are the same' do
+        before do
+          stub_gitlab_rb(
+            sidekiq:
+              {
+                metrics_enabled: true,
+                listen_address: 'localhost',
+                listen_port: 3807,
+                health_checks_enabled: true,
+                health_checks_listen_address: '127.0.0.1',
+                health_checks_listen_port: 3807
+              }
+          )
+        end
+
+        it 'raises an error' do
+          expect { chef_run }.to raise_error("The Sidekiq metrics and health checks servers are binding the same address and port. This is unsupported in GitLab 15.0 and newer. See https://docs.gitlab.com/ee/administration/sidekiq.html for up-to-date instructions.")
+        end
+      end
+
+      context 'when Sidekiq exporter and Sidekiq health checks port are the same' do
+        before do
+          stub_gitlab_rb(
+            sidekiq:
+              {
+                metrics_enabled: true,
+                listen_address: 'localhost',
+                listen_port: 3807,
+                health_checks_enabled: true,
+                health_checks_listen_address: 'localhost',
+                health_checks_listen_port: 3807
+              }
+          )
+        end
+
+        it 'raises an error' do
+          expect { chef_run }.to raise_error("The Sidekiq metrics and health checks servers are binding the same address and port. This is unsupported in GitLab 15.0 and newer. See https://docs.gitlab.com/ee/administration/sidekiq.html for up-to-date instructions.")
+        end
+      end
+
+      context 'when Sidekiq exporter and Sidekiq health checks port are different' do
+        before do
+          stub_gitlab_rb(
+            sidekiq:
+              {
+                metrics_enabled: true,
+                listen_address: 'localhost',
+                listen_port: 3807,
+                health_checks_enabled: true,
+                health_checks_listen_address: 'localhost',
+                health_checks_listen_port: 3907
+              }
+          )
+        end
+
+        it 'does not raise an error' do
+          expect { chef_run }.not_to raise_error
+        end
       end
     end
   end
 
   context 'with sidekiq exporter settings not set (default settings)' do
-    it 'does not log a warning' do
-      expect(LoggingHelper).not_to receive(:deprecation).with("Sidekiq exporter and health checks are set to the same address and port. This is deprecated and will result in an error in version 15.0. See https://docs.gitlab.com/ee/administration/sidekiq.html")
-
-      chef_run
+    it 'does not raise an error' do
+      expect { chef_run }.not_to raise_error
     end
   end
 end

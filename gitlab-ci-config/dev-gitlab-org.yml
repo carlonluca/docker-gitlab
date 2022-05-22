@@ -583,10 +583,6 @@ AmazonLinux-2-arm64-branch:
   <<: *branch_build
   tags:
   - docker-arm-builder
-SLES-12.2-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/sles_12sp2:${BUILDER_IMAGE_REVISION}"
-  <<: *branch_build
-  <<: *dev-ee-branch-only
 SLES-12.5-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/sles_12sp5:${BUILDER_IMAGE_REVISION}"
   <<: *branch_build
@@ -596,13 +592,13 @@ SLES-15.2-branch:
   <<: *branch_build
   <<: *dev-ee-branch-only
 CentOS-8-fips-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/centos_8:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/centos_8_fips:${BUILDER_IMAGE_REVISION}"
   extends: .fips_branch_template
 Ubuntu-18.04-fips-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_18.04:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_18.04_fips:${BUILDER_IMAGE_REVISION}"
   extends: .fips_branch_template
 Ubuntu-20.04-fips-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04_fips:${BUILDER_IMAGE_REVISION}"
   extends: .fips_branch_template
 
 Docker-branch:
@@ -819,10 +815,6 @@ AmazonLinux-2-arm64:
   <<: *tag_build
   tags:
   - docker-arm-builder
-SLES-12.2:
-  image: "${BUILDER_IMAGE_REGISTRY}/sles_12sp2:${BUILDER_IMAGE_REVISION}"
-  <<: *tag_build
-  <<: *dev-ee-tag-only-except-auto-deploy
 SLES-12.5:
   image: "${BUILDER_IMAGE_REGISTRY}/sles_12sp5:${BUILDER_IMAGE_REVISION}"
   <<: *tag_build
@@ -942,14 +934,6 @@ AmazonLinux-2-arm64-staging:
     - job: AmazonLinux-2-arm64-branch
       optional: true
   <<: *staging_upload
-SLES-12.2-staging:
-  needs:
-    - job: SLES-12.2
-      optional: true
-    - job: SLES-12.2-branch
-      optional: true
-  <<: *staging_upload
-  <<: *dev-ee-tag-only-except-auto-deploy
 SLES-12.5-staging:
   needs:
     - job: SLES-12.5
@@ -1046,11 +1030,6 @@ AmazonLinux-2-arm64-release:
   needs:
     - AmazonLinux-2-arm64
   <<: *production_release
-SLES-12.2-release:
-  needs:
-    - SLES-12.2
-  <<: *production_release
-  <<: *dev-ee-tag-only-except-auto-deploy-manual
 SLES-12.5-release:
   needs:
     - SLES-12.5

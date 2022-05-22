@@ -5,7 +5,6 @@ RSpec.describe 'gitaly' do
   let(:config_path) { '/var/opt/gitlab/gitaly/config.toml' }
   let(:gitaly_config) { chef_run.template(config_path) }
   let(:runtime_dir) { '/var/opt/gitlab/gitaly/user_defined/run' }
-  let(:internal_socket_dir) { '/var/opt/gitlab/gitaly/user_defined/internal_sockets' }
   let(:socket_path) { '/tmp/gitaly.socket' }
   let(:listen_addr) { 'localhost:7777' }
   let(:tls_listen_addr) { 'localhost:8888' }
@@ -48,7 +47,6 @@ RSpec.describe 'gitaly' do
   let(:gitlab_url) { 'http://localhost:3000' }
   let(:workhorse_addr) { 'localhost:4000' }
   let(:gitaly_custom_hooks_dir) { '/path/to/gitaly/custom/hooks' }
-  let(:gitlab_shell_custom_hooks_dir) { '/path/to/gitlab-shell/custom/hooks' }
   let(:user) { 'user123' }
   let(:password) { 'password321' }
   let(:ca_file) { '/path/to/ca_file' }
@@ -108,8 +106,6 @@ RSpec.describe 'gitaly' do
         expect(content).to include(%(rugged_git_config_search_path = "/opt/gitlab/embedded/etc"))
       }
 
-      expect(chef_run).not_to render_file(config_path)
-        .with_content("internal_socket_dir =")
       expect(chef_run).not_to render_file(config_path)
         .with_content("listen_addr = '#{listen_addr}'")
       expect(chef_run).not_to render_file(config_path)
@@ -189,7 +185,6 @@ RSpec.describe 'gitaly' do
         gitaly: {
           socket_path: socket_path,
           runtime_dir: runtime_dir,
-          internal_socket_dir: internal_socket_dir,
           listen_addr: listen_addr,
           tls_listen_addr: tls_listen_addr,
           certificate_path: certificate_path,
@@ -257,7 +252,6 @@ RSpec.describe 'gitaly' do
     it_behaves_like "enabled runit service", "gitaly", "root", "root"
 
     it 'creates expected directories with correct permissions' do
-      expect(chef_run).to create_directory(internal_socket_dir).with(user: 'foo', mode: '0700')
       expect(chef_run).to create_directory(runtime_dir).with(user: 'foo', mode: '0700')
     end
 
@@ -266,8 +260,6 @@ RSpec.describe 'gitaly' do
         .with_content("socket_path = '#{socket_path}'")
       expect(chef_run).to render_file(config_path)
         .with_content("runtime_dir = '#{runtime_dir}'")
-      expect(chef_run).to render_file(config_path)
-        .with_content("internal_socket_dir = '#{internal_socket_dir}'")
       expect(chef_run).to render_file(config_path)
         .with_content("bin_dir = '/opt/gitlab/embedded/bin'")
       expect(chef_run).to render_file(config_path)
@@ -372,28 +364,6 @@ RSpec.describe 'gitaly' do
         expect(content).to match(cgroups_cpu_section)
         expect(content).to match(pack_objects_cache_section)
       }
-    end
-
-    it 'populates gitaly config.toml with custom deprecated values' do
-      stub_gitlab_rb(
-        gitlab_shell: {
-          custom_hooks_dir: gitlab_shell_custom_hooks_dir
-        }
-      )
-
-      hooks_section = Regexp.new([
-        %r{\[hooks\]},
-        %r{custom_hooks_dir = '#{Regexp.escape(gitlab_shell_custom_hooks_dir)}'},
-      ].map(&:to_s).join('\s+'))
-
-      expect(chef_run).to render_file(config_path).with_content { |content|
-        expect(content).to match(hooks_section)
-      }
-    end
-
-    it 'does not delete the internal socket directory' do
-      expect(chef_run).not_to delete_file('/var/opt/gitlab/gitaly/internal_sockets')
-      expect(chef_run).not_to delete_file(internal_socket_dir)
     end
 
     it 'renders the runit run script with custom values' do

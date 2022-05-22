@@ -167,7 +167,7 @@ production: &base
     # file path of internal `mail_room` JSON logs
     log_path: <%= @incoming_email_log_file %>
 
-    # Whether to expunge (permanently remove) messages from the mailbox when they are deleted after delivery
+    # Whether to expunge (permanently remove) messages from the mailbox when they are marked as deleted after delivery
     expunge_deleted: <%= @incoming_email_expunge_deleted %>
 
     # How mailroom delivers email content to Rails. There are two methods at the moment:
@@ -274,8 +274,6 @@ production: &base
     path: <%= @artifacts_path %>
     object_store:
       enabled: <%= @artifacts_object_store_enabled %>
-      direct_upload: <%= @artifacts_object_store_direct_upload %>
-      background_upload: <%= @artifacts_object_store_background_upload %>
       proxy_download: <%= @artifacts_object_store_proxy_download %>
       remote_directory: <%= quote(@artifacts_object_store_remote_directory) %>
       connection: <%= @artifacts_object_store_connection.to_json %>
@@ -293,8 +291,6 @@ production: &base
     storage_path: <%= @external_diffs_storage_path %>
     object_store:
       enabled: <%= @external_diffs_object_store_enabled %>
-      direct_upload: <%= @external_diffs_object_store_direct_upload %>
-      background_upload: <%= @external_diffs_object_store_background_upload %>
       proxy_download: <%= @external_diffs_object_store_proxy_download %>
       remote_directory: <%= quote(@external_diffs_object_store_remote_directory) %>
       connection: <%= @external_diffs_object_store_connection.to_json %>
@@ -306,8 +302,6 @@ production: &base
     storage_path: <%= @lfs_storage_path %>
     object_store:
       enabled: <%= @lfs_object_store_enabled %>
-      direct_upload: <%= @lfs_object_store_direct_upload %>
-      background_upload: <%= @lfs_object_store_background_upload %>
       proxy_download: <%= @lfs_object_store_proxy_download %>
       remote_directory: <%= quote(@lfs_object_store_remote_directory) %>
       connection: <%= @lfs_object_store_connection.to_json %>
@@ -321,8 +315,6 @@ production: &base
     <% end %>
     object_store:
       enabled: <%= @uploads_object_store_enabled %>
-      direct_upload: <%= @uploads_object_store_direct_upload %>
-      background_upload: <%= @uploads_object_store_background_upload %>
       proxy_download: <%= @uploads_object_store_proxy_download %>
       remote_directory: <%= quote(@uploads_object_store_remote_directory) %>
       connection: <%= @uploads_object_store_connection.to_json %>
@@ -334,8 +326,6 @@ production: &base
     storage_path: <%= @packages_storage_path %>
     object_store:
       enabled: <%= @packages_object_store_enabled %>
-      direct_upload: <%= @packages_object_store_direct_upload %>
-      background_upload: <%= @packages_object_store_background_upload %>
       proxy_download: <%= @packages_object_store_proxy_download %>
       remote_directory: <%= quote(@packages_object_store_remote_directory) %>
       connection: <%= @packages_object_store_connection.to_json %>
@@ -347,8 +337,6 @@ production: &base
     storage_path: <%= @dependency_proxy_storage_path %>
     object_store:
       enabled: <%= @dependency_proxy_object_store_enabled %>
-      direct_upload: <%= @dependency_proxy_object_store_direct_upload %>
-      background_upload: <%= @dependency_proxy_object_store_background_upload %>
       proxy_download: <%= @dependency_proxy_object_store_proxy_download %>
       remote_directory: <%= quote(@dependency_proxy_object_store_remote_directory) %>
       connection: <%= @dependency_proxy_object_store_connection.to_json %>
@@ -644,12 +632,6 @@ production: &base
       cron: "<%= @geo_migrated_local_files_clean_up_worker_cron %>"
     <% end %>
 
-    # Export pseudonymized data in CSV format for analysis
-    <% unless @pseudonymizer_worker_cron.nil? %>
-    pseudonymizer_worker:
-      cron: "<%= @pseudonymizer_worker_cron %>"
-    <% end %>
-
     <% unless @elastic_index_bulk_cron.nil? %>
     elastic_index_bulk_cron_worker:
       cron: "<%= @elastic_index_bulk_cron %>"
@@ -677,6 +659,12 @@ production: &base
     <% unless @namespaces_in_product_marketing_emails_worker_cron.nil? %>
     namespaces_in_product_marketing_emails_worker:
       cron: "<%= @namespaces_in_product_marketing_emails_worker_cron %>"
+    <% end %>
+
+    # Worker for pruning stale group runners on opted-in namespaces
+    <% unless @ci_runners_stale_group_runners_prune_worker_cron.nil? %>
+    ci_runners_stale_group_runners_prune_worker_cron:
+      cron: "<%= @ci_runners_stale_group_runners_prune_worker_cron %>"
     <% end %>
 
   ## Geo
@@ -977,13 +965,6 @@ production: &base
       storage_options: <%= @backup_upload_storage_options.to_json %>
       storage_class: <%= @backup_storage_class %>
 
-  ## Pseudonymizer settings
-  pseudonymizer:
-    manifest: <%= quote(@pseudonymizer_manifest) %>
-    upload:
-      remote_directory: <%= quote(@pseudonymizer_upload_remote_directory) %>
-      connection: <%= @pseudonymizer_upload_connection.to_json %>
-
   ## GitLab Shell settings
   gitlab_shell:
     path: <%= @gitlab_shell_path %>
@@ -1021,10 +1002,9 @@ production: &base
 
     # Sidekiq health checks is a webserver built in to Sidekiq to serve health checks for the workers
     sidekiq_health_checks:
-      enabled: <%=  @sidekiq['health_checks_enabled'].nil? ? @sidekiq['metrics_enabled'] : @sidekiq['health_checks_enabled'] %>
-      log_enabled: <%= @sidekiq['health_checks_log_enabled'].nil? ? @sidekiq['exporter_log_enabled'] : @sidekiq['health_checks_log_enabled'] %>
-      address: <%= @sidekiq['health_checks_listen_address'].nil? ? @sidekiq['listen_address'] : @sidekiq['health_checks_listen_address'] %>
-      port: <%= @sidekiq['health_checks_listen_port'].nil? ? @sidekiq['listen_port'] : @sidekiq['health_checks_listen_port'] %>
+      enabled: <%=  @sidekiq['health_checks_enabled'] %>
+      address: <%= @sidekiq['health_checks_listen_address'] %>
+      port: <%= @sidekiq['health_checks_listen_port'] %>
 
     # Web exporter is webserver built in to Unicorn/Puma to expose Prometheus metrics
     web_exporter:

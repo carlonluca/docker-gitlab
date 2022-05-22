@@ -63,6 +63,14 @@ level = '<%= @logging_level %>'
 format = '<%= @logging_format %>'
 <% end %>
 
+[background_verification]
+<% if @background_verification_verification_interval %>
+verification_interval = '<%= @background_verification_verification_interval %>'
+<% end %>
+<% if @background_verification_delete_invalid_records %>
+delete_invalid_records = <%= @background_verification_delete_invalid_records %>
+<% end %>
+
 <% @virtual_storages.each do |name, config| %>
 [[virtual_storage]]
 name = '<%= name %>'
@@ -89,8 +97,8 @@ token = '<%= node['token'] %>'
 <%= "sslrootcert = '#{@database_sslrootcert}'" if @database_sslrootcert %>
 
 [database.session_pooled]
-<% direct_host = @database_direct_host || @database_host_no_proxy %>
-<% direct_port = @database_direct_port || @database_port_no_proxy %>
+<% direct_host = @database_direct_host %>
+<% direct_port = @database_direct_port %>
 <%= "host = '#{direct_host}'" if direct_host %>
 <%= "port = #{direct_port}" if direct_port %>
 <%= "user = '#{@database_direct_user}'" if @database_direct_user %>
