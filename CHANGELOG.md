@@ -9,6 +9,10 @@ No changes.
 ## 14.2.4 (2021-09-17)
 
 No changes.
+## 15.0.1 (2022-06-01)
+
+No changes.
+
 ## 15.0.0 (2022-05-20)
 
 ### Added (7 changes)
