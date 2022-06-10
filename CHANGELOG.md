@@ -9,6 +9,12 @@ No changes.
 ## 14.2.4 (2021-09-17)
 
 No changes.
+## 15.0.2 (2022-06-06)
+
+### Fixed (1 change)
+
+- [Skip auto-restart of PG during reconfigure as part of pg-upgrade](gitlab-org/omnibus-gitlab@d4eb21d6a9406be4812c0ab5539f522cf7eeaefb) ([merge request](gitlab-org/omnibus-gitlab!6135))
+
 ## 15.0.1 (2022-06-01)
 
 No changes.
