@@ -445,7 +445,7 @@ forward certain headers (e.g. `Host`, `X-Forwarded-Ssl`, `X-Forwarded-For`,
 you forget this step. For more information, see:
 
 - <https://stackoverflow.com/questions/16042647/whats-the-de-facto-standard-for-a-reverse-proxy-to-tell-the-backend-ssl-is-used>
-- <https://www.digitalocean.com/community/tutorials/how-to-use-apache-http-server-as-reverse-proxy-using-mod_proxy-extension'>
+- <https://www.digitalocean.com/community/tutorials/how-to-use-apache-http-server-as-reverse-proxy-using-mod_proxy-extension>
 Some cloud provider services, such as AWS Certificate Manager (ACM), do not allow the download of certificates. This prevents them from being used to terminate on the GitLab instance. If SSL is desired between such a cloud service and the GitLab instance, another certificate must be used on the GitLab instance.
 
 ## Setting HTTP Strict Transport Security
@@ -544,6 +544,24 @@ before deciding that the clients don't have a valid certificate (default is `1`)
 ```
 
 After making the changes run `sudo gitlab-ctl reconfigure`.
+
+## Disabling proxy request buffering
+
+Request buffering can be disabled selectively on specific locations by changing `request_buffering_off_path_regex`.
+
+1. Edit `/etc/gitlab/gitlab.rb`:
+
+   ```ruby
+   nginx['request_buffering_off_path_regex'] = "/api/v\\d/jobs/\\d+/artifacts$|/import/gitlab_project$|\\.git/git-receive-pack$|\\.git/gitlab-lfs/objects|\\.git/info/lfs/objects/batch$"
+   ```
+
+1. Reconfigure GitLab, and [HUP](https://nginx.org/en/docs/control.html)
+   NGINX to cause it to reload with the updated configuration gracefully:
+
+   ```shell
+   sudo gitlab-ctl reconfigure
+   sudo gitlab-ctl hup nginx
+   ```
 
 ## Configure `robots.txt`
 

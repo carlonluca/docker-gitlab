@@ -14,6 +14,11 @@ production: &base
     port: <%= @gitlab_port %>
     https: <%= @gitlab_https %>
 
+    <%- unless @cdn_host.nil? %>
+    ## Rails asset/CDN host
+    cdn_host: <%= @cdn_host %>
+    <% end %>
+
     # The maximum time puma can spend on the request. This needs to be smaller than the worker timeout.
     # Default is 95% of the worker timeout
     max_request_duration_seconds: <%= @max_request_duration_seconds %>
@@ -601,13 +606,6 @@ production: &base
     <% unless @geo_secondary_usage_data_cron_worker.nil? %>
     geo_secondary_usage_data_cron_worker:
       cron: "<%= @geo_secondary_usage_data_cron_worker %>"
-    <% end %>
-
-    # GitLab Geo file download dispatch worker
-    # NOTE: This will only take effect if Geo is enabled
-    <% unless @geo_file_download_dispatch_worker_cron.nil? %>
-    geo_file_download_dispatch_worker:
-      cron: "<%= @geo_file_download_dispatch_worker_cron %>"
     <% end %>
 
     # GitLab Geo repository verification primary batch worker

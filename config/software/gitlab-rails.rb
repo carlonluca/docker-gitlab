@@ -89,10 +89,10 @@ build do
   end
 
   gem_source_compile_os = %w[
-    el-8-aarch64
-    amazon-2-aarch64
-    debian-buster-aarch64
-    raspbian-buster-aarch64
+    el-8_aarch64
+    amazon-2_aarch64
+    debian-buster_aarch64
+    raspbian-buster_aarch64
   ]
 
   # Currently rake-compiler-dock uses a Ubuntu 20.04 image to create the
@@ -104,6 +104,7 @@ build do
   bundle "config build.nokogiri --use-system-libraries --with-xml2-include=#{install_dir}/embedded/include/libxml2 --with-xslt-include=#{install_dir}/embedded/include/libxslt", env: env
   bundle 'config build.grpc --with-ldflags="-latomic"', env: env if OhaiHelper.os_platform == 'raspbian'
   bundle "config set --local gemfile #{gitlab_bundle_gemfile}" if gitlab_bundle_gemfile != 'Gemfile'
+  bundle "config set --local frozen 'true'"
   bundle "install --without #{bundle_without.join(' ')} --jobs #{workers} --retry 5", env: env
 
   block 'correct omniauth-jwt permissions' do
@@ -174,7 +175,7 @@ build do
     sync "#{Gitlab::Util.get_env('CI_PROJECT_DIR')}/#{Gitlab::Util.get_env('ASSET_PATH')}", 'public/assets/'
   end
 
-  bundle "exec license_finder report --decisions-file=config/dependency_decisions.yml --format=json --columns name version licenses texts notice --save=rails-license.json", env: env
+  bundle "exec license_finder report --project_path=#{File.dirname(gitlab_bundle_gemfile)} --decisions-file=config/dependency_decisions.yml --format=json --columns name version licenses texts notice --save=rails-license.json", env: env
   command "license_finder report --decisions-file=#{Omnibus::Config.project_root}/support/dependency_decisions.yml --format=json --columns name version licenses texts notice --save=workhorse-license.json", cwd: "#{Omnibus::Config.source_dir}/gitlab-rails/workhorse"
 
   # Merge rails and workhorse license files.

@@ -26,6 +26,7 @@ module Build
       end
 
       def package
+        return "gitlab-fips" if Check.use_system_ssl?
         return "gitlab-ee" if Check.is_ee?
 
         "gitlab-ce"
@@ -56,6 +57,10 @@ module Build
         end
       end
 
+      def branch_name
+        Gitlab::Util.get_env('CI_COMMIT_BRANCH')
+      end
+
       def commit_sha
         commit_sha_raw = Gitlab::Util.get_env('CI_COMMIT_SHA') || `git rev-parse HEAD`.strip
         commit_sha_raw[0, 8]
@@ -73,7 +78,9 @@ module Build
           return fact_from_file
         end
 
-        `git -c versionsort.prereleaseSuffix=rc tag -l '#{Info.tag_match_pattern}' --sort=-v:refname | head -1`.chomp
+        version = branch_name.delete_suffix('-stable').tr('-', '.') if Build::Check.on_stable_branch?
+
+        `git -c versionsort.prereleaseSuffix=rc tag -l '#{version}#{Info.tag_match_pattern}' --sort=-v:refname | head -1`.chomp
       end
 
       def latest_stable_tag(level: 1)
@@ -81,9 +88,11 @@ module Build
           return fact_from_file
         end
 
+        version = branch_name.delete_suffix('-stable').tr('-', '.') if Build::Check.on_stable_branch?
+
         # Level decides tag at which position you want. Level one gives you
         # latest stable tag, two gives you the one just before it and so on.
-        `git -c versionsort.prereleaseSuffix=rc tag -l '#{Info.tag_match_pattern}' --sort=-v:refname | awk '!/rc/' | head -#{level}`.split("\n").last
+        `git -c versionsort.prereleaseSuffix=rc tag -l '#{version}#{Info.tag_match_pattern}' --sort=-v:refname | awk '!/rc/' | head -#{level}`.split("\n").last
       end
 
       def docker_tag
@@ -162,7 +171,7 @@ module Build
       # Fetch the package from an S3 bucket
       def deb_package_download_url(arch: 'amd64')
         folder = 'ubuntu-focal'
-        folder = "#{folder}-aarch64" if arch == 'arm64'
+        folder = "#{folder}_aarch64" if arch == 'arm64'
 
         package_filename_url_safe = Info.release_version.gsub("+", "%2B")
         "https://#{Info.release_bucket}.#{Info.release_bucket_s3_endpoint}/#{folder}/#{Info.package}_#{package_filename_url_safe}_#{arch}.deb"
@@ -170,8 +179,8 @@ module Build
 
       def rpm_package_download_url(arch: 'x86_64')
         folder = 'el-8'
-        folder = "#{folder}-aarch64" if arch == 'arm64'
-        folder = "#{folder}-fips" if Build::Check.use_system_ssl?
+        folder = "#{folder}_aarch64" if arch == 'arm64'
+        folder = "#{folder}_fips" if Build::Check.use_system_ssl?
 
         package_filename_url_safe = Info.release_version.gsub("+", "%2B")
         "https://#{Info.release_bucket}.#{Info.release_bucket_s3_endpoint}/#{folder}/#{Info.package}-#{package_filename_url_safe}.el8.#{arch}.rpm"
@@ -188,8 +197,11 @@ module Build
       end
 
       def fetch_artifact_url(project_id, pipeline_id)
+        job_name = 'Trigger:package'
+        job_name = "#{job_name}:fips" if Build::Check.use_system_ssl?
+
         output = get_api("projects/#{project_id}/pipelines/#{pipeline_id}/jobs")
-        output.map { |job| job['id'] if job['name'] == 'Trigger:package' }.compact.max
+        output.map { |job| job['id'] if job['name'] == job_name }.compact.max
       end
 
       def fetch_pipeline_jobs(project_id, pipeline_id, token)
@@ -202,7 +214,11 @@ module Build
         return unless project_id && !project_id.empty? && pipeline_id && !pipeline_id.empty?
 
         id = fetch_artifact_url(project_id, pipeline_id)
-        "https://gitlab.com/api/v4/projects/#{Gitlab::Util.get_env('CI_PROJECT_ID')}/jobs/#{id}/artifacts/pkg/ubuntu-focal/gitlab.deb"
+
+        folder = 'ubuntu-focal'
+        folder = "#{folder}_fips" if Build::Check.use_system_ssl?
+
+        "https://gitlab.com/api/v4/projects/#{Gitlab::Util.get_env('CI_PROJECT_ID')}/jobs/#{id}/artifacts/pkg/#{folder}/gitlab.deb"
       end
 
       def tag_match_pattern

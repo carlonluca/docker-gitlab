@@ -26,7 +26,6 @@ RSpec.describe 'gitaly' do
   let(:ruby_graceful_restart_timeout) { '30m' }
   let(:ruby_restart_delay) { '10m' }
   let(:ruby_num_workers) { 5 }
-  let(:ruby_rugged_git_config_search_path) { '/path/to/opt/gitlab/embedded/etc' }
   let(:git_catfile_cache_size) { 50 }
   let(:git_bin_path) { '/path/to/usr/bin/git' }
   let(:use_bundled_git) { true }
@@ -58,13 +57,13 @@ RSpec.describe 'gitaly' do
   let(:daily_maintenance_duration) { '45m' }
   let(:daily_maintenance_storages) { ["default"] }
   let(:daily_maintenance_disabled) { false }
-  let(:cgroups_count) { 10 }
   let(:cgroups_mountpoint) { '/sys/fs/cgroup' }
   let(:cgroups_hierarchy_root) { 'gitaly' }
-  let(:cgroups_memory_enabled) { true }
-  let(:cgroups_memory_limit) { 1048576 }
-  let(:cgroups_cpu_enabled) { true }
+  let(:cgroups_memory_bytes) { 2097152 }
   let(:cgroups_cpu_shares) { 512 }
+  let(:cgroups_repositories_count) { 10 }
+  let(:cgroups_repositories_memory_bytes) { 1048576 }
+  let(:cgroups_repositories_cpu_shares) { 128 }
   let(:pack_objects_cache_enabled) { true }
   let(:pack_objects_cache_dir) { '/pack-objects-cache' }
   let(:pack_objects_cache_max_age) { '10m' }
@@ -103,7 +102,6 @@ RSpec.describe 'gitaly' do
         expect(content).to include("socket_path = '/var/opt/gitlab/gitaly/gitaly.socket'")
         expect(content).to include("runtime_dir = '/var/opt/gitlab/gitaly/run'")
         expect(content).to include("bin_dir = '/opt/gitlab/embedded/bin'")
-        expect(content).to include(%(rugged_git_config_search_path = "/opt/gitlab/embedded/etc"))
       }
 
       expect(chef_run).not_to render_file(config_path)
@@ -142,6 +140,8 @@ RSpec.describe 'gitaly' do
         .with_content(%r{catfile_cache_size})
       expect(chef_run).not_to render_file(config_path)
         .with_content('[pack_objects_cache]')
+      expect(chef_run).not_to render_file(config_path)
+        .with_content('rugged_git_config_search_path')
     end
 
     it 'populates gitaly config.toml with default git binary path' do
@@ -179,6 +179,42 @@ RSpec.describe 'gitaly' do
     end
   end
 
+  context 'with pre 15.0 cgroups settings' do
+    before do
+      stub_gitlab_rb(
+        gitaly: {
+          cgroups_mountpoint: cgroups_mountpoint,
+          cgroups_count: 100,
+          cgroups_hierarchy_root: cgroups_hierarchy_root,
+          cgroups_memory_limit: cgroups_memory_bytes,
+          cgroups_memory_enabled: true,
+          cgroups_cpu_shares: cgroups_cpu_shares,
+          cgroups_cpu_enabled: true,
+          pack_objects_cache_enabled: pack_objects_cache_enabled,
+          pack_objects_cache_dir: pack_objects_cache_dir,
+          pack_objects_cache_max_age: pack_objects_cache_max_age,
+          custom_hooks_dir: gitaly_custom_hooks_dir
+        }
+      )
+    end
+
+    it 'populates gitaly cgroups with correct values' do
+      cgroups_section = Regexp.new([
+        %r{\[cgroups\]},
+        %r{mountpoint = '#{cgroups_mountpoint}'},
+        %r{hierarchy_root = '#{cgroups_hierarchy_root}'},
+        %r{\[cgroups.repositories\]},
+        %r{count = 100},
+        %r{memory_bytes = #{cgroups_memory_bytes}},
+        %r{cpu_shares = #{cgroups_cpu_shares}},
+      ].map(&:to_s).join('\s+'))
+
+      expect(chef_run).to render_file(config_path).with_content { |content|
+        expect(content).to match(cgroups_section)
+      }
+    end
+  end
+
   context 'with user settings' do
     before do
       stub_gitlab_rb(
@@ -207,19 +243,18 @@ RSpec.describe 'gitaly' do
           git_bin_path: git_bin_path,
           use_bundled_git: true,
           open_files_ulimit: open_files_ulimit,
-          ruby_rugged_git_config_search_path: ruby_rugged_git_config_search_path,
           daily_maintenance_start_hour: daily_maintenance_start_hour,
           daily_maintenance_start_minute: daily_maintenance_start_minute,
           daily_maintenance_duration: daily_maintenance_duration,
           daily_maintenance_storages: daily_maintenance_storages,
           daily_maintenance_disabled: daily_maintenance_disabled,
-          cgroups_count: cgroups_count,
           cgroups_mountpoint: cgroups_mountpoint,
           cgroups_hierarchy_root: cgroups_hierarchy_root,
-          cgroups_memory_enabled: cgroups_memory_enabled,
-          cgroups_memory_limit: cgroups_memory_limit,
-          cgroups_cpu_enabled: cgroups_cpu_enabled,
+          cgroups_memory_bytes: cgroups_memory_bytes,
           cgroups_cpu_shares: cgroups_cpu_shares,
+          cgroups_repositories_count: cgroups_repositories_count,
+          cgroups_repositories_memory_bytes: cgroups_repositories_memory_bytes,
+          cgroups_repositories_cpu_shares: cgroups_repositories_cpu_shares,
           pack_objects_cache_enabled: pack_objects_cache_enabled,
           pack_objects_cache_dir: pack_objects_cache_dir,
           pack_objects_cache_max_age: pack_objects_cache_max_age,
@@ -321,21 +356,14 @@ RSpec.describe 'gitaly' do
 
       cgroups_section = Regexp.new([
         %r{\[cgroups\]},
-        %r{count = #{cgroups_count}},
         %r{mountpoint = '#{cgroups_mountpoint}'},
         %r{hierarchy_root = '#{cgroups_hierarchy_root}'},
-      ].map(&:to_s).join('\s+'))
-
-      cgroups_memory_section = Regexp.new([
-        %r{\[cgroups\.memory\]},
-        %r{enabled = #{cgroups_memory_enabled}},
-        %r{limit = #{cgroups_memory_limit}},
-      ].map(&:to_s).join('\s+'))
-
-      cgroups_cpu_section = Regexp.new([
-        %r{\[cgroups\.cpu\]},
-        %r{enabled = #{cgroups_cpu_enabled}},
-        %r{shares = #{cgroups_cpu_shares}},
+        %r{memory_bytes = #{cgroups_memory_bytes}},
+        %r{cpu_shares = #{cgroups_cpu_shares}},
+        %r{\[cgroups.repositories\]},
+        %r{count = #{cgroups_repositories_count}},
+        %r{memory_bytes = #{cgroups_repositories_memory_bytes}},
+        %r{cpu_shares = #{cgroups_repositories_cpu_shares}},
       ].map(&:to_s).join('\s+'))
 
       pack_objects_cache_section = Regexp.new([
@@ -348,7 +376,6 @@ RSpec.describe 'gitaly' do
         expect(content).to include("tls_listen_addr = 'localhost:8888'")
         expect(content).to include("certificate_path = '/path/to/cert.pem'")
         expect(content).to include("key_path = '/path/to/key.pem'")
-        expect(content).to include(%(rugged_git_config_search_path = "#{ruby_rugged_git_config_search_path}"))
         expect(content).to include("prometheus_listen_addr = 'localhost:9000'")
         expect(content).to match(gitaly_logging_section)
         expect(content).to match(%r{\[prometheus\]\s+grpc_latency_buckets = #{Regexp.escape(prometheus_grpc_latency_buckets)}})
@@ -360,8 +387,6 @@ RSpec.describe 'gitaly' do
         expect(content).to match(hooks_section)
         expect(content).to match(maintenance_section)
         expect(content).to match(cgroups_section)
-        expect(content).to match(cgroups_memory_section)
-        expect(content).to match(cgroups_cpu_section)
         expect(content).to match(pack_objects_cache_section)
       }
     end

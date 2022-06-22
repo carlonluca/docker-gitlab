@@ -14,6 +14,7 @@ include_recipe 'nginx::enable'
 
 # We assume that the certificate and key will be stored in the same directory
 ssl_dir = File.dirname(node['gitlab']['nginx']['ssl_certificate'])
+node.default['acme']['private_key_file'] = File.join(ssl_dir, 'letsencrypt_account_private_key.pem')
 
 directory ssl_dir do
   owner 'root'
@@ -58,6 +59,8 @@ if node['letsencrypt']['auto_renew']
 else
   crond_job 'letsencrypt-renew' do
     action :delete
+    user "root"
+    command "/opt/gitlab/bin/gitlab-ctl renew-le-certs"
   end
 end
 

@@ -52,8 +52,10 @@ build do
   if Build::Check.use_system_ssl?
     env['CMAKE_FLAGS'] = OpenSSLHelper.cmake_flags
     env['PKG_CONFIG_PATH'] = OpenSSLHelper.pkg_config_dirs
+    env['FIPS_MODE'] = '1'
   end
 
+  bundle "config set --local frozen 'true'"
   bundle "install --without #{bundle_without.join(' ')}", env: env, cwd: ruby_build_dir
   touch '.ruby-bundle' # Prevent 'make install' below from running 'bundle install' again
   bundle "exec license_finder report --decisions-file=#{Omnibus::Config.project_root}/support/dependency_decisions.yml --format=json --columns name version licenses texts notice --save=gitaly-ruby-licenses.json", cwd: ruby_build_dir, env: env

@@ -86,12 +86,28 @@ RSpec.describe Build::Info do
     end
   end
 
-  # Specs for latest_tag and for latest_stable_tag are really useful since we
-  # are stubbing out shell out to git.
-  # However, they are showing what we expect to see.
+  # Specs for latest_tag and for latest_stable_tag are not really useful since
+  # we are stubbing out shell out to git. However, they are showing what we
+  # expect to see.
   describe '.latest_tag' do
+    context 'when running against stable branches' do
+      before do
+        stub_is_ee(false)
+        stub_env_var('CI_COMMIT_BRANCH', '14-10-stable')
+        allow(described_class).to receive(:`).with(/git describe --exact-match/).and_return('12.121.12+rc7.ce.0')
+        allow(described_class).to receive(:`).with(/git -c versionsort.prereleaseSuffix=rc tag -l /).and_return('12.121.12+rc7.ce.0')
+      end
+
+      it 'calls the shell command with correct arguments' do
+        expect(described_class).to receive(:`).with("git -c versionsort.prereleaseSuffix=rc tag -l '14.10*[+.]ce.*' --sort=-v:refname | head -1")
+
+        described_class.latest_tag
+      end
+    end
+
     describe 'for CE' do
       before do
+        stub_env_var('CI_COMMIT_BRANCH', 'foo-feature-branch')
         stub_is_ee(false)
         allow(described_class).to receive(:`).with("git describe --exact-match 2>/dev/null").and_return('12.121.12+rc7.ce.0')
         allow(described_class).to receive(:`).with("git -c versionsort.prereleaseSuffix=rc tag -l '*[+.]ce.*' --sort=-v:refname | head -1").and_return('12.121.12+rc7.ce.0')
@@ -100,10 +116,17 @@ RSpec.describe Build::Info do
       it 'returns the version of correct edition' do
         expect(described_class.latest_tag).to eq('12.121.12+rc7.ce.0')
       end
+
+      it 'calls the shell command with correct arguments' do
+        expect(described_class).to receive(:`).with("git -c versionsort.prereleaseSuffix=rc tag -l '*[+.]ce.*' --sort=-v:refname | head -1")
+
+        described_class.latest_tag
+      end
     end
 
     describe 'for EE' do
       before do
+        stub_env_var('CI_COMMIT_BRANCH', 'foo-feature-branch')
         stub_is_ee(true)
         allow(described_class).to receive(:`).with("git -c versionsort.prereleaseSuffix=rc tag -l '*[+.]ee.*' --sort=-v:refname | head -1").and_return('12.121.12+rc7.ee.0')
       end
@@ -117,6 +140,7 @@ RSpec.describe Build::Info do
   describe '.latest_stable_tag' do
     describe 'for CE' do
       before do
+        stub_env_var('CI_COMMIT_BRANCH', 'foo-feature-branch')
         stub_is_ee(nil)
         allow(described_class).to receive(:`).with("git describe --exact-match 2>/dev/null").and_return('12.121.12+ce.0')
         allow(described_class).to receive(:`).with("git -c versionsort.prereleaseSuffix=rc tag -l '*[+.]ce.*' --sort=-v:refname | awk '!/rc/' | head -1").and_return('12.121.12+ce.0')
@@ -129,6 +153,7 @@ RSpec.describe Build::Info do
 
     describe 'for EE' do
       before do
+        stub_env_var('CI_COMMIT_BRANCH', 'foo-feature-branch')
         stub_is_ee(true)
         allow(described_class).to receive(:`).with("git -c versionsort.prereleaseSuffix=rc tag -l '*[+.]ee.*' --sort=-v:refname | awk '!/rc/' | head -1").and_return('12.121.12+ee.0')
       end
