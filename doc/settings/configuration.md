@@ -641,7 +641,9 @@ To add a CSP:
    ```
 
    GitLab automatically provides secure default values for the CSP.
-   
+   Explicitly setting the `<default_value>` value for a directive is equivalent to
+   not setting a value and will use the default values.
+
    To add a custom CSP:
 
    ```ruby

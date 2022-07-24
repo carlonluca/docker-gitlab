@@ -51,7 +51,8 @@ RSpec.describe 'praefect' do
         },
         'reconciliation' => {},
         'background_verification' => {},
-        'failover' => { 'enabled' => true }
+        'failover' => { 'enabled' => true },
+        'gitlab' => { 'relative_url_root' => '', 'url' => 'http+unix://%2Fvar%2Fopt%2Fgitlab%2Fgitlab-workhorse%2Fsockets%2Fsocket' }
       }
 
       expect(chef_run).to render_file(config_path).with_content { |content|
@@ -106,6 +107,7 @@ RSpec.describe 'praefect' do
         }
       end
       let(:failover_enabled) { true }
+      let(:failover_timeout) { "30s" }
       let(:database_host) { 'pg.external' }
       let(:database_port) { 2234 }
       let(:database_user) { 'praefect-pg' }
@@ -115,11 +117,16 @@ RSpec.describe 'praefect' do
       let(:database_sslcert) { '/path/to/client-cert' }
       let(:database_sslkey) { '/path/to/client-key' }
       let(:database_sslrootcert) { '/path/to/rootcert' }
-      let(:database_sslrootcert) { '/path/to/rootcert' }
       let(:database_direct_host) { 'pg.internal' }
       let(:database_direct_port) { 1234 }
       let(:reconciliation_scheduling_interval) { '1m' }
       let(:reconciliation_histogram_buckets) { '[1.0, 2.0]' }
+      let(:gitlab_url) { 'http://localhost:3000' }
+      let(:user) { 'user123' }
+      let(:password) { 'password321' }
+      let(:ca_file) { '/path/to/ca_file' }
+      let(:ca_path) { '/path/to/ca_path' }
+      let(:read_timeout) { 123 }
 
       before do
         stub_gitlab_rb(praefect: {
@@ -140,6 +147,7 @@ RSpec.describe 'praefect' do
                          logging_level: log_level,
                          logging_format: log_format,
                          failover_enabled: failover_enabled,
+                         failover_timeout: failover_timeout,
                          virtual_storages: virtual_storages,
                          database_host: database_host,
                          database_port: database_port,
@@ -156,7 +164,20 @@ RSpec.describe 'praefect' do
                          reconciliation_histogram_buckets: reconciliation_histogram_buckets,
                          background_verification_verification_interval: '168h',
                          background_verification_delete_invalid_records: true,
-                       })
+                       },
+                       gitlab_rails: {
+                         internal_api_url: gitlab_url
+                       },
+                       gitlab_shell: {
+                         http_settings: {
+                           read_timeout: read_timeout,
+                           user: user,
+                           password: password,
+                           ca_file: ca_file,
+                           ca_path: ca_path
+                         }
+                       }
+                      )
       end
 
       it 'renders the config.toml' do
@@ -183,7 +204,8 @@ RSpec.describe 'praefect' do
                 }
               },
               'failover' => {
-                'enabled' => true
+                'enabled' => true,
+                'timeout' => "30s"
               },
               'logging' => {
                 'format' => 'text',
@@ -240,7 +262,18 @@ RSpec.describe 'praefect' do
                     }
                   ]
                 }
-              ]
+              ],
+              'gitlab' => {
+                'url' => 'http://localhost:3000',
+                'relative_url_root' => '',
+                'http-settings' => {
+                  'read_timeout' => 123,
+                  'user' => 'user123',
+                  'password' => 'password321',
+                  'ca_file' => '/path/to/ca_file',
+                  'ca_path' => '/path/to/ca_path'
+                }
+              }
             }
           )
         }
