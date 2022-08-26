@@ -86,6 +86,40 @@ graph TD
 
 ## Types of pipelines
 
+Since the jobs in `omnibus-gitlab` are spread across multiple mirrors, the CI
+config becomes relatively complex when using `rules` keyword for specifying
+where/when to run jobs. Hence, a different approach is used for
+`omnibus-gitlab`, which marks each necessary pipeline type with a specific
+variable named `PIPELINE_TYPE`, and attach jobs to various pipeline types as
+needed. The different pipeline types are documented in the below table:
+
+| Pipeline type                    | Mirror(s) where the pipeline runs | Remarks                                                                                                                |
+| -------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `DEPENDENCY_SCANNING_PIPELINE`   | Canonical                         | Check for security vulnerabilities in dependencies. Requires `DEPENDENCY_SCANNING` variable to be set to `true`.       |
+| `DEPS_IO_VERSION_BUMP_PIPELINE`  | Canonical                         | On branch pushes done by `deps.io`. Requires branches to have `deps-` prefix.                                          |
+| `DEPS_IO_VERSION_CHECK_PIPELINE` | Canonical                         | Run `deps` to detect updates. Requires `DEPS_PIPELINE` variable to be set to `true`.                                   |
+| `LICENSE_PAGE_UPDATE_PIPELINE`   | Canonical                         | Update license pages. Requires `PAGES_UPDATE` variable to be set to `true`.                                            |
+| `CACHE_UPDATE_PIPELINE`          | Canonical, QA                     | Update the gem cache and package build cache. Requires `CACHE_UPDATE` variable to be set to `true`.                    |
+| `DURATION_PLOTTER_PIPELINE`      | QA                                | Package build to plot duration of builds. Requires `DURATION_PLOTTER` variable to be set to `true`.                    |
+| `DOCS_PIPELINE`                  | Canonical, Security               | Requires branch names to either have `docs-` as prefix or `-docs` as suffix.                                           |
+| `PROTECTED_TEST_PIPELINE`        | Canonical, Security               | On protected branches and tags. Does not include trigger jobs and other unwanted jobs like danger-review.              |
+| `GITLAB_BRANCH_TEST_PIPELINE`    | Canonical, Security               | On non-protected branch pushes. Does not include unwanted jobs like danger-review. Includes trigger jobs.              |
+| `GITLAB_MR_PIPELINE`             | Canonical, Security               | On MRs with branches in Canonical/Security (i.e. MRs from GitLab and team members). Has trigger jobs.                  |
+| `AUTO_DEPLOY_BUILD_PIPELINE`     | Release                           | Builds when auto-deploy tags are pushed.                                                                               |
+| `CE_BRANCH_BUILD_PIPELINE`       | Release                           | Builds when regular branches are pushed.                                                                               |
+| `CE_NIGHTLY_BUILD_PIPELINE`      | Release                           | Nightly CE builds.                                                                                                     |
+| `CE_RC_BUILD_PIPELINE`           | Release                           | Builds when CE RC tags are pushed.                                                                                     |
+| `CE_TAG_BUILD_PIPELINE`          | Release                           | Builds when stable CE tags are pushed.                                                                                 |
+| `EE_BRANCH_BUILD_PIPELINE`       | Release                           | Builds when regular branches are pushed, but forced to be an EE pipeline.                                              |
+| `EE_NIGHTLY_BUILD_PIPELINE`      | Release                           | Nightly EE builds. Requires pipeline to be forced to be an EE one.                                                     |
+| `EE_RC_BUILD_PIPELINE`           | Release                           | Builds when EE RC tags are pushed.                                                                                     |
+| `EE_TAG_BUILD_PIPELINE`          | Release                           | Builds when stable EE tags are pushed.                                                                                 |
+| `TRIGGER_CACHE_UPDATE_PIPELINE`  | QA                                | Updates build cache of triggered QA pipelines. Requires `CACHE_UPDATE` variable to be set to `true`.                   |
+| `TRIGGERED_CE_PIPELINE`          | QA                                | Triggered package-and-qa build with CE packages and images.                                                            |
+| `TRIGGERED_EE_PIPELINE`          | QA                                | Triggered package-and-qa build with EE packages and images.                                                            |
+| `FORK_BRANCH_TEST_PIPELINE`      | Forks                             | Test suite when run on forks of the project. Does not include trigger jobs and other unwanted jobs like danger-review. |
+| `FORK_MR_PIPELINE`               | Forks                             | On MRs from forks of the project. Does not include trigger jobs.                                                       |
+
 ### Branch pipelines
 
 `omnibus-gitlab` doesn't make use of detached merge request pipelines yet. So,
@@ -96,8 +130,8 @@ and [Release mirror](https://dev.gitlab.org/gitlab/omnibus-gitlab).
 ### Tag pipelines
 
 Tag pushes to [Release mirror](https://dev.gitlab.org/gitlab/omnibus-gitlab) starts a pipeline with the
-[release jobs](#release-jobs). Tag pushes to [Development repository](https://gitlab.com/gitlab-org/omnibus-gitlab) and [Security
-mirror](https://gitlab.com/gitlab-org/security/omnibus-gitlab) behaves as regular branch pushes (except that they don't have an option
+[release jobs](#release-jobs). Tag pushes to [Development repository](https://gitlab.com/gitlab-org/omnibus-gitlab) and
+[Security mirror](https://gitlab.com/gitlab-org/security/omnibus-gitlab) behaves as regular branch pushes (except that they don't have an option
 to start a package-and-qa pipeline) and run basic stylistic checks and unit
 tests.
 
@@ -130,8 +164,8 @@ environments - will be part of this pipeline.
 
 ### Triggered pipelines
 
-We use triggered pipelines to run a "package-and-qa" pipeline in the [QA
-mirror](https://gitlab.com/gitlab-org/build/omnibus-gitlab-mirror). These can be triggered either from a pipeline in the
+We use triggered pipelines to run a "package-and-qa" pipeline in the
+[QA mirror](https://gitlab.com/gitlab-org/build/omnibus-gitlab-mirror). These can be triggered either from a pipeline in the
 [Development repository](https://gitlab.com/gitlab-org/omnibus-gitlab) or [GitLab project](https://gitlab.com/gitlab-org/gitlab).
 
 This pipeline is intended to give the developers a package and an image to test
@@ -252,8 +286,8 @@ This job is run only on [QA mirror](https://gitlab.com/gitlab-org/build/omnibus-
 
 #### `Trigger:qa-docker`
 
-This job builds a GitLab QA Docker image from the [qa directory in the Rails
-codebase](https://gitlab.com/gitlab-org/gitlab/blob/master/qa/Dockerfile). This
+This job builds a GitLab QA Docker image from the
+[qa directory in the Rails codebase](https://gitlab.com/gitlab-org/gitlab/blob/master/qa/Dockerfile). This
 QA image is used for QA runs.
 
 This job is run only on [QA mirror](https://gitlab.com/gitlab-org/build/omnibus-gitlab-mirror) on triggered pipelines.
@@ -297,8 +331,8 @@ This job is run only on [Release mirror](https://dev.gitlab.org/gitlab/omnibus-g
 
 #### `QA-branch`
 
-This job builds a GitLab QA Docker image from the [qa directory in the Rails
-codebase](https://gitlab.com/gitlab-org/gitlab/blob/master/qa/Dockerfile).
+This job builds a GitLab QA Docker image from the
+[qa directory in the Rails codebase](https://gitlab.com/gitlab-org/gitlab/blob/master/qa/Dockerfile).
 
 This job is run only on [Release mirror](https://dev.gitlab.org/gitlab/omnibus-gitlab) on branch and nightly pipelines.
 
@@ -350,8 +384,8 @@ This job is run only on [Release mirror](https://dev.gitlab.org/gitlab/omnibus-g
 
 ### `Docker-QA`
 
-This job builds a GitLab QA Docker image from the [qa directory in the Rails
-codebase](https://gitlab.com/gitlab-org/gitlab/blob/master/qa/Dockerfile) and
+This job builds a GitLab QA Docker image from the
+[qa directory in the Rails codebase](https://gitlab.com/gitlab-org/gitlab/blob/master/qa/Dockerfile) and
 pushes it to the internal GitLab container registry.
 
 This job is run only on [Release mirror](https://dev.gitlab.org/gitlab/omnibus-gitlab) and on tag pipelines.

@@ -15,7 +15,7 @@ omnibus_gem_version = Gitlab::Version.new('omnibus')
 
 # When updating gem versions:
 # 1. Edit this file to specify pinning if needed
-# 2. `bundle upgrade GEM`
+# 2. `bundle update GEM`
 # 3. Inspect and check-in Gemfile.lock
 # 4. Check that the changes to Gemfile.lock are propogated to the software
 #    definitions in `config/software`.  You can find them quickly with:
@@ -29,7 +29,6 @@ source 'https://packagecloud.io/cinc-project/stable' do
 end
 gem 'ohai', '~> 17.0'
 gem 'rainbow', '~> 2.2' # This is used by gitlab-ctl and the chef formatter
-gem 'thor', '0.20.3' # This specific version is required by package_cloud
 gem 'json'
 gem 'rspec'
 gem 'rake'
@@ -40,9 +39,15 @@ gem 'aws-sdk-ec2'
 gem 'aws-sdk-marketplacecatalog'
 gem 'gitlab'
 gem 'yard'
+gem 'toml-rb'
 
 group :packagecloud, optional: true do
   gem 'package_cloud'
+  gem 'thor', '~> 1.2'
+end
+
+group :danger, optional: true do
+  gem 'gitlab-dangerfiles', '~> 3.0', require: false
 end
 
 group :rubocop do

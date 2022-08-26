@@ -159,7 +159,7 @@ default['gitlab']['gitlab-rails']['incoming_email_log_file'] = "/var/log/gitlab/
 default['gitlab']['gitlab-rails']['incoming_email_expunge_deleted'] = nil
 default['gitlab']['gitlab-rails']['incoming_email_inbox_method'] = "imap"
 default['gitlab']['gitlab-rails']['incoming_email_inbox_options'] = nil
-default['gitlab']['gitlab-rails']['incoming_email_delivery_method'] = "sidekiq"
+default['gitlab']['gitlab-rails']['incoming_email_delivery_method'] = "webhook"
 default['gitlab']['gitlab-rails']['incoming_email_auth_token'] = nil
 
 default['gitlab']['gitlab-rails']['service_desk_email_enabled'] = false
@@ -175,7 +175,7 @@ default['gitlab']['gitlab-rails']['service_desk_email_idle_timeout'] = nil
 default['gitlab']['gitlab-rails']['service_desk_email_log_file'] = "/var/log/gitlab/mailroom/mail_room_json.log" # file path of internal `mail_room` JSON logs
 default['gitlab']['gitlab-rails']['service_desk_email_inbox_method'] = "imap"
 default['gitlab']['gitlab-rails']['service_desk_email_inbox_inbox_options'] = nil
-default['gitlab']['gitlab-rails']['service_desk_email_delivery_method'] = "sidekiq"
+default['gitlab']['gitlab-rails']['service_desk_email_delivery_method'] = "webhook"
 default['gitlab']['gitlab-rails']['service_desk_email_auth_token'] = nil
 
 default['gitlab']['gitlab-rails']['namespaces_in_product_marketing_emails_worker_cron'] = nil
@@ -183,6 +183,7 @@ default['gitlab']['gitlab-rails']['ssh_keys_expired_notification_worker_cron'] =
 default['gitlab']['gitlab-rails']['ssh_keys_expiring_soon_notification_worker_cron'] = nil
 
 default['gitlab']['gitlab-rails']['ci_runners_stale_group_runners_prune_worker_cron'] = nil
+default['gitlab']['gitlab-rails']['ci_runner_versions_reconciliation_worker_cron'] = nil
 
 # Consolidated object storage config
 default['gitlab']['gitlab-rails']['object_store']['enabled'] = false
@@ -519,7 +520,7 @@ default['gitlab']['gitlab-rails']['gitlab_kas_external_k8s_proxy_url'] = nil
 default['gitlab']['puma']['enable'] = false
 default['gitlab']['puma']['ha'] = false
 default['gitlab']['puma']['log_directory'] = "/var/log/gitlab/puma"
-default['gitlab']['puma']['listen'] = "127.0.0.1"
+default['gitlab']['puma']['listen'] = nil
 default['gitlab']['puma']['port'] = 8080
 default['gitlab']['puma']['socket'] = '/var/opt/gitlab/gitlab-rails/sockets/gitlab.socket'
 default['gitlab']['puma']['ssl_listen'] = nil
@@ -529,6 +530,9 @@ default['gitlab']['puma']['ssl_certificate_key'] = nil
 default['gitlab']['puma']['ssl_client_certificate'] = nil
 default['gitlab']['puma']['ssl_cipher_filter'] = nil
 default['gitlab']['puma']['ssl_verify_mode'] = 'none'
+default['gitlab']['puma']['prometheus_scrape_scheme'] = 'http'
+default['gitlab']['puma']['prometheus_scrape_tls_server_name'] = nil
+default['gitlab']['puma']['prometheus_scrape_tls_skip_verification'] = false
 
 default['gitlab']['puma']['somaxconn'] = 1024
 # Path to the puma server Process ID file

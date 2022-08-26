@@ -46,6 +46,7 @@ These additional variables are available to override or enable different build b
 | BUILD_LOG_LEVEL                               | Omnibus build log level. |
 | ALTERNATIVE_SOURCES                           | Switch to the custom sources listed in `https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/.custom_sources.yml` Defaults to `true`. |
 | OMNIBUS_GEM_SOURCE                            | Non-default remote URI to clone the omnibus gem from. |
+| QA_BUILD_TARGET                               | Build specified QA image. See this [MR](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/91250) for details. Defaults to `qa`. |
 
 ## Test variables
 
@@ -58,8 +59,8 @@ These additional variables are available to override or enable different build b
 | GITLAB_BOT_MULTI_PROJECT_PIPELINE_POLLING_TOKEN (deprecated) | Trigger token for building a test package. |
 | CI_SLACK_WEBHOOK_URL                            | Webhook URL for Slack failure notifications. |
 | DANGER_GITLAB_API_TOKEN                         | GitLab API token for dangerbot to post comments to MRs. |
-| DEPS_GITLAB_TOKEN                               | Token used by [dependencies.io](https://www.dependencies.io/gitlab-ci/) to create MRs. |
-| DEPS_TOKEN                                      | Token used by CI to auth to [dependencies.io](https://www.dependencies.io/gitlab-ci/). |
+| DEPS_GITLAB_TOKEN                               | Token used by [dependencies.io](https://www.dependencies.io/gitlab/) to create MRs. |
+| DEPS_TOKEN                                      | Token used by CI to auth to [dependencies.io](https://www.dependencies.io/gitlab/). |
 | DOCS_API_TOKEN
 
 ## Release variables

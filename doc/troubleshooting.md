@@ -24,7 +24,7 @@ sudo apt-get update
 sudo apt-get clean
 ```
 
-See [Joe Damato's from Packagecloud comment](https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/628#note_1824330) and [his blog article](https://blog.packagecloud.io/eng/2016/03/21/apt-hash-sum-mismatch/) for more context.
+See [Joe Damato's from Packagecloud comment](https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/628#note_1824330) and [his blog article](https://blog.packagecloud.io/apt-hash-sum-mismatch/) for more context.
 
 Another workaround is to download the package manually by selecting the correct package from the [CE packages](https://packages.gitlab.com/gitlab/gitlab-ce) or [EE packages](https://packages.gitlab.com/gitlab/gitlab-ee) repository:
 
@@ -395,8 +395,7 @@ with the omnibus packages. The short answer to this is: do not run that
 command, it is only for GitLab installations from source.
 
 The GitLab web interface uses CSS and JavaScript files, called 'assets' in Ruby
-on Rails-speak. In the [upstream GitLab
-repository](https://gitlab.com/gitlab-org/gitlab-foss/tree/master/app/assets)
+on Rails-speak. In the [upstream GitLab repository](https://gitlab.com/gitlab-org/gitlab-foss/tree/master/app/assets)
 these files are stored in a developer-friendly way: easy to read and edit. When
 you are a normal user of GitLab, you do not want these files to be in the
 developer friendly format however because that makes GitLab slow. This is why
@@ -453,7 +452,7 @@ Add the following line to apt-cacher-ng config(eg. in  `/etc/apt-cacher-ng/acng.
 PassThroughPattern: (packages\.gitlab\.com|packages-gitlab-com\.s3\.amazonaws\.com|*\.cloudfront\.net)
 ```
 
-Read more about `apt-cacher-ng` and the reasons why this change is needed [on the packagecloud blog](https://blog.packagecloud.io/eng/2015/05/05/using-apt-cacher-ng-with-ssl-tls/).
+Read more about `apt-cacher-ng` and the reasons why this change is needed [on the packagecloud blog](https://blog.packagecloud.io/using-apt-cacher-ng-with-ssl-tls/).
 
 ## Using self signed certificate or custom certificate authorities
 
@@ -784,7 +783,7 @@ As a workaround, avoid using underscores in `external_url`. There is an open iss
 
 ## Upgrade fails with `timeout: run: /opt/gitlab/service/gitaly` error
 
-If the package upgrade fails when running reconfigure with the following error, 
+If the package upgrade fails when running reconfigure with the following error,
 check that all Gitaly processes are stopped and then rerun `sudo gitlab-ctl reconfigure`.
 
 ```plaintext

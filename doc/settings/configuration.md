@@ -181,8 +181,8 @@ To change the location of the `git-data` parent directory:
       ```
 
 If you're running Gitaly on its own server remember to also include the
-`gitaly_address` for each Git data directory. See [the documentation on
-configuring Gitaly](https://docs.gitlab.com/ee/administration/gitaly/configure_gitaly.html#configure-gitaly-clients).
+`gitaly_address` for each Git data directory. See
+[the documentation on configuring Gitaly](https://docs.gitlab.com/ee/administration/gitaly/configure_gitaly.html#configure-gitaly-clients).
 
 If you're not looking to move all repositories, but instead want to move specific
 projects between existing repository storages, use the
@@ -551,8 +551,8 @@ To disable automatic cache cleaning during installation:
 ## Error Reporting and Logging with Sentry
 
 [Sentry](https://sentry.io) is an error reporting and logging tool which can be
-used as SaaS or on premise. It's Open Source, and you can [browse its source code
-repositories](https://github.com/getsentry).
+used as SaaS or on premise. It's Open Source, and you can
+[browse its source code repositories](https://github.com/getsentry).
 
 To configure Sentry:
 
@@ -615,14 +615,13 @@ is tracked in [this issue](https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues
 ## Set a Content Security Policy
 
 Setting a Content Security Policy (CSP) can help thwart JavaScript
-cross-site scripting (XSS) attacks. See [the Mozilla documentation on
-CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) for more
+cross-site scripting (XSS) attacks. See
+[the Mozilla documentation on CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) for more
 details.
 
-GitLab 12.2 added support for [CSP and nonce-source with inline
-JavaScript](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/script-src).
-It is [not configured on by default
-yet](https://gitlab.com/gitlab-org/gitlab/-/issues/30720).
+GitLab 12.2 added support for
+[CSP and nonce-source with inline JavaScript](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/script-src).
+It is [not configured on by default yet](https://gitlab.com/gitlab-org/gitlab/-/issues/30720).
 
 NOTE:
 Improperly configuring the CSP rules could prevent GitLab from working
@@ -695,7 +694,13 @@ what's intended:
    ```
 
 There are no known security issues in GitLab caused by not configuring `allowed_hosts`,
-but it's recommended for defense in depth against potential [host header attacks](https://portswigger.net/web-security/host-header).
+but it's recommended for defense in depth against potential [HTTP Host header attacks](https://portswigger.net/web-security/host-header).
+
+If using a custom external proxy such as apache, it may be necessary to add the localhost. Administrators should add filters to the external proxy to mitigate potential HTTP Host header attacks passed through the proxy to workhorse.
+
+```ruby
+gitlab_rails['allowed_hosts'] = ['gitlab.example.com', '127.0.0.1']
+```
 
 ## Related topics
 
@@ -714,7 +719,7 @@ but it's recommended for defense in depth against potential [host header attacks
 - [Use a non-packaged PostgreSQL database management server](database.md)
 - [Use a non-packaged Redis instance](redis.md)
 - [Add `ENV` vars to the GitLab runtime environment](environment-variables.md)
-- [Change GitLab.yml settings](gitlab.yml.md)
+- [Changing `gitlab.yml` and `application.yml` settings](gitlab.yml.md)
 - [Send application email via SMTP](smtp.md)
 - [Set up OmniAuth (Google, Twitter, GitHub login)](https://docs.gitlab.com/ee/integration/omniauth.html)
 - [Adjust Puma settings](https://docs.gitlab.com/ee/administration/operations/puma.html)

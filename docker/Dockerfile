@@ -18,6 +18,8 @@ RUN apt-get update -q \
       nano \
       less \
       libatomic1 \
+      perl \
+      libperl5.30 \
     && rm -rf /var/lib/apt/lists/*
 
 # Use BusyBox
