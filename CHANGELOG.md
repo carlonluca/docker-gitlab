@@ -14,6 +14,15 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 15.3.2 (2022-08-30)
+
+### Security (4 changes)
+
+- [Update libxml2 from 2.9.10 to 2.9.14](gitlab-org/security/omnibus-gitlab@96138c7c299ef038554e809462f98229bf902451) ([merge request](gitlab-org/security/omnibus-gitlab!218))
+- [Bump gitlab-exporter version to 11.18.2 to mitigate VULNDB-255039](gitlab-org/security/omnibus-gitlab@ccd42069e018253b751228e66ffffc35dc6c5b79) ([merge request](gitlab-org/security/omnibus-gitlab!232))
+- [Update unzip to 6.0.27](gitlab-org/security/omnibus-gitlab@c82fcd26e4fda6a734b32036381a4cb2915569f5) ([merge request](gitlab-org/security/omnibus-gitlab!228))
+- [Bump nginx version to 1.20.2](gitlab-org/security/omnibus-gitlab@8917dbf9f158bc010918e9e757bff29fe339acce) ([merge request](gitlab-org/security/omnibus-gitlab!222))
+
 ## 15.3.1 (2022-08-22)
 
 No changes.
