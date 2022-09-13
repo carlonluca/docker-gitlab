@@ -14,6 +14,12 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 15.3.3 (2022-09-01)
+
+### Changed (1 change)
+
+- [Improve error message when omnibus_gitconfig is not set properly](gitlab-org/omnibus-gitlab@1a77c08ef096d64482d7d08ce716d085765ae225) ([merge request](gitlab-org/omnibus-gitlab!6304))
+
 ## 15.3.2 (2022-08-30)
 
 ### Security (4 changes)
