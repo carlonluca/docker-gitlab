@@ -40,6 +40,7 @@ gem 'aws-sdk-marketplacecatalog'
 gem 'gitlab'
 gem 'yard'
 gem 'toml-rb'
+gem 'retriable'
 
 group :packagecloud, optional: true do
   gem 'package_cloud'
@@ -51,16 +52,15 @@ group :danger, optional: true do
 end
 
 group :rubocop do
-  gem 'gitlab-styles', '~> 6.1', require: false
+  gem 'gitlab-styles', '~> 7.1', require: false
 end
 
 group :test do
-  gem 'byebug'
+  gem 'debug'
   gem 'chefspec'
   gem 'omnibus-ctl', '0.3.6'
   gem 'fantaskspec'
   gem 'rspec_junit_formatter'
-  gem 'pry'
   gem 'rspec-parameterized', require: false
   gem 'simplecov-cobertura'
 end

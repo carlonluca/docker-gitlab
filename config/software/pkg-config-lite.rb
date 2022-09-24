@@ -25,10 +25,10 @@ skip_transitive_dependency_licensing true
 dependency 'config_guess'
 
 version '0.28-1' do
-  source md5: '61f05feb6bab0a6bbfab4b6e3b2f44b6'
+  source sha256: '21b76ec4e115ee30f9b3077a2506e48e8b837332ed4d30c9776502e69c6a29e5'
 end
 
-source url: "http://downloads.sourceforge.net/project/pkgconfiglite/#{version}/pkg-config-lite-#{version}.tar.gz"
+source url: "https://downloads.sourceforge.net/project/pkgconfiglite/#{version}/pkg-config-lite-#{version}.tar.gz"
 
 relative_path "pkg-config-lite-#{version}"
 
