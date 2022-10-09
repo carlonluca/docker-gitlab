@@ -14,6 +14,17 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 15.4.2 (2022-10-04)
+
+No changes.
+
+## 15.4.1 (2022-09-29)
+
+### Security (2 changes)
+
+- [Apply Grafana CVE-2022-3110 patch](gitlab-org/security/omnibus-gitlab@3febf0771ca0924f8db3392c99b03ab852ca4950) ([merge request](gitlab-org/security/omnibus-gitlab!239))
+- [Pass necessary headers on accessing healthcheck endpoints](gitlab-org/security/omnibus-gitlab@48b29f3972d2137be4153ad9e7d5c2bd45a397aa) ([merge request](gitlab-org/security/omnibus-gitlab!240))
+
 ## 15.4.0 (2022-09-21)
 
 ### Added (1 change)
