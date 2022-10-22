@@ -203,9 +203,6 @@
   needs:
     - job: Trigger:package
       artifacts: false
-    - job: Trigger:qa-docker
-      artifacts: false
-      optional: true
 
 .review-docs:
   image: "${RUBY_IMAGE}-alpine"
@@ -403,6 +400,7 @@ OpenSUSE 15.3 knapsack: !reference [.knapsack]
 Ubuntu 16.04 knapsack: !reference [.knapsack]
 Ubuntu 18.04 knapsack: !reference [.knapsack]
 Ubuntu 20.04 knapsack: !reference [.knapsack]
+Ubuntu 22.04 knapsack: !reference [.knapsack]
 AmazonLinux 2 knapsack: !reference [.knapsack]
 
 build library specs:
@@ -438,6 +436,12 @@ Ubuntu 20.04 specs :
   parallel: 6
   needs:
   - Ubuntu 20.04 knapsack
+Ubuntu 22.04 specs:
+  image: "registry.gitlab.com/gitlab-org/gitlab-build-images:omnibus-gitlab-jammy"
+  extends: .chef_spec_template
+  parallel: 6
+  needs:
+  - Ubuntu 22.04 knapsack
 Debian 10 specs :
   image: "registry.gitlab.com/gitlab-org/gitlab-build-images:omnibus-gitlab-buster"
   extends: .chef_spec_template
@@ -542,25 +546,6 @@ Trigger:gitlab-docker:
       optional: true
       artifacts: true
 
-Trigger:qa-docker:
-  extends:
-    - .docker_job
-    - .gems-cache
-  stage: trigger-docker
-  script:
-    - bundle exec rake qa:build
-    - bundle exec rake qa:push:triggered
-  rules:
-    - if: '$SKIP_QA_DOCKER == "true"'
-      when: never
-    - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/'
-    - if: '$PIPELINE_TYPE == "TRIGGER_CACHE_UPDATE_PIPELINE"'
-  needs:
-    - Trigger:package
-    - job: generate-facts
-      optional: true
-      artifacts: true
-
 qa-test:
   stage: trigger-qa
   inherit:
@@ -596,9 +581,6 @@ qa-test:
       artifacts: false
     - job: Trigger:gitlab-docker
       artifacts: false
-    - job: Trigger:qa-docker
-      artifacts: false
-      optional: true
 
 letsencrypt-test:
   extends: .docker_job
@@ -609,6 +591,8 @@ letsencrypt-test:
     - chmod +x /usr/local/bin/docker-compose
     - bundle exec rake qa:test_letsencrypt
   rules:
+    - if: '$TOP_UPSTREAM_SOURCE_PROJECT == "gitlab-org/gitlab"'
+      when: never
     - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/'
   needs:
     - job: Trigger:gitlab-docker
@@ -626,9 +610,6 @@ RAT:
   needs:
     - job: Trigger:package
       artifacts: false
-    - job: Trigger:qa-docker
-      artifacts: false
-      optional: true
 
 RAT:FIPS:
   extends: RAT
@@ -638,9 +619,6 @@ RAT:FIPS:
   needs:
     - job: Trigger:package:fips
       artifacts: false
-    - job: Trigger:qa-docker
-      artifacts: false
-      optional: true
 
 GET:Geo:
   extends: .trigger-pipeline
@@ -703,7 +681,9 @@ dependencies_io_check:
   variables:
     ee: "true"
   rules:
-    - if: '$PIPELINE_TYPE == "DEPS_IO_VERSION_BUMP_PIPELINE"'
+    # Because of inherit:variables being false, `PIPELINE_TYPE` isn't available here. :(
+    # https://gitlab.com/gitlab-org/gitlab/-/issues/368759
+    - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^deps/ || $CI_COMMIT_BRANCH =~ /^deps/'
 
 validate_packer_changes:
   before_script: []

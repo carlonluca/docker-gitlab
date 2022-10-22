@@ -80,7 +80,6 @@ default['gitlab']['gitlab-rails']['env'] = {
   'SSL_CERT_DIR' => "#{node['package']['install-dir']}/embedded/ssl/certs/",
   'SSL_CERT_FILE' => "#{node['package']['install-dir']}/embedded/ssl/cert.pem"
 }
-default['gitlab']['gitlab-rails']['enable_jemalloc'] = true
 
 default['gitlab']['gitlab-rails']['internal_api_url'] = nil
 default['gitlab']['gitlab-rails']['uploads_directory'] = "/var/opt/gitlab/gitlab-rails/uploads"
@@ -316,6 +315,14 @@ default['gitlab']['gitlab-rails']['smartcard_client_certificate_required_host'] 
 default['gitlab']['gitlab-rails']['smartcard_client_certificate_required_port'] = 3444
 default['gitlab']['gitlab-rails']['smartcard_required_for_git_access'] = false
 default['gitlab']['gitlab-rails']['smartcard_san_extensions'] = false
+
+default['gitlab']['gitlab-rails']['microsoft_graph_mailer_enabled'] = false
+default['gitlab']['gitlab-rails']['microsoft_graph_mailer_user_id'] = nil
+default['gitlab']['gitlab-rails']['microsoft_graph_mailer_tenant'] = nil
+default['gitlab']['gitlab-rails']['microsoft_graph_mailer_client_id'] = nil
+default['gitlab']['gitlab-rails']['microsoft_graph_mailer_client_secret'] = nil
+default['gitlab']['gitlab-rails']['microsoft_graph_mailer_azure_ad_endpoint'] = nil
+default['gitlab']['gitlab-rails']['microsoft_graph_mailer_graph_endpoint'] = nil
 
 default['gitlab']['gitlab-rails']['kerberos_enabled'] = nil
 default['gitlab']['gitlab-rails']['kerberos_keytab'] = nil
@@ -712,6 +719,7 @@ default['gitlab']['nginx']['ssl_session_cache'] = "shared:SSL:10m"
 default['gitlab']['nginx']['ssl_session_tickets'] = "off"
 default['gitlab']['nginx']['ssl_session_timeout'] = "1d" # settings from by https://ssl-config.mozilla.org/#server=nginx&version=1.17.7&config=intermediate&openssl=1.1.1d&ocsp=false&guideline=5.6
 default['gitlab']['nginx']['ssl_dhparam'] = nil # Path to dhparam.pem
+default['gitlab']['nginx']['ssl_password_file'] = nil
 default['gitlab']['nginx']['listen_addresses'] = ['*']
 default['gitlab']['nginx']['listen_port'] = nil # override only if you have a reverse proxy
 default['gitlab']['nginx']['listen_https'] = nil # override only if your reverse proxy internally communicates over HTTP

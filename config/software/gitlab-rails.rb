@@ -81,7 +81,6 @@ build do
   make "install -C workhorse PREFIX=#{install_dir}/embedded"
 
   bundle_without = %w(development test)
-  bundle_without << 'mysql'
 
   if Build::Check.use_system_ssl?
     env['CMAKE_FLAGS'] = OpenSSLHelper.cmake_flags
@@ -92,7 +91,7 @@ build do
   bundle 'config force_ruby_platform true', env: env if OhaiHelper.ruby_native_gems_unsupported?
   bundle 'config build.gpgme --use-system-libraries', env: env
   bundle "config build.nokogiri --use-system-libraries --with-xml2-include=#{install_dir}/embedded/include/libxml2 --with-xslt-include=#{install_dir}/embedded/include/libxslt", env: env
-  bundle 'config build.grpc --with-ldflags="-latomic"', env: env if OhaiHelper.os_platform == 'raspbian'
+  bundle 'config build.grpc --with-ldflags=-Wl,--no-as-needed --with-dldflags=-latomic', env: env if OhaiHelper.os_platform == 'raspbian'
   bundle "config set --local frozen 'true'"
   bundle "install --without #{bundle_without.join(' ')} --jobs #{workers} --retry 5", env: env
 
@@ -215,7 +214,7 @@ build do
   copy 'db/structure.sql', 'db/structure.sql.bundled'
   copy 'ee/db/geo/structure.sql', 'ee/db/geo/structure.sql.bundled' if EE
 
-  command "mkdir -p #{install_dir}/embedded/service/gitlab-rails"
+  mkdir "#{install_dir}/embedded/service/gitlab-rails"
   sync './', "#{install_dir}/embedded/service/gitlab-rails/", exclude: %w(
     .git
     .gitignore
@@ -230,6 +229,8 @@ build do
     workhorse
   )
 
+  mkdir "#{install_dir}/bin/"
+  mkdir "#{install_dir}/embedded/bin/"
   # Create a wrapper for the rake tasks of the Rails app
   erb dest: "#{install_dir}/bin/gitlab-rake",
       source: 'bundle_exec_wrapper.erb',

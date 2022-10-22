@@ -1,7 +1,7 @@
 ---
-stage: Enablement
+stage: Systems
 group: Distribution
-info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/engineering/ux/technical-writing/#designated-technical-writers
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
 # Set up your development environment
@@ -9,7 +9,7 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 Development of Omnibus GitLab can be done using an existing package available
 from the [Downloads page](https://about.gitlab.com/install/). To know how to setup
 a build environment to build these packages and use them, please read
-[Setting up a Build Environment](../build/build_package.md#preparing-a-build-environment)
+[Setting up a Build Environment](../build/build_package.md#prepare-a-build-environment)
 
 Choose one of the GitLab installation methods below. To provide isolation and
 to prevent rebuilding of the package for each and every change, it is preferred
@@ -192,4 +192,4 @@ gitlab_rails['env'] = {
 
 ## OpenShift GitLab Development Setup
 
-See Omnibus GitLab [development setup](openshift/index.md) documentation.
+See Omnibus GitLab [development setup](https://gitlab.com/gitlab-org/cloud-native/gitlab-operator/-/blob/master/doc/developer/guide.md) documentation.

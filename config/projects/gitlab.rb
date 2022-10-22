@@ -78,6 +78,8 @@ if rhel?
   end
 end
 
+runtime_dependency 'policycoreutils-python' if amazon? && OhaiHelper.get_amazon_version == '2'
+
 # Arm targets need libatomic
 if OhaiHelper.arm?
   if rhel? || amazon?
@@ -97,7 +99,6 @@ if Build::Check.use_system_ssl?
 end
 
 dependency 'cacerts'
-dependency 'jemalloc'
 dependency 'redis'
 dependency 'nginx'
 dependency 'mixlib-log'
@@ -260,6 +261,8 @@ exclude 'embedded/lib/ruby/gems/*/gems/*pg_query-*/ext'
 
 # Exclude exe files from Python libraries
 exclude 'embedded/lib/python*/**/*.exe'
+# Exclude whl files from Python libraries.
+exclude 'embedded/lib/python*/**/*.whl'
 
 # Enable signing packages
 package :rpm do
@@ -283,6 +286,9 @@ exclude '.package_util'
 exclude 'embedded/lib/python*/**/*.dist-info'
 exclude 'embedded/lib/python*/**/*.egg-info'
 exclude 'embedded/lib/python*/**/__pycache__'
+
+# exclude Spamcheck application source and libraries
+exclude 'embedded/service/spamcheck/app'
 
 package_user 'root'
 package_group 'root'

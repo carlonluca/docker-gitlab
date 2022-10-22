@@ -1,7 +1,7 @@
 ---
-stage: Enablement
+stage: Systems
 group: Distribution
-info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/engineering/ux/technical-writing/#designated-technical-writers
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
 # JiHu Edition
@@ -151,4 +151,4 @@ To downgrade the JiHu Edition installation to GitLab Enterprise Edition (EE), in
 Depending on the preferred installation method for GitLab EE, either:
 
 - Use the official GitLab package repository and [install GitLab EE](https://about.gitlab.com/install/?version=ee), or
-- Download the GitLab EE package and [manually install it](manual_install.md).
+- Download the GitLab EE package and [manually install it](https://docs.gitlab.com/ee/update/package/#upgrade-using-a-manually-downloaded-package).

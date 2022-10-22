@@ -1,7 +1,7 @@
 ---
-stage: Enablement
+stage: Systems
 group: Distribution
-info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/engineering/ux/technical-writing/#designated-technical-writers
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
 # SMTP settings **(FREE SELF)**
@@ -813,20 +813,6 @@ gitlab_rails['smtp_tls'] = false
 gitlab_rails['smtp_openssl_verify_mode'] = 'peer'
 ```
 
-### Office 365
-
-``` ruby
-gitlab_rails['smtp_enable'] = true
-gitlab_rails['smtp_address'] = "smtp.office365.com"
-gitlab_rails['smtp_port'] = 25
-gitlab_rails['smtp_user_name'] = "user.name@company.com"
-gitlab_rails['smtp_password'] = "secret"
-gitlab_rails['smtp_domain'] = "company.com"
-gitlab_rails['smtp_authentication'] = "login"
-gitlab_rails['smtp_enable_starttls_auto'] = true
-gitlab_rails['smtp_tls'] = false
-```
-
 ### GMX Mail
 
 ```ruby
@@ -1346,6 +1332,9 @@ the SMTP configuration is missing, you may notice that emails do not get sent th
 GitLab emails are sent via Sidekiq.
 
 ### Email not sent
+
+WARNING:
+Any command that changes data directly could be damaging if not run correctly, or under the right conditions. We highly recommend running them in a test environment with a backup of the instance ready to be restored, just in case.
 
 If you have correctly configured an email server, but email is not sent:
 

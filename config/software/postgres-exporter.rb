@@ -19,7 +19,7 @@
 require "#{Omnibus::Config.project_root}/lib/gitlab/version"
 
 name 'postgres-exporter'
-version = Gitlab::Version.new('postgres-exporter', '0.10.0')
+version = Gitlab::Version.new('postgres-exporter', '0.11.1')
 default_version version.print
 
 license 'Apache-2.0'
@@ -36,15 +36,13 @@ build do
     'GOPATH' => "#{Omnibus::Config.source_dir}/postgres-exporter",
   }
 
-  ldflags = [
-    "-X main.Version=#{version.print}",
-    "-s",
-    "-w"
-  ].join(' ')
+  prom_version = Prometheus::VersionFlags.new(version)
 
-  command "go build -ldflags '#{ldflags}' ./cmd/postgres_exporter", env: env
+  command "go build -ldflags '#{prom_version.print_ldflags}' ./cmd/postgres_exporter", env: env
+
+  mkdir "#{install_dir}/embedded/bin"
   copy 'postgres_exporter', "#{install_dir}/embedded/bin/"
 
-  command "license_finder report --decisions-file=#{Omnibus::Config.project_root}/support/dependency_decisions.yml --format=json --columns name version licenses texts notice --save=license.json"
+  command "license_finder report --enabled-package-managers godep gomodules --decisions-file=#{Omnibus::Config.project_root}/support/dependency_decisions.yml --format=json --columns name version licenses texts notice --save=license.json"
   copy "license.json", "#{install_dir}/licenses/postgres-exporter.json"
 end

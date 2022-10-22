@@ -1,7 +1,7 @@
 ---
-stage: Enablement
-group: Memory
-info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/engineering/ux/technical-writing/#designated-technical-writers
+stage: Data Stores
+group: Application Performance
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
 # Running GitLab in a memory-constrained environment **(FREE SELF)**
@@ -174,7 +174,7 @@ gitaly['cgroups_count'] = 2
 gitaly['cgroups_mountpoint'] = '/sys/fs/cgroup'
 gitaly['cgroups_hierarchy_root'] = 'gitaly'
 gitaly['cgroups_memory_enabled'] = true
-gitaly['cgroups_memory_limit'] = 500000
+gitaly['cgroups_memory_bytes'] = 500000
 gitaly['cgroups_cpu_enabled'] = true
 gitaly['cgroups_cpu_shares'] = 512
 
@@ -215,7 +215,6 @@ gitlab_rails['env'] = {
 }
 
 gitaly['env'] = {
-  'LD_PRELOAD' => '/opt/gitlab/embedded/lib/libjemalloc.so',
   'MALLOC_CONF' => 'dirty_decay_ms:1000,muzzy_decay_ms:1000'
 }
 ```
@@ -257,7 +256,7 @@ and disable the Prometheus Metrics feature:
    gitaly['cgroups_mountpoint'] = '/sys/fs/cgroup'
    gitaly['cgroups_hierarchy_root'] = 'gitaly'
    gitaly['cgroups_memory_enabled'] = true
-   gitaly['cgroups_memory_limit'] = 500000
+   gitaly['cgroups_memory_bytes'] = 500000
    gitaly['cgroups_cpu_enabled'] = true
    gitaly['cgroups_cpu_shares'] = 512
 
@@ -271,7 +270,6 @@ and disable the Prometheus Metrics feature:
      }
    ]
    gitaly['env'] = {
-     'LD_PRELOAD' => '/opt/gitlab/embedded/lib/libjemalloc.so',
      'MALLOC_CONF' => 'dirty_decay_ms:1000,muzzy_decay_ms:1000',
      'GITALY_COMMAND_SPAWN_MAX_PARALLEL' => '2'
    }

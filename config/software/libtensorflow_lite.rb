@@ -17,7 +17,7 @@
 #
 
 name 'libtensorflow_lite'
-version = Gitlab::Version.new('libtensorflow_lite', '2.5.0')
+version = Gitlab::Version.new('libtensorflow_lite', '2.6.0')
 
 default_version version.print
 source git: version.remote
@@ -30,7 +30,8 @@ build do
   env = {}
   build_dir = "#{Omnibus::Config.source_dir}/libtensorflow_lite/tflite_build"
 
-  command "mkdir -p #{install_dir}/embedded/lib #{build_dir}"
+  mkdir "#{install_dir}/embedded/lib"
+  mkdir build_dir.to_s
 
   block 'use a custom compiler for OSs with older gcc' do
     if ohai['platform'] == 'centos' && ohai['platform_version'].start_with?('7.')

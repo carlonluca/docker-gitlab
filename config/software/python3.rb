@@ -56,9 +56,11 @@ build do
   patch source: 'readline-3-9.patch'
 
   # Patch to avoid building nis module in Debian 11. If nis is built, it gets
-  # linked to system `nsl` and `tirpc` libraries and thus fail omnibus
-  # healthcheck in Debian 11.
-  patch source: 'debian-11-skip-nis-build.patch' if ohai['platform'] =~ /^debian/ && ohai['platform_version'] =~ /^11/
+  # linked to system `nsl` and `tirpc` libraries and thus fails omnibus
+  # healthcheck in Debian 11 and Ubuntu 22.04.
+  patch source: 'skip-nis-build.patch' if
+    (ohai['platform_family'] =~ /^debian/ && ohai['platform_version'] =~ /^11/) ||
+      (ohai['platform'] =~ /^ubuntu/ && ohai['platform_version'] =~ /^22/)
 
   command ['./configure',
            "--prefix=#{install_dir}/embedded",

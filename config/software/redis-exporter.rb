@@ -20,7 +20,7 @@ require "#{Omnibus::Config.project_root}/lib/gitlab/version"
 require 'time'
 
 name 'redis-exporter'
-version = Gitlab::Version.new('redis-exporter', '1.33.0')
+version = Gitlab::Version.new('redis-exporter', '1.44.0')
 default_version version.print
 
 license 'MIT'
@@ -45,8 +45,10 @@ build do
   ].join(' ')
 
   command "go build -ldflags '#{ldflags}'", env: env
+
+  mkdir "#{install_dir}/embedded/bin"
   copy 'redis_exporter', "#{install_dir}/embedded/bin/"
 
-  command "license_finder report --decisions-file=#{Omnibus::Config.project_root}/support/dependency_decisions.yml --format=json --columns name version licenses texts notice --save=license.json"
+  command "license_finder report --enabled-package-managers godep gomodules --decisions-file=#{Omnibus::Config.project_root}/support/dependency_decisions.yml --format=json --columns name version licenses texts notice --save=license.json"
   copy "license.json", "#{install_dir}/licenses/redis-exporter.json"
 end

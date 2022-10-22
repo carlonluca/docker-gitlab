@@ -1,7 +1,7 @@
 ---
-stage: Enablement
+stage: Systems
 group: Distribution
-info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/engineering/ux/technical-writing/#designated-technical-writers
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
 # Running on a Raspberry Pi **(FREE SELF)**
@@ -40,7 +40,7 @@ Raspberry Pi OS, and follow the instructions to install GitLab.
 ### Manually download GitLab
 
 If your distribution of choice is other than Raspbian, but Debian-based, you
-can [manually download](../manual_install.md)
+can [manually download](https://docs.gitlab.com/ee/update/package/#upgrade-using-a-manually-downloaded-package)
 GitLab and install it.
 
 ## Reduce running processes
