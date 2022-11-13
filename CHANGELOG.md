@@ -14,6 +14,16 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 15.5.4 (2022-11-11)
+
+No changes.
+
+## 15.5.3 (2022-11-07)
+
+### Changed (1 change)
+
+- [Bump Container Registry to v3.60.1-gitlab](gitlab-org/omnibus-gitlab@ecf2ce33ac249ac251b7cbea44a1dd54c5ae6ed3) ([merge request](gitlab-org/omnibus-gitlab!6490))
+
 ## 15.5.2 (2022-11-02)
 
 ### Security (2 changes)
