@@ -15,4 +15,4 @@ docker-build:
     - docker push carlonluca/gitlab:"$VERSION"
     - docker push carlonluca/gitlab:latest
   rules:
-    - when: manual
+    - when: never
