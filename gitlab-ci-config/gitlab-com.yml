@@ -219,7 +219,9 @@
     - chmod 755 trigger-build.rb
   variables:
     GIT_STRATEGY: none
-    DOCS_REVIEW_APPS_DOMAIN: 35.193.151.162.nip.io
+    DOCS_REVIEW_APPS_DOMAIN: docs.gitlab-review.app
+    # By default, deploy the Review App using the `main` branch of the `gitlab-org/gitlab-docs` project
+    DOCS_BRANCH: main
   allow_failure: true
   rules:
     - if: '$PIPELINE_TYPE == "GITLAB_BRANCH_TEST_PIPELINE"'
@@ -296,7 +298,7 @@ rubocop:
 
 # Perform documentation linting on Markdown files
 docs-lint markdown:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.16-vale-2.20.1-markdownlint-0.32.2
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.16-vale-2.20.2-markdownlint-0.32.2-markdownlint2-0.5.1
   stage: check
   cache: {}
   needs: []
@@ -305,7 +307,7 @@ docs-lint markdown:
     # Lint prose
     - vale --minAlertLevel error doc
     # Lint Markdown
-    - markdownlint --config .markdownlint.yml 'doc/**/*.md'
+    - markdownlint-cli2-config .markdownlint.yml 'doc/**/*.md'
   rules:
     - if: '$PIPELINE_TYPE =~ /_TEST_PIPELINE$/'
     - if: '$PIPELINE_TYPE =~ /_MR_PIPELINE$/'
@@ -313,7 +315,7 @@ docs-lint markdown:
 
 # Perform link checks on published HTML files
 docs-lint links:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-html:alpine-3.16-ruby-2.7.6-0bc327a4
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-html:alpine-3.16-ruby-2.7.6-0088e238
   stage: check
   cache: {}
   needs: []
@@ -361,11 +363,11 @@ review-docs-deploy:
   extends:
     - .review-docs
   environment:
-    name: review-docs/branch-${CI_COMMIT_REF_SLUG}
+    name: review-docs/mr-${CI_MERGE_REQUEST_IID}
     # DOCS_REVIEW_APPS_DOMAIN and DOCS_GITLAB_REPO_SUFFIX are CI variables
     # Discussion: https://gitlab.com/gitlab-org/gitlab-foss/merge_requests/14236/diffs#note_40140693
     auto_stop_in: 2 weeks
-    url: http://${DOCS_BRANCH}-${DOCS_GITLAB_REPO_SUFFIX}-${CI_COMMIT_REF_SLUG}.${DOCS_REVIEW_APPS_DOMAIN}/${DOCS_GITLAB_REPO_SUFFIX}
+    url: https://${DOCS_BRANCH}-${DOCS_GITLAB_REPO_SUFFIX}-${CI_MERGE_REQUEST_IID}.${DOCS_REVIEW_APPS_DOMAIN}/${DOCS_GITLAB_REPO_SUFFIX}
     on_stop: review-docs-cleanup
   script:
     - ./trigger-build.rb docs deploy
@@ -375,7 +377,7 @@ review-docs-cleanup:
   extends:
     - .review-docs
   environment:
-    name: review-docs/branch-${CI_COMMIT_REF_SLUG}
+    name: review-docs/mr-${CI_MERGE_REQUEST_IID}
     action: stop
   script:
     - ./trigger-build.rb docs cleanup
@@ -574,6 +576,7 @@ qa-test:
     # https://gitlab.com/gitlab-org/gitlab/-/issues/368759
     - if: '$CI_PROJECT_PATH == "gitlab-org/build/omnibus-gitlab-mirror" && $CI_PIPELINE_SOURCE=="pipeline"'
     - if: '$CI_PROJECT_PATH == "gitlab-org/omnibus-gitlab" && $CI_PIPELINE_SOURCE == "parent_pipeline" && $UPSTREAM_CI_PIPELINE_SOURCE != "parent_pipeline"'
+    - if: '$CI_PROJECT_PATH == "gitlab-org/security/omnibus-gitlab" && $CI_PIPELINE_SOURCE == "parent_pipeline" && $UPSTREAM_CI_PIPELINE_SOURCE != "parent_pipeline"'
   needs:
     - job: generate-facts
       artifacts: true
@@ -600,63 +603,76 @@ letsencrypt-test:
 
 RAT:
   stage: trigger-qa
-  image: "${RUBY_IMAGE}"
-  allow_failure: true
-  script:
-    - bundle exec rake qa:rat:trigger
+  variables:
+    PACKAGE_URL: ${RAT_PACKAGE_URL}
+    REFERENCE_ARCHITECTURE: ${RAT_REFERENCE_ARCHITECTURE}
+    QA_IMAGE: ${QA_IMAGE}
+  trigger:
+    project: 'gitlab-org/distribution/reference-architecture-tester'
+    branch: 'master'
+    strategy: depend
+    forward:
+      pipeline_variables: false
+      yaml_variables: true
   rules:
     - if: '$PIPELINE_TYPE == "TRIGGERED_EE_PIPELINE"'
       when: manual
+      allow_failure: true
   needs:
     - job: Trigger:package
       artifacts: false
+    - job: generate-facts
+      artifacts: true
 
 RAT:FIPS:
   extends: RAT
   variables:
-    USE_SYSTEM_SSL: "true"
-    RAT_REFERENCE_ARCHITECTURE: "omnibus-gitlab-mrs-fips-ubuntu"
+    PACKAGE_URL: ${RAT_FIPS_PACKAGE_URL}
+    REFERENCE_ARCHITECTURE: ${RAT_FIPS_REFERENCE_ARCHITECTURE}
   needs:
     - job: Trigger:package:fips
       artifacts: false
+    - job: generate-facts
+      artifacts: true
 
 GET:Geo:
-  extends: .trigger-pipeline
+  stage: trigger-qa
+  variables:
+    ENVIRONMENT_ACTION: 'tmp-env'
+    QA_IMAGE: ${QA_IMAGE}
+    GITLAB_DEB_DOWNLOAD_URL: ${RAT_PACKAGE_URL}
+  trigger:
+    project: 'gitlab-org/geo-team/geo-ci'
+    branch: $GET_GEO_TAG
+    strategy: depend
+    forward:
+      pipeline_variables: false
+      yaml_variables: true
   rules:
     - if: '$PIPELINE_TYPE == "TRIGGERED_EE_PIPELINE"'
       when: manual
-  script:
-    - bundle exec rake qa:get:geo:trigger
-
-create_omnibus_manifest:
-  extends: .trigger-package-cache
-  image: "${BUILDER_IMAGE_REGISTRY}/debian_10:${BUILDER_IMAGE_REVISION}"
-  stage: prepare
-  variables:
-    TERM: xterm-256color
-  script:
-    - bundle exec omnibus manifest gitlab -l nothing 2> /dev/null > version-manifest.json
-  rules:
-    - if: '$PIPELINE_TYPE == "DEPENDENCY_SCANNING_PIPELINE"'
-  artifacts:
-    expire_in: 7 days
-    paths:
-      - version-manifest.json
+      allow_failure: true
+  needs:
+    - job: Trigger:package
+      artifacts: false
+    - job: generate-facts
+      artifacts: true
 
 dependency_scanning:
   image: "registry.gitlab.com/gitlab-org/security-products/gitlab-depscan:2.3.2"
-  stage: package
+  stage: validate
   variables:
     REPORT_PATH: ./
     NVD_DB_UPDATE: "true"
   before_script: []
   script:
-    - /gitlab-depscan.sh version-manifest.json
+    - /gitlab-depscan.sh build_facts/version-manifest.json
   rules:
     - if: '$PIPELINE_TYPE == "DEPENDENCY_SCANNING_PIPELINE"'
+    - if: '$PIPELINE_TYPE == "GITLAB_MR_PIPELINE"'
   allow_failure: true
   needs:
-    - create_omnibus_manifest
+    - generate-facts
   artifacts:
     expire_in: 7 days
     when: always
@@ -690,8 +706,12 @@ validate_packer_changes:
   image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/debian_packer:${BUILDER_IMAGE_REVISION}"
   stage: check
   script:
-    - cd "${CI_PROJECT_DIR}/support/packer" && packer validate ce.json
-    - cd "${CI_PROJECT_DIR}/support/packer" && packer validate ee.json
+    - cd "${CI_PROJECT_DIR}/support/packer" && packer validate -var aws_access_key=XXX -var aws_secret_key=XXX -var download_url=XXX ce-arm64.pkr.hcl
+    - cd "${CI_PROJECT_DIR}/support/packer" && packer validate -var aws_access_key=XXX -var aws_secret_key=XXX -var download_url=XXX ce.pkr.hcl
+    - cd "${CI_PROJECT_DIR}/support/packer" && packer validate -var aws_access_key=XXX -var aws_secret_key=XXX -var download_url=XXX ee-arm64.pkr.hcl
+    - cd "${CI_PROJECT_DIR}/support/packer" && packer validate -var aws_access_key=XXX -var aws_secret_key=XXX -var download_url=XXX ee-premium.pkr.hcl
+    - cd "${CI_PROJECT_DIR}/support/packer" && packer validate -var aws_access_key=XXX -var aws_secret_key=XXX -var download_url=XXX ee-ultimate.pkr.hcl
+    - cd "${CI_PROJECT_DIR}/support/packer" && packer validate -var aws_access_key=XXX -var aws_secret_key=XXX -var download_url=XXX ee.pkr.hcl
   rules:
     - if: '$PIPELINE_TYPE == "_TEST_PIPELINE"'
       changes:

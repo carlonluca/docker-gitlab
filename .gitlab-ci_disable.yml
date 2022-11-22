@@ -39,7 +39,7 @@ variables:
   # will use images from that registry and not depend on GitLab.com
   BUILDER_IMAGE_REGISTRY: "registry.gitlab.com/gitlab-org/gitlab-omnibus-builder"
   PUBLIC_BUILDER_IMAGE_REGISTRY: "registry.gitlab.com/gitlab-org/gitlab-omnibus-builder"
-  BUILDER_IMAGE_REVISION: "3.13.0"
+  BUILDER_IMAGE_REVISION: "3.14.1"
   # The registry to pull the assets image from
   ASSET_REGISTRY: "${CI_REGISTRY}"
   ASSET_SYNC_EXISTING_REMOTE_FILES: "keep"
@@ -60,6 +60,7 @@ variables:
   QA_BRANCH: 'master'
   ISSUE_BOT_LABELS_EXTRA: "group::distribution"
   BUNDLER_VERSION: "2.3.22"
+  GET_GEO_TAG: "0.4.0"
 
 ### For services that need a docker daemon
 .docker_job: &docker_job
@@ -142,6 +143,8 @@ generate-facts:
   stage: prepare
   image: "${BUILDER_IMAGE_REGISTRY}/ruby_docker:${BUILDER_IMAGE_REVISION}"
   script:
+    - mkdir -p build_facts
+    - bundle exec omnibus manifest gitlab -l nothing 2> /dev/null > build_facts/version-manifest.json
     - bundle exec rake build:generate_facts
   artifacts:
     paths:
@@ -155,6 +158,7 @@ generate-facts:
     - if: '$PIPELINE_TYPE == "GITLAB_MR_PIPELINE"'
     - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/'
     - if: '$PIPELINE_TYPE == "DEPS_IO_VERSION_BUMP_PIPELINE"'
+    - if: '$PIPELINE_TYPE == "DEPENDENCY_SCANNING_PIPELINE"'
     - when: never
   needs: []
 
