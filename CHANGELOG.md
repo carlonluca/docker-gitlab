@@ -14,6 +14,22 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 15.6.2 (2022-12-05)
+
+### Fixed (1 change)
+
+- [gitaly: Fix migration of gitconfig with subsections](gitlab-org/omnibus-gitlab@befed8189e5148860a7b29b798c010fa73ccf535) ([merge request](gitlab-org/omnibus-gitlab!6551))
+
+## 15.6.1 (2022-11-30)
+
+### Security (5 changes)
+
+- [Update zlib to 1.2.13](gitlab-org/security/omnibus-gitlab@5389c40717adfc74e83651b967b8388a29ff0e72) ([merge request](gitlab-org/security/omnibus-gitlab!271))
+- [Bump ncurses to 6.3-20220416 to patch against CVE-2022-2945](gitlab-org/security/omnibus-gitlab@4ccefeee22f07b4d92220ea48b0fe7adb2f7e830) ([merge request](gitlab-org/security/omnibus-gitlab!272))
+- [Bump Ruby version to 2.7.6](gitlab-org/security/omnibus-gitlab@834510a82c292fd4dd366c237081a8cbdee49073) ([merge request](gitlab-org/security/omnibus-gitlab!275))
+- [Upgrade haxx/curl to 7.86.0](gitlab-org/security/omnibus-gitlab@f058f488b76609fe6fdbe973153bc5579b5cdf3e) ([merge request](gitlab-org/security/omnibus-gitlab!261))
+- [Update xmlsoft/libxml2 to version 2.10.3](gitlab-org/security/omnibus-gitlab@507c425e7f3a6c209c391fff86fabfd673a653f5) ([merge request](gitlab-org/security/omnibus-gitlab!281))
+
 ## 15.6.0 (2022-11-21)
 
 ### Fixed (3 changes)
