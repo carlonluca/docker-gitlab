@@ -14,5 +14,5 @@ docker-build:
     - docker build -t carlonluca/gitlab:"$VERSION" -t carlonluca/gitlab:latest .
     - docker push carlonluca/gitlab:"$VERSION"
     - docker push carlonluca/gitlab:latest
-  rules:
-    - when: manual
+  only:
+    - tags
