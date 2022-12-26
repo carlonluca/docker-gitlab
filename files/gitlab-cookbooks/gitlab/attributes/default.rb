@@ -278,6 +278,7 @@ default['gitlab']['gitlab-rails']['registry_path'] = nil
 default['gitlab']['gitlab-rails']['registry_issuer'] = "omnibus-gitlab-issuer"
 default['gitlab']['gitlab-rails']['registry_notification_secret'] = nil
 default['gitlab']['gitlab-rails']['impersonation_enabled'] = nil
+default['gitlab']['gitlab-rails']['disable_animations'] = false
 default['gitlab']['gitlab-rails']['application_settings_cache_seconds'] = nil
 default['gitlab']['gitlab-rails']['sentry_enabled'] = false
 default['gitlab']['gitlab-rails']['sentry_dsn'] = nil
@@ -396,6 +397,7 @@ default['gitlab']['gitlab-rails']['extra_bizible'] = false
 default['gitlab']['gitlab-rails']['extra_matomo_url'] = nil
 default['gitlab']['gitlab-rails']['extra_matomo_site_id'] = nil
 default['gitlab']['gitlab-rails']['extra_matomo_disable_cookies'] = nil
+default['gitlab']['gitlab-rails']['extra_maximum_text_highlight_size_kilobytes'] = nil
 default['gitlab']['gitlab-rails']['rack_attack_git_basic_auth'] = nil
 
 default['gitlab']['gitlab-rails']['db_adapter'] = "postgresql"
@@ -593,7 +595,7 @@ default['gitlab']['sidekiq']['health_checks_listen_port'] = 8092
 # Cluster specific settings
 default['gitlab']['sidekiq']['queue_selector'] = false
 default['gitlab']['sidekiq']['interval'] = nil
-default['gitlab']['sidekiq']['max_concurrency'] = 50
+default['gitlab']['sidekiq']['max_concurrency'] = 20
 default['gitlab']['sidekiq']['min_concurrency'] = nil
 default['gitlab']['sidekiq']['negate'] = false
 default['gitlab']['sidekiq']['queue_groups'] = ['*']

@@ -16,6 +16,8 @@ RSpec.describe 'qa', type: :rake do
     before do
       Rake::Task['qa:build'].reenable
 
+      allow(ENV).to receive(:[]).and_call_original
+      stub_is_ee(false)
       allow(Build::QA).to receive(:get_gitlab_repo).and_return(repo_path)
       allow(Build::QA).to receive(:gitlab_repo).and_return(repo_path)
       allow(Build::QAImage).to receive(:gitlab_registry_image_address).and_return(gitlab_registry_image_address)
@@ -27,7 +29,7 @@ RSpec.describe 'qa', type: :rake do
         repo_path,
         'dev.gitlab.org:5005/gitlab/omnibus-gitlab/gitlab-ce-qa',
         'latest',
-        buildargs: "{\"QA_BUILD_TARGET\":\"qa\"}",
+        buildargs: "{\"QA_BUILD_TARGET\":\"foss\"}",
         dockerfile: "qa/Dockerfile"
       )
 

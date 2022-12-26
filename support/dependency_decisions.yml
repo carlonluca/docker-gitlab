@@ -170,3 +170,17 @@
     :why: https://github.com/hashicorp/cronexpr/blob/master/APLv2
     :versions: []
     :when: 2022-10-11 04:19:36.141935786 Z
+- - :license
+  - github.com/hashicorp/golang-lru
+  - MPL2
+  - :who: Robert Marshall
+    :why: https://github.com/hashicorp/golang-lru/blob/master/LICENSE
+    :versions: []
+    :when: 2022-11-17 03:41:27.127000000 Z
+- - :license
+  - "@gitlab/fonts"
+  - OFL-1.1
+  - :who: Stan Hu
+    :why: https://gitlab.com/gitlab-org/frontend/fonts/-/blob/main/LICENSE
+    :versions: []
+    :when: 2022-12-03 05:42:00.501910000 Z

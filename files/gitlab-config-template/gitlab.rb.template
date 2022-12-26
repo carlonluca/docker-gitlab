@@ -474,6 +474,9 @@ external_url 'GENERATED_EXTERNAL_URL'
 ### Impersonation settings
 # gitlab_rails['impersonation_enabled'] = true
 
+### Disable jQuery and CSS animations
+# gitlab_rails['disable_animations'] = false
+
 ### Application settings cache expiry in seconds. (default: 60)
 # gitlab_rails['application_settings_cache_seconds'] = 60
 
@@ -558,7 +561,7 @@ external_url 'GENERATED_EXTERNAL_URL'
 # gitlab_rails['omniauth_block_auto_created_users'] = true
 # gitlab_rails['omniauth_auto_link_ldap_user'] = false
 # gitlab_rails['omniauth_auto_link_saml_user'] = false
-# gitlab_rails['omniauth_auto_link_user'] = ['saml']
+# gitlab_rails['omniauth_auto_link_user'] = ['twitter']
 # gitlab_rails['omniauth_external_providers'] = ['twitter', 'google_oauth2']
 # gitlab_rails['omniauth_allow_bypass_two_factor'] = ['google_oauth2']
 # gitlab_rails['omniauth_providers'] = [
@@ -672,6 +675,7 @@ external_url 'GENERATED_EXTERNAL_URL'
 # gitlab_rails['extra_matomo_url'] = '_your_matomo_url'
 # gitlab_rails['extra_matomo_site_id'] = '_your_matomo_site_id'
 # gitlab_rails['extra_matomo_disable_cookies'] = false
+# gitlab_rails['extra_maximum_text_highlight_size_kilobytes'] = 512
 
 ##! Docs: https://docs.gitlab.com/omnibus/settings/environment-variables.html
 # gitlab_rails['env'] = {
@@ -1057,7 +1061,7 @@ external_url 'GENERATED_EXTERNAL_URL'
 # sidekiq['shutdown_timeout'] = 4
 # sidekiq['queue_selector'] = false
 # sidekiq['interval'] = nil
-# sidekiq['max_concurrency'] = 50
+# sidekiq['max_concurrency'] = 20
 # sidekiq['min_concurrency'] = nil
 
 ##! GitLab allows route a job to a particular queue determined by an array of ##! routing rules.
@@ -2497,6 +2501,7 @@ external_url 'GENERATED_EXTERNAL_URL'
 # praefect['database_direct_sslcert'] = '/path/to/client-cert'
 # praefect['database_direct_sslkey'] = '/path/to/client-key'
 # praefect['database_direct_sslrootcert'] = '/path/to/rootcert'
+# praefect['graceful_stop_timeout'] = '1m'
 
 ##! Service name used to register Praefect as a Consul service
 # praefect['consul_service_name'] = 'praefect'

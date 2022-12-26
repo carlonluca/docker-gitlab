@@ -91,6 +91,7 @@
   rules:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE == "CE_BRANCH_BUILD_PIPELINE"'
+    - if: '$PIPELINE_TYPE == "CE_NIGHTLY_BUILD_PIPELINE"'
 
 .tag_template: &tag_build
   stage: package
@@ -239,6 +240,9 @@
   tags:
   - docker-builder
   cache: !reference [.tag-cache]
+  artifacts:
+    paths:
+      - support/packer/manifests
   needs:
     - Ubuntu-20.04
   retry: 1
@@ -326,6 +330,14 @@ OpenSUSE-15.3-branch:
   extends: .branch_template
 OpenSUSE-15.3-arm64-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.3_arm64:${BUILDER_IMAGE_REVISION}"
+  extends: .branch_template
+  tags:
+  - docker-arm-builder
+OpenSUSE-15.4-branch:
+  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.4:${BUILDER_IMAGE_REVISION}"
+  extends: .branch_template
+OpenSUSE-15.4-arm64-branch:
+  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.4_arm64:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
   tags:
   - docker-arm-builder
@@ -609,6 +621,14 @@ OpenSUSE-15.3-arm64:
   extends: .tag_template
   tags:
   - docker-arm-builder
+OpenSUSE-15.4:
+  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.4:${BUILDER_IMAGE_REVISION}"
+  extends: .tag_template
+OpenSUSE-15.4-arm64:
+  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.4_arm64:${BUILDER_IMAGE_REVISION}"
+  extends: .tag_template
+  tags:
+  - docker-arm-builder
 AmazonLinux-2:
   image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2:${BUILDER_IMAGE_REVISION}"
   extends: .tag_template
@@ -740,6 +760,20 @@ OpenSUSE-15.3-arm64-staging:
       optional: true
     - job: OpenSUSE-15.3-arm64-branch
       optional: true
+OpenSUSE-15.4-staging:
+  extends: .staging_upload_template
+  needs:
+    - job: OpenSUSE-15.4
+      optional: true
+    - job: OpenSUSE-15.4-branch
+      optional: true
+OpenSUSE-15.4-arm64-staging:
+  extends: .staging_upload_template
+  needs:
+    - job: OpenSUSE-15.4-arm64
+      optional: true
+    - job: OpenSUSE-15.4-arm64-branch
+      optional: true
 AmazonLinux-2-staging:
   extends: .staging_upload_template
   needs:
@@ -860,6 +894,14 @@ OpenSUSE-15.3-arm64-release:
   extends: .production_release_template
   needs:
     - OpenSUSE-15.3-arm64
+OpenSUSE-15.4-release:
+  extends: .production_release_template
+  needs:
+    - OpenSUSE-15.4
+OpenSUSE-15.4-arm64-release:
+  extends: .production_release_template
+  needs:
+    - OpenSUSE-15.4-arm64
 AmazonLinux-2-release:
   extends: .production_release_template
   needs:
@@ -1054,3 +1096,23 @@ check-packages:
   rules:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE =~ /_TAG_BUILD_PIPELINE$/'
+
+print-release-contents:
+  stage: package-and-image-release
+  needs:
+    - job: AWS
+      artifacts: true
+    - job: AWS-ARM64
+      artifacts: true
+    - job: AWS-Premium
+      artifacts: true
+      optional: true
+    - job: AWS-Ultimate
+      artifacts: true
+      optional: true
+  script:
+    - bundle exec release:print_details
+  allow_failure: true
+  rules:
+    - !reference [.default_rules, rules]
+    - if: '$PIPELINE_TYPE =~ /(CE|EE)_TAG_BUILD_PIPELINE$/'
