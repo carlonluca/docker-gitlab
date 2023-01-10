@@ -11,10 +11,8 @@ docker-build:
   script:
     - cd docker
     - export VERSION=$(cat lcarlon_RELEASE)
-    - docker build -t carlonluca/gitlab:"$VERSION" -t carlonluca/gitlab:latest .
-    - docker push carlonluca/gitlab:"$VERSION"
-    - docker push carlonluca/gitlab:latest
+    - docker buildx build --push --platform linux/arm64 -t carlonluca/gitlab:"$VERSION" -t carlonluca/gitlab:latest .
   tags:
-    - arm64
+    - amd64
   rules:
     - if: $CI_COMMIT_TAG =~ /^lcarlon-/
