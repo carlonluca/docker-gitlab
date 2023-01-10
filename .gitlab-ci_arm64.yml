@@ -16,3 +16,5 @@ docker-build:
     - docker push carlonluca/gitlab:latest
   only:
     - tags
+  tags:
+    - arm64
