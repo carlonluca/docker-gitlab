@@ -25,6 +25,48 @@ namespace :qa do
     end
   end
 
+  namespace :copy do
+    desc "Copy current QA image from GitLab rails registry to omnibus-gitlab registry"
+    task :staging do
+      Gitlab::Util.section('qa:copy:staging') do
+        Build::QAImage.copy_image_to_omnibus_registry(Build::Info.gitlab_version)
+        Build::QAImage.copy_image_to_omnibus_registry(Build::Info.commit_sha)
+      end
+    end
+
+    desc "Copy nightly version of gitlab-{ce,ee}-qa to Docker Hub"
+    task :nightly do
+      Gitlab::Util.section('qa:copy:nightly') do
+        Build::QAImage.copy_image_to_dockerhub('nightly') if Build::Check.is_nightly?
+      end
+    end
+
+    desc "Copy stable version of gitlab-{ce,ee}-qa to the Omnibus registry and Docker Hub"
+    task :stable do
+      Gitlab::Util.section('qa:copy:stable') do
+        # Using `Build::Info.gitlab_version` allows to have
+        # gitlab/gitlab-{ce,ee}-qa:X.Y.Z-{ce,ee} without the build number, as
+        # opposed to using something like `Build::Info.release_version`.
+        Build::QAImage.copy_image_to_omnibus_registry(Build::Info.gitlab_version)
+        Build::QAImage.copy_image_to_dockerhub(Build::Info.gitlab_version)
+      end
+    end
+
+    desc "Copy rc version of gitlab-{ce,ee}-qa to Docker Hub"
+    task :rc do
+      Gitlab::Util.section('qa:copy:rc') do
+        Build::QAImage.copy_image_to_dockerhub('rc') if Build::Check.is_latest_tag?
+      end
+    end
+
+    desc "Copy latest version of gitlab-{ce,ee}-qa to Docker Hub"
+    task :latest do
+      Gitlab::Util.section('qa:copy:latest') do
+        Build::QAImage.copy_image_to_dockerhub('latest') if Build::Check.is_latest_stable_tag?
+      end
+    end
+  end
+
   namespace :push do
     # Only runs on dev.gitlab.org
     desc "Push unstable version of gitlab-{ce,ee}-qa to the GitLab registry"
