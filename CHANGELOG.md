@@ -14,6 +14,43 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 15.8.0 (2023-01-20)
+
+### Added (1 change)
+
+- [Add secret and config for Suggested Reviewers](gitlab-org/omnibus-gitlab@ed1346d55709616e3a900348a83f9495be017aef) ([merge request](gitlab-org/omnibus-gitlab!6560))
+
+### Fixed (2 changes)
+
+- [Revert dropping of Ominbus gitconfig default values](gitlab-org/omnibus-gitlab@d89442331ab3c008e83fbf7ef3ab89e4c611bfdb) ([merge request](gitlab-org/omnibus-gitlab!6608))
+- [Update curl to 7.87.0](gitlab-org/omnibus-gitlab@c8af56ff986b149daf106341996dba220b7138ec) ([merge request](gitlab-org/omnibus-gitlab!6589))
+
+### Changed (4 changes)
+
+- [Bump PostgreSQL max connections to 500](gitlab-org/omnibus-gitlab@030d58564fe9355413eb45fcdb68a3a4b7a5050c) ([merge request](gitlab-org/omnibus-gitlab!6574))
+- [Raise an error when initial root password is too short](gitlab-org/omnibus-gitlab@edb92cba83b5aac2ec16b59e44d51109b0b4c8e7) ([merge request](gitlab-org/omnibus-gitlab!6565))
+- [Update container registry to v3.63.0-gitlab](gitlab-org/omnibus-gitlab@76400ce9c452361dbe231773accbf7d9148163c6) ([merge request](gitlab-org/omnibus-gitlab!6590))
+- [Update gitlab-org/container-registry from v3.61.0-gitlab to v3.62.0-gitlab](gitlab-org/omnibus-gitlab@a36a73c008006f28a26623f12c8151f2a80de015) ([merge request](gitlab-org/omnibus-gitlab!6570))
+
+### Deprecated (1 change)
+
+- [Deprecate openSUSE 15.3](gitlab-org/omnibus-gitlab@53e62ec7ed3caec2d12cb107e3d59990b7adf9b5) ([merge request](gitlab-org/omnibus-gitlab!6626))
+
+### Removed (2 changes)
+
+- [Drop default values for `omnibus-gitconfig`](gitlab-org/omnibus-gitlab@631d7a30000b77cb83133099d7442ac567f2e5c0) ([merge request](gitlab-org/omnibus-gitlab!6610))
+- [Drop default values for `omnibus-gitconfig`](gitlab-org/omnibus-gitlab@be451c5b7993e06c31189ab144ac1ecec9cf4746) ([merge request](gitlab-org/omnibus-gitlab!6598))
+
+### Security (2 changes)
+
+- [Bump Redis version to 6.2.8](gitlab-org/omnibus-gitlab@63bbe2646c2202292f6ff78f161ce663c91cc36c)
+- [Update logrotate to 3.20.1](gitlab-org/omnibus-gitlab@c0d6410b174d6b2aa194b4afee143c2da1c9a35e)
+
+### Other (2 changes)
+
+- [Update gpgme dependencies to match ruby-gpgme dependencies](gitlab-org/omnibus-gitlab@31e0eaf442e41608b04e022425b844d594b80ff9) ([merge request](gitlab-org/omnibus-gitlab!6557))
+- [Update Mattermost to 7.5.2](gitlab-org/omnibus-gitlab@7362352ebc6e6d274fcce076385e13395346a53f) by @akis.maziotis ([merge request](gitlab-org/omnibus-gitlab!6583))
+
 ## 15.7.5 (2023-01-12)
 
 No changes.
@@ -70,6 +107,16 @@ No changes.
 
 - [Update Mattermost to 7.5.1](gitlab-org/omnibus-gitlab@477c3f4be4fd4933f35accf422ce5528aae20fec) by @akis.maziotis ([merge request](gitlab-org/omnibus-gitlab!6526))
 
+## 15.6.6 (2023-01-12)
+
+### Security (1 change)
+
+- [Allow GIT_REPO_URL to be overridden for self managed releases [15.6]](gitlab-org/security/omnibus-gitlab@5c76abf360fa5aec6985a0e7c040fa9c3e4a30fd) ([merge request](gitlab-org/security/omnibus-gitlab!296))
+
+## 15.6.5 (2023-01-12)
+
+No changes.
+
 ## 15.6.4 (2023-01-09)
 
 ### Security (3 changes)
@@ -122,6 +169,16 @@ No changes.
 
 - [Add Puma on_worker_shutdown hook](gitlab-org/omnibus-gitlab@856617e16df2003fdb82768c17165998adbd8ddb) ([merge request](gitlab-org/omnibus-gitlab!6508))
 - [Update Mattermost to 7.4.0](gitlab-org/omnibus-gitlab@a76ed1ffac36f6ab677c2c800460284a7dc9dc97) by @akis.maziotis ([merge request](gitlab-org/omnibus-gitlab!6462))
+
+## 15.5.9 (2023-01-12)
+
+### Security (1 change)
+
+- [Allow GIT_REPO_URL to be overridden for self managed releases [15.5]](gitlab-org/security/omnibus-gitlab@04fe0d5863f2e40709c1940fe8b714150ffa1510) ([merge request](gitlab-org/security/omnibus-gitlab!295))
+
+## 15.5.8 (2023-01-12)
+
+No changes.
 
 ## 15.5.7 (2023-01-09)
 
