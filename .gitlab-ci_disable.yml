@@ -9,6 +9,7 @@ stages:
   - scan-dependencies
   - staging_upload
   - package-and-image-release
+  - qa-release
   - validate
   - metrics
   - slow_jobs
@@ -39,7 +40,7 @@ variables:
   # will use images from that registry and not depend on GitLab.com
   BUILDER_IMAGE_REGISTRY: "registry.gitlab.com/gitlab-org/gitlab-omnibus-builder"
   PUBLIC_BUILDER_IMAGE_REGISTRY: "registry.gitlab.com/gitlab-org/gitlab-omnibus-builder"
-  BUILDER_IMAGE_REVISION: "4.1.0"
+  BUILDER_IMAGE_REVISION: "4.6.0"
   # The registry to pull the assets image from
   ASSET_REGISTRY: "${CI_REGISTRY}"
   ASSET_SYNC_EXISTING_REMOTE_FILES: "keep"
@@ -61,6 +62,10 @@ variables:
   ISSUE_BOT_LABELS_EXTRA: "group::distribution"
   BUNDLER_VERSION: "2.3.22"
   GET_GEO_TAG: "0.4.0"
+  CANONICAL_PROJECT_PATH: 'gitlab-org/omnibus-gitlab'
+  SECURITY_PROJECT_PATH: 'gitlab-org/security/omnibus-gitlab'
+  DEV_PROJECT_PATH: 'gitlab/omnibus-gitlab'
+  QA_PROJECT_PATH: 'gitlab-org/build/omnibus-gitlab-mirror'
 
 ### For services that need a docker daemon
 .docker_job: &docker_job
@@ -154,7 +159,7 @@ generate-facts:
   rules:
     - if: '$PIPELINE_TYPE =~ /_BUILD_PIPELINE$/'
     - if: '$PIPELINE_TYPE == "TRIGGER_CACHE_UPDATE_PIPELINE"'
-    - if: '$PIPELINE_TYPE == "GITLAB_BRANCH_TEST_PIPELINE"'
+    - if: '$PIPELINE_TYPE =~ /_TEST_PIPELINE$/'
     - if: '$PIPELINE_TYPE == "GITLAB_MR_PIPELINE"'
     - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/'
     - if: '$PIPELINE_TYPE == "DEPS_IO_VERSION_BUMP_PIPELINE"'

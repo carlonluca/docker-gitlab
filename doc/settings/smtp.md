@@ -507,13 +507,13 @@ This configuration was tested with Sendinblue's [SMTP relay service](https://www
 ```ruby
 gitlab_rails['smtp_enable'] = true
 gitlab_rails['smtp_address'] = "smtp-relay.sendinblue.com"
-gitlab_rails['smtp_port'] = 587
-gitlab_rails['smtp_user_name'] = "<username@example.com>" # https://account.sendinblue.com/advanced/api
-gitlab_rails['smtp_password'] = "<password>"              # https://account.sendinblue.com/advanced/api
-gitlab_rails['smtp_domain'] = "<example.com>"             # https://account.sendinblue.com/senders
+gitlab_rails['smtp_port'] = 465
+gitlab_rails['smtp_user_name'] = "<username@example.com>" # https://app.sendinblue.com/settings/keys/smtp
+gitlab_rails['smtp_password'] = "<password>"              # https://app.sendinblue.com/settings/keys/smtp
+gitlab_rails['smtp_domain'] = "<example.com>"
 gitlab_rails['smtp_authentication'] = "login"
-gitlab_rails['smtp_enable_starttls_auto'] = true
-gitlab_rails['smtp_tls'] = false
+gitlab_rails['smtp_enable_starttls_auto'] = false
+gitlab_rails['smtp_tls'] = true
 gitlab_rails['gitlab_email_from'] = '<gitlab@example.com>'
 gitlab_rails['gitlab_email_reply_to'] = '<noreply@example.com>'
 ```
@@ -1345,6 +1345,12 @@ If your instance has [an external Sidekiq](https://docs.gitlab.com/ee/administra
 configured, the SMTP configuration must be present in `/etc/gitlab/gitlab.rb` on the external Sidekiq server. If
 the SMTP configuration is missing, you may notice that emails do not get sent through SMTP as many
 GitLab emails are sent via Sidekiq.
+
+### Emails not sending when using Sidekiq routing rules
+
+If you are using Sidekiq [routing rules](https://docs.gitlab.com/ee/administration/sidekiq/processing_specific_job_classes.html#routing-rules), your configuration might be missing the `mailers` queue which is required for outgoing mail. 
+
+For more details, review the [example configuration](https://docs.gitlab.com/ee/administration/sidekiq/processing_specific_job_classes.html#detailed-example).
 
 ### Email not sent
 

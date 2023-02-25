@@ -26,6 +26,20 @@ module Gitaly
       parse_git_data_dirs
       parse_gitaly_storages
       parse_gitconfig
+      parse_legacy_cgroup_variables
+    end
+
+    def parse_legacy_cgroup_variables
+      # maintain backwards compatibility with pre 15.0 Gitaly cgroups config
+      cgroups_repositories_memory_bytes = Gitlab['gitaly']['cgroups_repositories_memory_bytes'] || (Gitlab['gitaly']['cgroups_memory_limit'] if Gitlab['gitaly']['cgroups_memory_enabled'])
+      cgroups_repositories_cpu_shares = Gitlab['gitaly']['cgroups_repositories_cpu_shares'] || (Gitlab['gitaly']['cgroups_cpu_shares'] if Gitlab['gitaly']['cgroups_cpu_enabled'])
+      cgroups_repositories_count = Gitlab['gitaly']['cgroups_repositories_count'] || Gitlab['gitaly']['cgroups_count']
+      cgroups_cpu_shares = Gitlab['gitaly']['cgroups_cpu_shares'] if Gitlab['gitaly']['cgroups_repositories_count'] && cgroups_repositories_count&.positive?
+
+      Gitlab['gitaly']['cgroups_cpu_shares'] = cgroups_cpu_shares
+      Gitlab['gitaly']['cgroups_repositories_count'] = cgroups_repositories_count
+      Gitlab['gitaly']['cgroups_repositories_memory_bytes'] = cgroups_repositories_memory_bytes
+      Gitlab['gitaly']['cgroups_repositories_cpu_shares'] = cgroups_repositories_cpu_shares
     end
 
     def gitaly_address
@@ -93,7 +107,7 @@ module Gitaly
 
           raise "Invalid entry detected in omnibus_gitconfig['system']: '#{entry}' should be in the form key=value" if key.nil? || value.nil?
 
-          "#{section}.#{key.rstrip}=#{value.lstrip}"
+          "#{section}.#{key.strip}=#{value.strip}"
         end
       end
 

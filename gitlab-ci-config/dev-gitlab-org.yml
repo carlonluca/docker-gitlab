@@ -349,6 +349,14 @@ AmazonLinux-2-arm64-branch:
   extends: .branch_template
   tags:
   - docker-arm-builder
+AmazonLinux-2022-branch:
+  image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2022:${BUILDER_IMAGE_REVISION}"
+  extends: .branch_template
+AmazonLinux-2022-arm64-branch:
+  image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2022_arm64:${BUILDER_IMAGE_REVISION}"
+  extends: .branch_template
+  tags:
+  - docker-arm-builder
 SLES-12.5-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/sles_12sp5:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
@@ -408,7 +416,6 @@ QA-branch:
         bundle exec rake qa:push:staging;
       else
         bundle exec rake qa:copy:nightly;
-        bundle exec rake qa:copy:staging;
       fi
   artifacts:
     when: on_failure
@@ -454,7 +461,7 @@ RAT-Nightly:
 # This job runs only on nightly EE builds
 RAT-Nightly-FIPS:
   stage: slow_jobs
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_16.04:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/centos_8_fips:${BUILDER_IMAGE_REVISION}"
   variables:
     USE_SYSTEM_SSL: "true"
     RAT_REFERENCE_ARCHITECTURE: "omnibus-gitlab-mrs-fips"
@@ -515,13 +522,8 @@ Docker-QA:
   extends: .docker_job
   stage: image
   script:
-    # For downstream users like JiHu to retain original behavior
-    - if [ "$BUILD_GITLAB_QA_IMAGE" == "true" ]; then
-        bundle exec rake qa:build;
-        bundle exec rake qa:push:staging;
-      else
-        bundle exec rake qa:copy:staging;
-      fi
+    - bundle exec rake qa:build
+    - bundle exec rake qa:push:staging
   cache: !reference [.tag-cache]
   tags:
   - docker-builder
@@ -532,6 +534,9 @@ Docker-QA:
   retry: 1
   rules:
     - !reference [.default_rules, rules]
+    # For downstream users like JiHu to retain original behavior
+    - if: '$BUILD_GITLAB_QA_IMAGE != "true"'
+      when: never
     - if: '$PIPELINE_TYPE =~ /(_RC|_TAG)_BUILD_PIPELINE$/'
 
 ###########################################################
@@ -646,6 +651,14 @@ AmazonLinux-2:
   extends: .tag_template
 AmazonLinux-2-arm64:
   image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2_arm64:${BUILDER_IMAGE_REVISION}"
+  extends: .tag_template
+  tags:
+  - docker-arm-builder
+AmazonLinux-2022:
+  image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2022:${BUILDER_IMAGE_REVISION}"
+  extends: .tag_template
+AmazonLinux-2022-arm64:
+  image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2022_arm64:${BUILDER_IMAGE_REVISION}"
   extends: .tag_template
   tags:
   - docker-arm-builder
@@ -800,6 +813,20 @@ AmazonLinux-2-arm64-staging:
       optional: true
     - job: AmazonLinux-2-arm64-branch
       optional: true
+AmazonLinux-2022-staging:
+  extends: .staging_upload_template
+  needs:
+    - job: AmazonLinux-2022
+      optional: true
+    - job: AmazonLinux-2022-branch
+      optional: true
+AmazonLinux-2022-arm64-staging:
+  extends: .staging_upload_template
+  needs:
+    - job: AmazonLinux-2022-arm64
+      optional: true
+    - job: AmazonLinux-2022-arm64-branch
+      optional: true
 SLES-12.5-staging:
   extends: .staging_upload_template
   needs:
@@ -922,6 +949,14 @@ AmazonLinux-2-arm64-release:
   extends: .production_release_template
   needs:
     - AmazonLinux-2-arm64
+AmazonLinux-2022-release:
+  extends: .production_release_template
+  needs:
+    - AmazonLinux-2022
+AmazonLinux-2022-arm64-release:
+  extends: .production_release_template
+  needs:
+    - AmazonLinux-2022-arm64
 SLES-12.5-release:
   extends: .production_release_template
   needs:
@@ -1004,7 +1039,7 @@ AWS-Premium:
 
 QA-Tag:
   extends: .docker_job
-  stage: package-and-image-release
+  stage: qa-release
   variables:
     QA_SCREENSHOTS_DIR: $CI_PROJECT_DIR/screenshots
   script:
@@ -1018,7 +1053,6 @@ QA-Tag:
   - docker-builder
   cache: !reference [.tag-cache]
   needs:
-    - Docker-QA
     - job: generate-facts
       optional: true
       artifacts: true
@@ -1028,6 +1062,7 @@ QA-Tag:
     - !reference [.skip_release_jobs, rules]
     - if: '$PIPELINE_TYPE =~ /_(RC|TAG)_BUILD_PIPELINE$/'
       when: manual
+      allow_failure: true
 
 license-upload:
   stage: metrics

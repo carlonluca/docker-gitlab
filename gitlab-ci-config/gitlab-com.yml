@@ -295,7 +295,7 @@ rubocop:
 
 # Perform documentation linting on Markdown files
 docs-lint markdown:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.16-vale-2.20.2-markdownlint-0.32.2-markdownlint2-0.5.1
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.16-vale-2.22.0-markdownlint-0.32.2-markdownlint2-0.6.0
   stage: check
   cache: {}
   needs: []
@@ -312,7 +312,7 @@ docs-lint markdown:
 
 # Perform link checks on published HTML files
 docs-lint links:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-html:alpine-3.16-ruby-2.7.6-0088e238
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-html:alpine-3.16-ruby-3.0.5-869cfc5d
   stage: check
   cache: {}
   needs: []
@@ -402,6 +402,7 @@ Ubuntu 18.04 knapsack: !reference [.knapsack]
 Ubuntu 20.04 knapsack: !reference [.knapsack]
 Ubuntu 22.04 knapsack: !reference [.knapsack]
 AmazonLinux 2 knapsack: !reference [.knapsack]
+AmazonLinux 2022 knapsack: !reference [.knapsack]
 
 build library specs:
   image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/ubuntu_20.04-ruby:${BUILDER_IMAGE_REVISION}"
@@ -484,6 +485,13 @@ AmazonLinux 2 specs :
   parallel: 6
   needs:
   - AmazonLinux 2 knapsack
+AmazonLinux 2022 specs :
+  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/amazonlinux_2022-ruby:${BUILDER_IMAGE_REVISION}"
+  extends: .chef_spec_template
+  parallel: 6
+  needs:
+  - AmazonLinux 2022 knapsack
+
 
 update-knapsack:
   extends: .knapsack-state

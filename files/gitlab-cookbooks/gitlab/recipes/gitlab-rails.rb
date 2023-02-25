@@ -220,6 +220,18 @@ templatesymlink "Create a resque.yml and create a symlink to Rails root" do
   sensitive true
 end
 
+templatesymlink "Create an override redis.yml and create a symlink to Rails root" do
+  link_from File.join(gitlab_rails_source_dir, "config/redis.yml")
+  link_to File.join(gitlab_rails_etc_dir, "redis.yml")
+  source "redis.yml.erb"
+  owner "root"
+  group "root"
+  mode "0644"
+  variables(redis_yml: node['gitlab']['gitlab-rails']['redis_yml_override'])
+  dependent_services.each { |svc| notifies :restart, svc }
+  sensitive true
+end
+
 templatesymlink "Create a cable.yml and create a symlink to Rails root" do
   url = node['gitlab']['gitlab-rails']['redis_actioncable_instance']
   sentinels = node['gitlab']['gitlab-rails']['redis_actioncable_sentinels']
@@ -240,7 +252,7 @@ templatesymlink "Create a cable.yml and create a symlink to Rails root" do
   sensitive true
 end
 
-%w(cache queues shared_state trace_chunks rate_limiting sessions).each do |instance|
+%w(cache queues shared_state trace_chunks rate_limiting sessions repository_cache).each do |instance|
   filename = "redis.#{instance}.yml"
   url = node['gitlab']['gitlab-rails']["redis_#{instance}_instance"]
   sentinels = node['gitlab']['gitlab-rails']["redis_#{instance}_sentinels"]
@@ -256,15 +268,8 @@ end
     mode '0644'
     variables(redis_url: url, redis_sentinels: sentinels, redis_enable_client: redis_enable_client)
     dependent_services.each { |svc| notifies :restart, svc }
-    not_if { url.nil? }
     sensitive true
-  end
-
-  [from_filename, to_filename].each do |filename|
-    file filename do
-      action :delete
-      only_if { url.nil? }
-    end
+    action :delete if url.nil?
   end
 end
 
@@ -295,11 +300,11 @@ templatesymlink "Create a gitlab.yml and create a symlink to Rails root" do
       gitlab_ci_all_broken_builds: node['gitlab']['gitlab-ci']['gitlab_ci_all_broken_builds'],
       gitlab_ci_add_pusher: node['gitlab']['gitlab-ci']['gitlab_ci_add_pusher'],
       builds_directory: gitlab_ci_builds_dir,
-      pages_external_http: node['gitlab-pages']['external_http'],
-      pages_external_https: node['gitlab-pages']['external_https'],
-      pages_external_https_proxyv2: node['gitlab-pages']['external_https_proxyv2'],
-      pages_artifacts_server: node['gitlab-pages']['artifacts_server'],
-      pages_access_control: node['gitlab-pages']['access_control'],
+      pages_external_http: node['gitlab_pages']['external_http'],
+      pages_external_https: node['gitlab_pages']['external_https'],
+      pages_external_https_proxyv2: node['gitlab_pages']['external_https_proxyv2'],
+      pages_artifacts_server: node['gitlab_pages']['artifacts_server'],
+      pages_access_control: node['gitlab_pages']['access_control'],
       pages_object_store_enabled: node['gitlab']['gitlab-rails']['pages_object_store_enabled'],
       pages_object_store_remote_directory: node['gitlab']['gitlab-rails']['pages_object_store_remote_directory'],
       pages_object_store_connection: node['gitlab']['gitlab-rails']['pages_object_store_connection'],
@@ -384,9 +389,9 @@ templatesymlink "Create a gitlab_pages_secret and create a symlink to Rails root
   group 'root'
   mode "0644"
   sensitive true
-  variables(secret_token: node['gitlab-pages']['api_secret_key'])
+  variables(secret_token: node['gitlab_pages']['api_secret_key'])
   gitlab_pages_services.each { |svc| notifies :restart, svc }
-  only_if { node['gitlab-pages']['api_secret_key'] }
+  only_if { node['gitlab_pages']['api_secret_key'] }
 end
 
 gitlab_kas_services = dependent_services

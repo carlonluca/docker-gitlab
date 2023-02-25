@@ -17,6 +17,7 @@
 #
 
 require 'openssl'
+require_relative '../../package/libraries/settings_dsl.rb'
 
 # Default location of install-dir is /opt/gitlab/. This path is set during build time.
 # DO NOT change this value unless you are building your own GitLab packages
@@ -82,10 +83,7 @@ include_recipe "gitlab::web-server"
 # `account` custom resource will not create them.
 include_recipe "gitlab::users"
 
-if node['gitlab']['gitlab-rails']['enable']
-  include_recipe "gitlab::gitlab-shell"
-  include_recipe "gitlab::gitlab-rails"
-end
+include_recipe "gitlab::gitlab-rails" if node['gitlab']['gitlab-rails']['enable']
 
 include_recipe "gitlab::selinux"
 
@@ -107,6 +105,9 @@ end
 
 # Install our runit instance
 include_recipe "package::runit"
+
+# Install shell after runit so `gitlab-sshd` comes up
+include_recipe "gitlab::gitlab-shell" if node['gitlab']['gitlab-rails']['enable']
 
 # Make global sysctl commands available
 include_recipe "package::sysctl"
@@ -172,11 +173,16 @@ end
   mattermost
   gitlab-kas
   letsencrypt
-).each do |service|
-  if node[service]["enable"]
-    include_recipe "#{service}::enable"
+).each do |cookbook|
+  # `service_name` variable represents the key used to access the node
+  # attributes corresponding to the service. Will be in underscored or
+  # hyphenated form depending on whether it has been migrated to use the
+  # underscored form yet or not.
+  service_name = SettingsDSL::Utils.sanitized_key(cookbook)
+  if node[service_name]["enable"]
+    include_recipe "#{cookbook}::enable"
   else
-    include_recipe "#{service}::disable"
+    include_recipe "#{cookbook}::disable"
   end
 end
 # Configure healthcheck if we have nginx or workhorse enabled

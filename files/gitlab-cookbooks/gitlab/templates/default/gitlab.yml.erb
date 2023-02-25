@@ -191,7 +191,12 @@ production: &base
     # file path of internal `mail_room` JSON logs
     log_path: <%= @incoming_email_log_file %>
 
+    # If you are using Microsoft Graph instead of IMAP, set this to false to retain
+    # messages in the inbox since deleted messages are auto-expunged after some time.
+    delete_after_delivery: <%= @incoming_email_delete_after_delivery %>
+
     # Whether to expunge (permanently remove) messages from the mailbox when they are marked as deleted after delivery
+    # Only applies to IMAP. Microsoft Graph will auto-expunge any deleted messages.
     expunge_deleted: <%= @incoming_email_expunge_deleted %>
 
     # How mailroom delivers email content to Rails. There are two methods at the moment:
@@ -573,6 +578,12 @@ production: &base
     <% unless @ci_runner_versions_reconciliation_worker_cron.nil? %>
     ci_runner_versions_reconciliation_worker:
       cron: "<%= @ci_runner_versions_reconciliation_worker_cron %>"
+    <% end %>
+
+    # Periodically clean up stale ci_runner_machines records
+    <% unless @ci_runners_stale_machines_cleanup_worker_cron.nil? %>
+    ci_runners_stale_machines_cleanup_worker:
+      cron: "<%= @ci_runners_stale_machines_cleanup_worker_cron %>"
     <% end %>
 
     ##

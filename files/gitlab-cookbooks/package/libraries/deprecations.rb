@@ -1,5 +1,6 @@
 require_relative 'object_proxy'
 require_relative 'helpers/logging_helper'
+require_relative 'settings_dsl.rb'
 
 module Gitlab
   class Deprecations
@@ -56,7 +57,7 @@ module Gitlab
             note: 'Use client_output_buffer_limit_replica instead'
           },
           {
-            config_keys: %w(gitlab gitlab-pages http_proxy),
+            config_keys: %w(gitlab gitlab_pages http_proxy),
             deprecation: '13.1',
             removal: '14.0', # https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/6137
             note: "Set gitlab_pages['env']['http_proxy'] instead. See https://docs.gitlab.com/omnibus/settings/environment-variables.html"
@@ -116,7 +117,7 @@ module Gitlab
             note: 'The config have been renamed, use analytics_usage_trends_count_job_trigger_worker_cron option.'
           },
           {
-            config_keys: %w(gitlab-pages domain_config_source),
+            config_keys: %w(gitlab_pages domain_config_source),
             deprecation: '13.9',
             removal: '14.0', # https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/6033
             note: "Starting with GitLab 14.0, GitLab Pages only supports API-based configuration. Check https://docs.gitlab.com/ee/administration/pages/#deprecated-domain_config_source for details."
@@ -128,13 +129,13 @@ module Gitlab
             note: "The config has been deprecated. Value for this directive in NGINX configuration will be controlled by `nginx['gzip_enabled']` setting in `/etc/gitlab/gitlab.rb`."
           },
           {
-            config_keys: %w(gitlab-pages use_legacy_storage),
+            config_keys: %w(gitlab_pages use_legacy_storage),
             deprecation: '14.0',
             removal: '14.3', # https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/6166
             note: "This parameter was introduced as a temporary solution in case of unforseen problems with new storage format. It will be removed in 14.3. If you use this parameter, please comment on https://gitlab.com/gitlab-org/gitlab/-/issues/331699"
           },
           {
-            config_keys: %w(gitlab-pages daemon-inplace-chroot),
+            config_keys: %w(gitlab_pages daemon-inplace-chroot),
             deprecation: '14.4',
             removal: '15.0',
             note: "Starting with GitLab 14.3, chroot has been removed along with disk-based configuration source. Because of this, the flag is a no-op and can be removed."
@@ -330,14 +331,81 @@ module Gitlab
             deprecation: '15.5',
             removal: '16.0',
             note: "Starting with GitLab 15.5, this setting cannot be controlled via the configuration file anymore. Follow the steps at https://docs.gitlab.com/ee/user/admin_area/settings/account_and_limit_settings.html#prevent-users-from-creating-top-level-groups, to configure this setting via the Admin UI or the API"
+          },
+          {
+            config_keys: %w(gitlab sidekiq queue_selector),
+            deprecation: '15.9',
+            removal: '17.0',
+            note: "Starting with GitLab 17.0, running Sidekiq with queue selector (`sidekiq['queue_selector'] = true`) will be removed. We recommend to follow the steps at https://docs.gitlab.com/ee/administration/sidekiq/extra_sidekiq_processes.html#start-multiple-processes, to run Sidekiq with multiple processes while listening to all queues."
+          },
+          {
+            config_keys: %w(gitlab sidekiq negate),
+            deprecation: '15.9',
+            removal: '17.0',
+            note: "Starting with GitLab 17.0, running Sidekiq with negate (`sidekiq['negate'] = true`) will be removed. We recommend to follow the steps at https://docs.gitlab.com/ee/administration/sidekiq/extra_sidekiq_processes.html#start-multiple-processes, to run Sidekiq with multiple processes while listening to all queues."
           }
         ]
+
+        deprecations += praefect_legacy_configuration_deprecations
 
         deprecations += identify_deprecated_config(existing_config, ['gitlab', 'unicorn'], ['enable', 'svlogd_prefix'], "13.10", "14.0", "Starting with GitLab 14.0, Unicorn is no longer supported and users must switch to Puma, following https://docs.gitlab.com/ee/administration/operations/puma.html.")
         deprecations += identify_deprecated_config(existing_config, ['repmgr'], ['enable'], "13.3", "14.0", "Starting with GitLab 14.0, Repmgr is no longer supported and users must switch to Patroni, following https://docs.gitlab.com/ee/administration/postgresql/replication_and_failover.html#switching-from-repmgr-to-patroni.")
         deprecations += identify_deprecated_config(existing_config, ['repmgrd'], ['enable'], "13.3", "14.0", "Starting with GitLab 14.0, Repmgr is no longer supported and users must switch to Patroni, following https://docs.gitlab.com/ee/administration/postgresql/replication_and_failover.html#switching-from-repmgr-to-patroni.")
 
         deprecations
+      end
+
+      # praefect_legacy_configuration_deprecations returns deprecations of the old keys of Praefect prior to
+      # updating its configuration structure in Omnibus to match Praefect's own configuration.
+      def praefect_legacy_configuration_deprecations
+        [
+          'listen_addr',
+          'socket_path',
+          'prometheus_listen_addr',
+          'tls_listen_addr',
+          'separate_database_metrics',
+          'auth_token',
+          'auth_transitioning',
+          'logging_format',
+          'logging_level',
+          'failover_enabled',
+          'background_verification_delete_invalid_records',
+          'background_verification_verification_interval',
+          'reconciliation_scheduling_interval',
+          'reconciliation_histogram_buckets',
+          'certificate_path',
+          'key_path',
+          'database_host',
+          'database_port',
+          'database_user',
+          'database_password',
+          'database_dbname',
+          'database_sslmode',
+          'database_sslcert',
+          'database_sslkey',
+          'database_sslrootcert',
+          'database_direct_host',
+          'database_direct_port',
+          'database_direct_user',
+          'database_direct_password',
+          'database_direct_dbname',
+          'database_direct_sslmode',
+          'database_direct_sslcert',
+          'database_direct_sslkey',
+          'database_direct_sslrootcert',
+          'sentry_dsn',
+          'sentry_environment',
+          'prometheus_grpc_latency_buckets',
+          'graceful_stop_timeout',
+          'virtual_storages',
+        ].map do |key|
+          {
+            config_keys: ['praefect', key],
+            deprecation: '15.9',
+            removal: '16.0', # https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/7438
+            note: "In GitLab 15.9, Praefect's configuration in Omnibus GitLab was changed to structurally match Praefect's own configuration. Please see the migration instructions at https://docs.gitlab.com/ee/update/#1590"
+          }
+        end
       end
 
       def identify_deprecated_config(existing_config, config_keys, allowed_keys, deprecation, removal, note = nil)
@@ -401,11 +469,11 @@ module Gitlab
           config_keys = deprecation[:config_keys].dup
           config_keys.shift if ATTRIBUTE_BLOCKS.include?(config_keys[0])
           key = if config_keys.length == 1
-                  config_keys[0].tr("-", "_")
+                  SettingsDSL::Utils.underscored_form(config_keys[0])
                 elsif config_keys.first.eql?('roles')
-                  "#{config_keys[1].tr('-', '_')}_role"
+                  "#{SettingsDSL::Utils.underscored_form(config_keys[1])}_role"
                 else
-                  "#{config_keys[0].tr('-', '_')}['#{config_keys.drop(1).join("']['")}']"
+                  "#{SettingsDSL::Utils.underscored_form(config_keys[0])}['#{config_keys.drop(1).join("']['")}']"
                 end
 
           if type == :deprecation

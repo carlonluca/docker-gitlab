@@ -18,6 +18,7 @@
 require_relative 'prometheus_helper.rb'
 require_relative '../../gitlab/libraries/postgresql.rb'
 require_relative '../../gitlab/libraries/redis.rb'
+require_relative '../../package/libraries/settings_dsl.rb'
 
 require 'yaml'
 require 'json'
@@ -25,7 +26,7 @@ require 'json'
 module Prometheus
   class << self
     def services
-      Services.find_by_group('monitoring').map { |name| name.tr('_', '-') }
+      Services.find_by_group('monitoring').map { |name| SettingsDSL::Utils.sanitized_key(name) }
     end
 
     def parse_variables
@@ -93,7 +94,7 @@ module Prometheus
     end
 
     def parse_node_exporter_flags
-      default_config = Gitlab['node']['monitoring']['node-exporter'].to_hash
+      default_config = Gitlab['node']['monitoring']['node_exporter'].to_hash
       user_config = Gitlab['node_exporter']
       runit_config = Gitlab['node']['runit'].to_hash
 
@@ -468,7 +469,8 @@ module Prometheus
           'consul_sd_configs' => [{ 'services' => ["#{exporter}-exporter"] }]
         }
       else
-        default_config = Gitlab['node']['monitoring']["#{exporter}-exporter"].to_hash
+        node_attribute_key = SettingsDSL::Utils.sanitized_key("#{exporter}-exporter")
+        default_config = Gitlab['node']['monitoring'][node_attribute_key].to_hash
         user_config = Gitlab["#{exporter}_exporter"]
 
         listen_address = user_config['listen_address'] || default_config['listen_address']

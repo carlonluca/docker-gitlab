@@ -4,7 +4,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
   using RSpec::Parameterized::TableSyntax
 
   let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(templatesymlink runit_service)).converge('gitlab::default') }
-  let(:redis_instances) { %w(cache queues shared_state trace_chunks rate_limiting sessions) }
+  let(:redis_instances) { %w(cache queues shared_state trace_chunks rate_limiting sessions repository_cache) }
   let(:config_dir) { '/var/opt/gitlab/gitlab-rails/etc/' }
   let(:default_vars) do
     {
@@ -255,7 +255,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
 
       it 'deletes the separate instance config files' do
         redis_instances.each do |instance|
-          expect(chef_run).to delete_file("/opt/gitlab/embedded/service/gitlab-rails/config/redis.#{instance}.yml")
+          expect(chef_run).to delete_link("/opt/gitlab/embedded/service/gitlab-rails/config/redis.#{instance}.yml")
           expect(chef_run).to delete_file("/var/opt/gitlab/gitlab-rails/etc/redis.#{instance}.yml")
         end
       end
@@ -344,7 +344,12 @@ RSpec.describe 'gitlab::gitlab-rails' do
             redis_actioncable_sentinels: [
               { host: 'actioncable', port: '1234' },
               { host: 'actioncable', port: '3456' }
-            ]
+            ],
+            redis_repository_cache_instance: "redis://:fakepass@fake.redis.repository_cache.com:8888/2",
+            redis_repository_cache_sentinels: [
+              { host: 'repository_cache', port: '1234' },
+              { host: 'repository_cache', port: '3456' }
+            ],
           }
         )
       end
@@ -372,6 +377,42 @@ RSpec.describe 'gitlab::gitlab-rails' do
             redis_enable_client: false
           )
         )
+      end
+    end
+
+    context 'redis.yml override' do
+      let(:redis_yml_file_path) { '/var/opt/gitlab/gitlab-rails/etc/redis.yml' }
+      let(:redis_yml_link_path) { '/opt/gitlab/embedded/service/gitlab-rails/config/redis.yml' }
+
+      it 'renders empty redis.yml' do
+        expect(chef_run).to create_link(redis_yml_link_path).with(to: redis_yml_file_path)
+        expect(chef_run).to render_file(redis_yml_file_path).with_content { |content|
+          expect(content.strip).to eq('')
+        }
+      end
+
+      context 'when configured' do
+        let(:redis_yml_hash) do
+          {
+            'foo' => 'bar',
+            'baz' => [1, 2, 3],
+            'deeply' => { 'nested' => 'value' }
+          }
+        end
+
+        before do
+          stub_gitlab_rb(
+            gitlab_rails: { redis_yml_override: redis_yml_hash }
+          )
+        end
+
+        it 'renders redis.yml' do
+          expect(chef_run).to create_link(redis_yml_link_path).with(to: redis_yml_file_path)
+          expect(chef_run).to render_file(redis_yml_file_path).with_content { |content|
+            actual = YAML.safe_load(content)
+            expect(actual).to eq({ 'production' => redis_yml_hash })
+          }
+        end
       end
     end
   end
@@ -1113,25 +1154,6 @@ RSpec.describe 'gitlab::gitlab-rails' do
           expect(content).to include('ActionMailer::Base.delivery_method = :smtp_pool')
         }
       end
-    end
-  end
-
-  describe 'logrotate settings' do
-    context 'default values' do
-      it_behaves_like 'configured logrotate service', 'gitlab-pages', 'git', 'git'
-    end
-
-    context 'specified username and group' do
-      before do
-        stub_gitlab_rb(
-          user: {
-            username: 'foo',
-            group: 'bar'
-          }
-        )
-      end
-
-      it_behaves_like 'configured logrotate service', 'gitlab-pages', 'foo', 'bar'
     end
   end
 

@@ -19,8 +19,9 @@ module Build
           'ref' => 'master',
           'token' => Gitlab::Util.get_env('RAT_TRIGGER_TOKEN'),
           'variables[REFERENCE_ARCHITECTURE]' => 'omnibus-gitlab-mrs',
-          'variables[PACKAGE_URL]' => Gitlab::Util.get_env('PACKAGE_URL') || Build::Info.deb_package_download_url,
-          'variables[QA_IMAGE]' => Gitlab::Util.get_env('QA_IMAGE') || image || "dev.gitlab.org:5005/gitlab/omnibus-gitlab/gitlab-ee-qa:#{version.partition(/\.\d+$/).first}"
+          'variables[PRE_RELEASE]' => "true",
+          'variables[PACKAGE_VERSION]' => Build::Info.name_version,
+          'variables[QA_IMAGE]' => Gitlab::Util.get_env('QA_IMAGE') || image || "dev.gitlab.org:5005/gitlab/gitlab-ee/gitlab-ee-qa:#{version.partition(/\.\d+$/).first}"
         }
       end
 
@@ -30,7 +31,7 @@ module Build
 
       def self.get_access_token
         # Default to "Multi-pipeline (from 'dev/gitlab/omnibus-gitlab' 'RAT-*' jobs)" at https://gitlab.com/gitlab-org/distribution/reference-architecture-tester/-/settings/access_tokens
-        Gitlab::Util.get_env('RAT_PROJECT_ACCESS_TOKEN') || Gitlab::Util.get_env('GITLAB_BOT_MULTI_PROJECT_PIPELINE_POLLING_TOKEN')
+        Gitlab::Util.get_env('RAT_PROJECT_ACCESS_TOKEN')
       end
     end
   end

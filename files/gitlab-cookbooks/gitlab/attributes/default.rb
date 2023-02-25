@@ -144,6 +144,7 @@ default['gitlab']['gitlab-rails']['incoming_email_password'] = nil
 default['gitlab']['gitlab-rails']['incoming_email_mailbox_name'] = "inbox"
 default['gitlab']['gitlab-rails']['incoming_email_idle_timeout'] = nil
 default['gitlab']['gitlab-rails']['incoming_email_log_file'] = "/var/log/gitlab/mailroom/mail_room_json.log" # file path of internal `mail_room` JSON logs
+default['gitlab']['gitlab-rails']['incoming_email_delete_after_delivery'] = true
 default['gitlab']['gitlab-rails']['incoming_email_expunge_deleted'] = nil
 default['gitlab']['gitlab-rails']['incoming_email_inbox_method'] = "imap"
 default['gitlab']['gitlab-rails']['incoming_email_inbox_options'] = nil
@@ -172,6 +173,7 @@ default['gitlab']['gitlab-rails']['ssh_keys_expiring_soon_notification_worker_cr
 
 default['gitlab']['gitlab-rails']['ci_runners_stale_group_runners_prune_worker_cron'] = nil
 default['gitlab']['gitlab-rails']['ci_runner_versions_reconciliation_worker_cron'] = nil
+default['gitlab']['gitlab-rails']['ci_runners_stale_machines_cleanup_worker_cron'] = nil
 
 # Consolidated object storage config
 default['gitlab']['gitlab-rails']['object_store']['enabled'] = false
@@ -450,6 +452,9 @@ default['gitlab']['gitlab-rails']['redis_rate_limiting_instance'] = nil
 default['gitlab']['gitlab-rails']['redis_rate_limiting_sentinels'] = []
 default['gitlab']['gitlab-rails']['redis_sessions_instance'] = nil
 default['gitlab']['gitlab-rails']['redis_sessions_sentinels'] = []
+default['gitlab']['gitlab-rails']['redis_repository_cache_instance'] = nil
+default['gitlab']['gitlab-rails']['redis_repository_cache_sentinels'] = []
+default['gitlab']['gitlab-rails']['redis_yml_override'] = nil
 
 default['gitlab']['gitlab-rails']['smtp_enable'] = false
 default['gitlab']['gitlab-rails']['smtp_address'] = nil
@@ -608,6 +613,33 @@ default['gitlab']['gitlab-shell']['ssl_cert_dir'] = "#{node['package']['install-
 default['gitlab']['gitlab-shell']['git_data_directories'] = {
   "default" => { "path" => "/var/opt/gitlab/git-data" }
 }
+
+###
+# gitlab-sshd
+###
+default['gitlab']['gitlab_sshd']['enable'] = false
+default['gitlab']['gitlab_sshd']['generate_host_keys'] = true
+default['gitlab']['gitlab_sshd']['dir'] = "/var/opt/gitlab/gitlab-sshd"
+# gitlab-sshd outputs most logs to /var/log/gitlab/gitlab-shell/gitlab-shell.log.
+# This directory only stores any stdout/stderr output from the daemon.
+default['gitlab']['gitlab_sshd']['log_directory'] = "/var/log/gitlab/gitlab-sshd/"
+default['gitlab']['gitlab_sshd']['env_directory'] = '/opt/gitlab/etc/gitlab-sshd/env'
+default['gitlab']['gitlab_sshd']['listen_address'] = 'localhost:2222'
+default['gitlab']['gitlab_sshd']['metrics_address'] = 'localhost:9122'
+default['gitlab']['gitlab_sshd']['concurrent_sessions_limit'] = 100
+default['gitlab']['gitlab_sshd']['proxy_protocol'] = false
+default['gitlab']['gitlab_sshd']['proxy_policy'] = 'use'
+default['gitlab']['gitlab_sshd']['proxy_header_timeout'] = '500ms'
+default['gitlab']['gitlab_sshd']['grace_period'] = 55
+default['gitlab']['gitlab_sshd']['client_alive_interval'] = nil
+default['gitlab']['gitlab_sshd']['ciphers'] = nil
+default['gitlab']['gitlab_sshd']['kex_algorithms'] = nil
+default['gitlab']['gitlab_sshd']['macs'] = nil
+default['gitlab']['gitlab_sshd']['login_grace_time'] = 60
+default['gitlab']['gitlab_sshd']['host_keys_dir'] = '/var/opt/gitlab/gitlab-sshd'
+default['gitlab']['gitlab_sshd']['host_keys_glob'] = 'ssh_host_*_key'
+default['gitlab']['gitlab_sshd']['host_certs_dir'] = '/var/opt/gitlab/gitlab-sshd'
+default['gitlab']['gitlab_sshd']['host_certs_glob'] = 'ssh_host_*-cert.pub'
 
 ####
 # Web server

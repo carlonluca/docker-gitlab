@@ -15,23 +15,19 @@ module Build
       end
 
       def self.get_params(image: nil)
-        package_url = if Build::Check.use_system_ssl?
-                        Build::Info.rpm_package_download_url
-                      else
-                        Build::Info.deb_package_download_url
-                      end
         {
           'ref' => 'master',
           'token' => Gitlab::Util.get_env('RAT_TRIGGER_TOKEN'),
           'variables[REFERENCE_ARCHITECTURE]' => Gitlab::Util.get_env('RAT_REFERENCE_ARCHITECTURE') || 'omnibus-gitlab-mrs',
-          'variables[PACKAGE_URL]' => Gitlab::Util.get_env('PACKAGE_URL') || package_url,
+          'variables[NIGHTLY]' => "true",
+          'variables[PACKAGE_VERSION]' => Build::Info.name_version,
           'variables[QA_IMAGE]' => Gitlab::Util.get_env('QA_IMAGE') || image || 'gitlab/gitlab-ee-qa:nightly'
         }
       end
 
       def self.get_access_token
         # Default to "Multi-pipeline (from 'dev/gitlab/omnibus-gitlab' 'RAT-*' jobs)" at https://gitlab.com/gitlab-org/distribution/reference-architecture-tester/-/settings/access_tokens
-        Gitlab::Util.get_env('RAT_PROJECT_ACCESS_TOKEN') || Gitlab::Util.get_env('GITLAB_BOT_MULTI_PROJECT_PIPELINE_POLLING_TOKEN')
+        Gitlab::Util.get_env('RAT_PROJECT_ACCESS_TOKEN')
       end
     end
   end
