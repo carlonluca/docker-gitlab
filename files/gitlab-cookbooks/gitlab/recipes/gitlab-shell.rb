@@ -22,10 +22,10 @@ sshd_helper = GitlabSshdHelper.new(node)
 git_user = account_helper.gitlab_user
 git_group = account_helper.gitlab_group
 gitlab_shell_dir = "/opt/gitlab/embedded/service/gitlab-shell"
-gitlab_shell_var_dir = node['gitlab']['gitlab-shell']['dir']
+gitlab_shell_var_dir = node['gitlab']['gitlab_shell']['dir']
 ssh_dir = File.join(node['gitlab']['user']['home'], ".ssh")
-authorized_keys = node['gitlab']['gitlab-shell']['auth_file']
-log_directory = node['gitlab']['gitlab-shell']['log_directory']
+authorized_keys = node['gitlab']['gitlab_shell']['auth_file']
+log_directory = node['gitlab']['gitlab_shell']['log_directory']
 gitlab_shell_config_file = File.join(gitlab_shell_var_dir, "config.yml")
 
 gitlab_sshd_enabled = Services.enabled?('gitlab_sshd')
@@ -65,7 +65,6 @@ end
 
 gitlab_url, gitlab_relative_path = WebServerHelper.internal_api_url(node)
 ssh_key_path = File.join(gitlab_sshd_host_key_dir, '/etc/ssh')
-ssh_key_glob = File.join(ssh_key_path, 'ssh_host_*_key')
 
 bash 'generate gitlab-sshd host keys' do
   action
@@ -73,10 +72,27 @@ bash 'generate gitlab-sshd host keys' do
   code <<~EOS
     set -e
     mkdir -p #{ssh_key_path}
-    ssh-keygen -A -f #{gitlab_sshd_host_key_dir}
-    chmod 0600 #{ssh_key_glob}
-    chown #{git_user}:#{git_group} #{ssh_key_glob}
-    mv #{ssh_key_glob} #{gitlab_sshd_host_key_dir}
+    success=0
+    for crypto in rsa ecdsa ed25519
+    do
+        filename="#{gitlab_sshd_host_key_dir}/ssh_host_${crypto}_key"
+        echo "Generating ${filename}..."
+        # Some keys may not be supported on FIPS-enabled systems, so skip over them.
+        ssh-keygen -q -N "" -t ${crypto} -f "${filename}" < /dev/null || true
+
+        if [[ -f "${filename}" ]]; then
+          success=1
+          chmod 0600 "${filename}"
+          chown #{git_user}:#{git_group} "${filename}"
+        else
+          echo "${filename} was not generated"
+        fi
+    done
+
+    if [[ ${success} -ne 1 ]]; then
+        echo "Failed to generate any keys, aborting."
+        exit 1
+    fi
   EOS
 end
 
@@ -100,13 +116,13 @@ templatesymlink "Create a config.yml and create a symlink to Rails root" do
         authorized_keys: authorized_keys,
         secret_file: gitlab_shell_secret_file,
         log_file: File.join(log_directory, "gitlab-shell.log"),
-        log_level: node['gitlab']['gitlab-shell']['log_level'],
-        log_format: node['gitlab']['gitlab-shell']['log_format'],
-        audit_usernames: node['gitlab']['gitlab-shell']['audit_usernames'],
-        http_settings: node['gitlab']['gitlab-shell']['http_settings'],
-        git_trace_log_file: node['gitlab']['gitlab-shell']['git_trace_log_file'],
-        migration: node['gitlab']['gitlab-shell']['migration'],
-        ssl_cert_dir: node['gitlab']['gitlab-shell']['ssl_cert_dir'],
+        log_level: node['gitlab']['gitlab_shell']['log_level'],
+        log_format: node['gitlab']['gitlab_shell']['log_format'],
+        audit_usernames: node['gitlab']['gitlab_shell']['audit_usernames'],
+        http_settings: node['gitlab']['gitlab_shell']['http_settings'],
+        git_trace_log_file: node['gitlab']['gitlab_shell']['git_trace_log_file'],
+        migration: node['gitlab']['gitlab_shell']['migration'],
+        ssl_cert_dir: node['gitlab']['gitlab_shell']['ssl_cert_dir'],
         gitlab_sshd: gitlab_sshd_enabled ? sshd_helper.json_config : nil
       }
     end

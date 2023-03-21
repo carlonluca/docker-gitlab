@@ -9,9 +9,9 @@ RSpec.describe Prometheus do
                                                  alertmanager
                                                  grafana
                                                  node_exporter
-                                                 redis-exporter
-                                                 postgres-exporter
-                                                 gitlab-exporter
+                                                 redis_exporter
+                                                 postgres_exporter
+                                                 gitlab_exporter
                                                ))
   end
 end

@@ -22,12 +22,37 @@ license_file 'LEGAL'
 
 skip_transitive_dependency_licensing true
 
-if Gitlab::Util.get_env('RUBY3_BUILD') == 'true'
-  default_version '3.0.5'
+# Follow the Ruby upgrade guide when changing the ruby version
+# link: https://docs.gitlab.com/ee/development/ruby_upgrade.html
+current_ruby_version = '3.0.5'
+
+# NOTE: When this value is updated, flip `USE_NEXT_RUBY_VERSION_IN_*` variable
+# to false to avoid surprises.
+next_ruby_version = Gitlab::Util.get_env('NEXT_RUBY_VERSION') || '3.0.5'
+
+# MRs targeting stable branches should use current Ruby version and ignore next
+# Ruby version. Also, we provide `USE_OLD_RUBY_VERSION` variable to force usage
+# of current Ruby version.
+if Gitlab::Util.get_env('RUBY2_BUILD') == "true" || Gitlab::Util.get_env('USE_OLD_RUBY_VERSION') == "true" || Gitlab::Util.get_env('CI_MERGE_REQUEST_TARGET_BRANCH_NAME')&.match?(/^\d+-\d+-stable$/)
+  default_version current_ruby_version
+# Regular branch builds are switched to newer Ruby version first. So once the
+# `NEXT_RUBY_VERSION` variable is updated, regular branches (master and feature
+# branches) start bundling that version of Ruby. Because nightlies are also
+# technically regular branch builds and because they get auto-deployed to
+# dev.gitlab.org, we provide a variable `USE_NEXT_RUBY_VERSION_IN_NIGHTLY` to
+# control it.
+elsif (Build::Check.on_regular_branch? && !Build::Check.is_nightly?) || (Build::Check.is_nightly? && Gitlab::Util.get_env('USE_NEXT_RUBY_VERSION_IN_NIGHTLY') == "true")
+  default_version next_ruby_version
+# Once feature branches and nightlies have switched to newer Ruby version and
+# we are ready to switch auto-deploy releases to GitLab.com to the new
+# version, flipe the `USE_NEXT_RUBY_VERSION_IN_AUTODEPLOY` to `true`
+elsif Build::Check.is_auto_deploy_tag? && Gitlab::Util.get_env('USE_NEXT_RUBY_VERSION_IN_AUTODEPLOY') == "true"
+  default_version next_ruby_version
+# Once we see new Ruby version running fine in GitLab.com, set new Ruby version
+# as `current_ruby_version` so that they get used in stable branches and tag
+# builds. This change marks "Switch Ruby to new version" as complete.
 else
-  # Follow the Ruby upgrade guidelines when changing the ruby version
-  # link: https://docs.gitlab.com/ee/development/ruby_upgrade.html
-  default_version '2.7.7'
+  default_version current_ruby_version
 end
 
 fips_enabled = Build::Check.use_system_ssl?

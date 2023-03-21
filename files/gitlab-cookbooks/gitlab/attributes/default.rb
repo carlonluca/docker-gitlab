@@ -346,6 +346,11 @@ default['gitlab']['gitlab-rails']['forti_authenticator_port'] = 443
 default['gitlab']['gitlab-rails']['forti_authenticator_username'] = nil
 default['gitlab']['gitlab-rails']['forti_authenticator_access_token'] = nil
 
+default['gitlab']['gitlab-rails']['duo_auth_enabled'] = false
+default['gitlab']['gitlab-rails']['duo_auth_integration_key'] = nil
+default['gitlab']['gitlab-rails']['duo_auth_secret_key'] = nil
+default['gitlab']['gitlab-rails']['duo_auth_hostname'] = nil
+
 default['gitlab']['gitlab-rails']['forti_token_cloud_enabled'] = false
 default['gitlab']['gitlab-rails']['forti_token_cloud_client_id'] = nil
 default['gitlab']['gitlab-rails']['forti_token_cloud_client_secret'] = nil
@@ -440,20 +445,50 @@ default['gitlab']['gitlab-rails']['redis_enable_client'] = true
 default['gitlab']['gitlab-rails']['redis_sentinels'] = []
 default['gitlab']['gitlab-rails']['redis_cache_instance'] = nil
 default['gitlab']['gitlab-rails']['redis_cache_sentinels'] = []
+default['gitlab']['gitlab-rails']['redis_cache_username'] = nil
+default['gitlab']['gitlab-rails']['redis_cache_password'] = nil
+default['gitlab']['gitlab-rails']['redis_cache_cluster_nodes'] = []
 default['gitlab']['gitlab-rails']['redis_queues_instance'] = nil
+default['gitlab']['gitlab-rails']['redis_queues_username'] = nil
+default['gitlab']['gitlab-rails']['redis_queues_password'] = nil
 default['gitlab']['gitlab-rails']['redis_queues_sentinels'] = []
+default['gitlab']['gitlab-rails']['redis_queues_cluster_nodes'] = []
 default['gitlab']['gitlab-rails']['redis_shared_state_instance'] = nil
 default['gitlab']['gitlab-rails']['redis_shared_state_sentinels'] = []
+default['gitlab']['gitlab-rails']['redis_shared_state_username'] = nil
+default['gitlab']['gitlab-rails']['redis_shared_state_password'] = nil
+default['gitlab']['gitlab-rails']['redis_shared_state_cluster_nodes'] = []
 default['gitlab']['gitlab-rails']['redis_trace_chunks_instance'] = nil
 default['gitlab']['gitlab-rails']['redis_trace_chunks_sentinels'] = []
+default['gitlab']['gitlab-rails']['redis_trace_chunks_username'] = nil
+default['gitlab']['gitlab-rails']['redis_trace_chunks_password'] = nil
+default['gitlab']['gitlab-rails']['redis_trace_chunks_cluster_nodes'] = []
 default['gitlab']['gitlab-rails']['redis_actioncable_instance'] = nil
 default['gitlab']['gitlab-rails']['redis_actioncable_sentinels'] = []
+default['gitlab']['gitlab-rails']['redis_actioncable_username'] = nil
+default['gitlab']['gitlab-rails']['redis_actioncable_password'] = nil
+default['gitlab']['gitlab-rails']['redis_actioncable_cluster_nodes'] = []
 default['gitlab']['gitlab-rails']['redis_rate_limiting_instance'] = nil
 default['gitlab']['gitlab-rails']['redis_rate_limiting_sentinels'] = []
+default['gitlab']['gitlab-rails']['redis_rate_limiting_username'] = nil
+default['gitlab']['gitlab-rails']['redis_rate_limiting_password'] = nil
+default['gitlab']['gitlab-rails']['redis_rate_limiting_cluster_nodes'] = []
 default['gitlab']['gitlab-rails']['redis_sessions_instance'] = nil
 default['gitlab']['gitlab-rails']['redis_sessions_sentinels'] = []
+default['gitlab']['gitlab-rails']['redis_sessions_username'] = nil
+default['gitlab']['gitlab-rails']['redis_sessions_password'] = nil
+default['gitlab']['gitlab-rails']['redis_sessions_cluster_nodes'] = []
 default['gitlab']['gitlab-rails']['redis_repository_cache_instance'] = nil
 default['gitlab']['gitlab-rails']['redis_repository_cache_sentinels'] = []
+default['gitlab']['gitlab-rails']['redis_repository_cache_username'] = nil
+default['gitlab']['gitlab-rails']['redis_repository_cache_password'] = nil
+default['gitlab']['gitlab-rails']['redis_repository_cache_cluster_nodes'] = []
+default['gitlab']['gitlab-rails']['redis_cluster_rate_limiting_instance'] = nil
+default['gitlab']['gitlab-rails']['redis_cluster_rate_limiting_sentinels'] = []
+default['gitlab']['gitlab-rails']['redis_cluster_rate_limiting_username'] = nil
+default['gitlab']['gitlab-rails']['redis_cluster_rate_limiting_password'] = nil
+default['gitlab']['gitlab-rails']['redis_cluster_rate_limiting_cluster_nodes'] = []
+
 default['gitlab']['gitlab-rails']['redis_yml_override'] = nil
 
 default['gitlab']['gitlab-rails']['smtp_enable'] = false
@@ -599,18 +634,18 @@ default['gitlab']['sidekiq']['consul_service_meta'] = nil
 ###
 # gitlab-shell
 ###
-default['gitlab']['gitlab-shell']['dir'] = "/var/opt/gitlab/gitlab-shell"
-default['gitlab']['gitlab-shell']['log_directory'] = "/var/log/gitlab/gitlab-shell/"
-default['gitlab']['gitlab-shell']['log_level'] = nil
-default['gitlab']['gitlab-shell']['log_format'] = "json"
-default['gitlab']['gitlab-shell']['audit_usernames'] = nil
-default['gitlab']['gitlab-shell']['http_settings'] = nil
-default['gitlab']['gitlab-shell']['auth_file'] = nil
-default['gitlab']['gitlab-shell']['git_trace_log_file'] = nil
-default['gitlab']['gitlab-shell']['migration'] = { enabled: true, features: [] }
-default['gitlab']['gitlab-shell']['ssl_cert_dir'] = "#{node['package']['install-dir']}/embedded/ssl/certs/"
+default['gitlab']['gitlab_shell']['dir'] = "/var/opt/gitlab/gitlab-shell"
+default['gitlab']['gitlab_shell']['log_directory'] = "/var/log/gitlab/gitlab-shell/"
+default['gitlab']['gitlab_shell']['log_level'] = nil
+default['gitlab']['gitlab_shell']['log_format'] = "json"
+default['gitlab']['gitlab_shell']['audit_usernames'] = nil
+default['gitlab']['gitlab_shell']['http_settings'] = nil
+default['gitlab']['gitlab_shell']['auth_file'] = nil
+default['gitlab']['gitlab_shell']['git_trace_log_file'] = nil
+default['gitlab']['gitlab_shell']['migration'] = { enabled: true, features: [] }
+default['gitlab']['gitlab_shell']['ssl_cert_dir'] = "#{node['package']['install-dir']}/embedded/ssl/certs/"
 # DEPRECATED! Not used by gitlab-shell
-default['gitlab']['gitlab-shell']['git_data_directories'] = {
+default['gitlab']['gitlab_shell']['git_data_directories'] = {
   "default" => { "path" => "/var/opt/gitlab/git-data" }
 }
 
@@ -819,13 +854,13 @@ default['gitlab']['logging']['logrotate_dateformat'] = nil # use date extensions
 ###
 # Remote syslog
 ###
-default['gitlab']['remote-syslog']['enable'] = false
-default['gitlab']['remote-syslog']['ha'] = false
-default['gitlab']['remote-syslog']['dir'] = "/var/opt/gitlab/remote-syslog"
-default['gitlab']['remote-syslog']['log_directory'] = "/var/log/gitlab/remote-syslog"
-default['gitlab']['remote-syslog']['destination_host'] = "localhost"
-default['gitlab']['remote-syslog']['destination_port'] = 514
-default['gitlab']['remote-syslog']['services'] = %w(redis nginx puma gitlab-rails gitlab-shell postgresql sidekiq gitlab-workhorse gitlab-pages praefect gitlab-kas)
+default['gitlab']['remote_syslog']['enable'] = false
+default['gitlab']['remote_syslog']['ha'] = false
+default['gitlab']['remote_syslog']['dir'] = "/var/opt/gitlab/remote-syslog"
+default['gitlab']['remote_syslog']['log_directory'] = "/var/log/gitlab/remote-syslog"
+default['gitlab']['remote_syslog']['destination_host'] = "localhost"
+default['gitlab']['remote_syslog']['destination_port'] = 514
+default['gitlab']['remote_syslog']['services'] = %w(redis nginx puma gitlab-rails gitlab-shell postgresql sidekiq gitlab-workhorse gitlab-pages praefect gitlab-kas)
 
 ###
 # High Availability
@@ -886,8 +921,31 @@ default['gitlab']['registry-nginx']['proxy_set_headers'] = {
 }
 
 ####
+# GitLab KAS NGINX
+####
+default['gitlab']['gitlab-kas-nginx'] = default['gitlab']['nginx'].dup
+default['gitlab']['gitlab-kas-nginx']['enable'] = false
+default['gitlab']['gitlab-kas-nginx']['https'] = false
+default['gitlab']['gitlab-kas-nginx']['port'] = 80
+default['gitlab']['gitlab-kas-nginx']['host'] = "kas.gitlab.example.com"
+default['gitlab']['gitlab-kas-nginx']['proxy_set_headers'] = {
+  "Host" => "$http_host",
+  "Upgrade" => "$http_upgrade",
+  "Connection" => "$connection_upgrade",
+  "X-Real-IP" => "$remote_addr",
+  "X-Forwarded-For" => "$remote_addr",
+  "X-Forwarded-Proto" => "$scheme",
+  "X-Forwarded-Scheme" => "$scheme",
+  "X-Scheme" => "$scheme",
+  "X-Original-Forwarded-For" => "$http_x_forwarded_for"
+}
+
+####
 # Storage check
 ####
 default['gitlab']['storage-check']['enable'] = false
 default['gitlab']['storage-check']['target'] = nil
 default['gitlab']['storage-check']['log_directory'] = '/var/log/gitlab/storage-check'
+
+default['gitlab']['gitlab-shell'] = Gitlab::Deprecations::NodeAttribute.new(proc { node['gitlab']['gitlab_shell'].to_h }, "node['gitlab']['gitlab-shell']", "node['gitlab']['gitlab_shell']")
+default['gitlab']['remote-syslog'] = Gitlab::Deprecations::NodeAttribute.new(proc { node['gitlab']['remote_syslog'].to_h }, "node['gitlab']['remote-syslog']", "node['gitlab']['remote_syslog']")

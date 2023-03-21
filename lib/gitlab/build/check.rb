@@ -76,8 +76,16 @@ module Build
         system('git describe --exact-match > /dev/null 2>&1')
       end
 
+      def on_regular_tag?
+        on_tag? && !is_auto_deploy_tag?
+      end
+
       def on_stable_branch?
         Build::Info.branch_name&.match?(/^\d+-\d+-stable$/)
+      end
+
+      def on_regular_branch?
+        Build::Info.branch_name && !on_stable_branch?
       end
     end
   end

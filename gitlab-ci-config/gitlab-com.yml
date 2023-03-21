@@ -295,7 +295,7 @@ rubocop:
 
 # Perform documentation linting on Markdown files
 docs-lint markdown:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.16-vale-2.22.0-markdownlint-0.32.2-markdownlint2-0.6.0
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.17-vale-2.24.0-markdownlint-0.33.0-markdownlint2-0.6.0
   stage: check
   cache: {}
   needs: []
@@ -312,7 +312,7 @@ docs-lint markdown:
 
 # Perform link checks on published HTML files
 docs-lint links:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-html:alpine-3.16-ruby-3.0.5-869cfc5d
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-html:alpine-3.17-ruby-3.2.1-f53af000
   stage: check
   cache: {}
   needs: []
@@ -730,6 +730,8 @@ pages:
     - yard
   script:
     - bundle exec rake license:generate_pages
+    # Remove "|| true" after we confirm this works.
+    - bundle exec rake manifest:generate_pages || true
     - mv ${LICENSE_S3_BUCKET} public
     - cp support/webpages/* public
     - cp -R yard/* public

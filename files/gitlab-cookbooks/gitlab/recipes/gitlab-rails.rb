@@ -19,6 +19,7 @@ account_helper = AccountHelper.new(node)
 omnibus_helper = OmnibusHelper.new(node)
 consul_helper = ConsulHelper.new(node)
 mailroom_helper = MailroomHelper.new(node)
+redis_helper = RedisHelper.new(node)
 
 gitlab_rails_source_dir = "/opt/gitlab/embedded/service/gitlab-rails"
 gitlab_rails_dir = node['gitlab']['gitlab-rails']['dir']
@@ -185,7 +186,7 @@ templatesymlink "Create a database.yml and create a symlink to Rails root" do
   sensitive true
 end
 
-redis_url = RedisHelper.new(node).redis_url
+redis_url = redis_helper.redis_url
 redis_sentinels = node['gitlab']['gitlab-rails']['redis_sentinels']
 redis_enable_client = node['gitlab']['gitlab-rails']['redis_enable_client']
 
@@ -252,12 +253,17 @@ templatesymlink "Create a cable.yml and create a symlink to Rails root" do
   sensitive true
 end
 
-%w(cache queues shared_state trace_chunks rate_limiting sessions repository_cache).each do |instance|
+%w(cache queues shared_state trace_chunks rate_limiting sessions repository_cache cluster_rate_limiting).each do |instance|
   filename = "redis.#{instance}.yml"
   url = node['gitlab']['gitlab-rails']["redis_#{instance}_instance"]
   sentinels = node['gitlab']['gitlab-rails']["redis_#{instance}_sentinels"]
+  clusters = node['gitlab']['gitlab-rails']["redis_#{instance}_cluster_nodes"]
+  username = node['gitlab']['gitlab-rails']["redis_#{instance}_username"]
+  password = node['gitlab']['gitlab-rails']["redis_#{instance}_password"]
   from_filename = File.join(gitlab_rails_source_dir, "config/#{filename}")
   to_filename = File.join(gitlab_rails_etc_dir, filename)
+
+  redis_helper.validate_instance_shard_config(instance)
 
   templatesymlink "Create a #{filename} and create a symlink to Rails root" do
     link_from from_filename
@@ -266,10 +272,17 @@ end
     owner 'root'
     group 'root'
     mode '0644'
-    variables(redis_url: url, redis_sentinels: sentinels, redis_enable_client: redis_enable_client)
+    variables(
+      redis_url: url,
+      redis_sentinels: sentinels,
+      redis_enable_client: redis_enable_client,
+      cluster_nodes: clusters,
+      cluster_username: username,
+      cluster_password: password
+    )
     dependent_services.each { |svc| notifies :restart, svc }
+    action :delete if url.nil? && clusters.empty?
     sensitive true
-    action :delete if url.nil?
   end
 end
 
@@ -312,7 +325,7 @@ templatesymlink "Create a gitlab.yml and create a symlink to Rails root" do
       mattermost_enabled: node['mattermost']['enable'] || !mattermost_host.nil?,
       sidekiq: node['gitlab']['sidekiq'],
       puma: node['gitlab']['puma'],
-      gitlab_shell_authorized_keys_file: node['gitlab']['gitlab-shell']['auth_file'],
+      gitlab_shell_authorized_keys_file: node['gitlab']['gitlab_shell']['auth_file'],
       prometheus_available: node['monitoring']['prometheus']['enable'] || !node['gitlab']['gitlab-rails']['prometheus_address'].nil?,
       prometheus_server_address: node['gitlab']['gitlab-rails']['prometheus_address'] || node['monitoring']['prometheus']['listen_address'],
       consul_api_url: node['consul']['enable'] ? consul_helper.api_url : nil,
@@ -347,7 +360,7 @@ templatesymlink "Create a gitlab_shell_secret and create a symlink to Rails root
   group "root"
   mode "0644"
   sensitive true
-  variables(secret_token: node['gitlab']['gitlab-shell']['secret_token'])
+  variables(secret_token: node['gitlab']['gitlab_shell']['secret_token'])
   dependent_services.each { |svc| notifies :restart, svc }
   notifies :run, 'bash[Set proper security context on ssh files for selinux]', :delayed if SELinuxHelper.enabled?
 end

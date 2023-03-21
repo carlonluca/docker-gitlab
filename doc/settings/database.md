@@ -452,8 +452,7 @@ WARNING:
 Before upgrading, it's important that you fully read this section before running any commands. For
 single-node installations, this upgrade needs downtime, as the database must be
 down while the upgrade is being performed. The length of time depends on the
-size of your database. To avoid downtime, it's possible to upgrade to a new
-database [using Slony](https://docs.gitlab.com/ee/update/upgrading_postgresql_using_slony.html).
+size of your database.
 
 NOTE:
 If you encounter any problems during the upgrade, raise an issue with a full
@@ -673,6 +672,17 @@ if available. Otherwise, it falls back to the default version shipped with GitLa
 On other GitLab versions that ship only one PostgreSQL version, you can't
 downgrade your PostgreSQL version. You must downgrade GitLab to an older version for
 this.
+
+### Configuring multiple database connections
+
+In GitLab 16.0, GitLab will default to using two database connections, that point to the same
+PostgreSQL database.
+
+If you want to opt-in for this feature, you can update this setting in `/etc/gitlab/gitlab.rb`:
+
+```ruby
+gitlab_rails['databases']['ci']['enable'] = true
+```
 
 ### Connecting to the bundled PostgreSQL database
 

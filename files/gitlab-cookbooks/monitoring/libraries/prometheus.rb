@@ -114,7 +114,7 @@ module Prometheus
     end
 
     def parse_redis_exporter_flags
-      default_config = Gitlab['node']['monitoring']['redis-exporter'].to_hash
+      default_config = Gitlab['node']['monitoring']['redis_exporter'].to_hash
       user_config = Gitlab['redis_exporter']
 
       listen_address = user_config['listen_address'] || default_config['listen_address']
@@ -129,7 +129,7 @@ module Prometheus
     end
 
     def parse_postgres_exporter_flags
-      default_config = Gitlab['node']['monitoring']['postgres-exporter'].to_hash
+      default_config = Gitlab['node']['monitoring']['postgres_exporter'].to_hash
       user_config = Gitlab['postgres_exporter']
 
       home_directory = user_config['home'] || default_config['home']
@@ -241,8 +241,8 @@ module Prometheus
       # Don't parse if gitaly is explicitly disabled
       return unless Services.enabled?('gitaly') || service_discovery
 
-      default_config = Gitlab['node']['gitaly'].to_hash
-      user_config = Gitlab['gitaly']
+      default_config = Gitlab['node']['gitaly']['configuration'].to_hash
+      user_config = Gitlab['gitaly']['configuration']
 
       # Don't enable a scrape config if the listen address is empty.
       return if user_config['prometheus_listen_addr'] && user_config['prometheus_listen_addr'].empty?
@@ -274,7 +274,7 @@ module Prometheus
       # Prometheus library gets evaluated before GitLab Exporter. So, we need to compute this here.
       Gitlab['gitlab_exporter']['prometheus_scrape_scheme'] ||= 'https' if Gitlab['gitlab_exporter']['tls_enabled']
 
-      default_config = Gitlab['node']['monitoring']['gitlab-exporter'].to_hash
+      default_config = Gitlab['node']['monitoring']['gitlab_exporter'].to_hash
       user_config = Gitlab['gitlab_exporter']
 
       listen_address = user_config['listen_address'] || default_config['listen_address']

@@ -255,6 +255,13 @@ module SettingsDSL
           gitlab_pages
           gitlab_sshd
           node_exporter
+          redis_exporter
+          postgres_exporter
+          pgbouncer_exporter
+          gitlab_shell
+          suggested_reviewers
+          gitlab_exporter
+          remote_syslog
         ]
 
         return underscored_form(key) if skip_hyphenation.include?(underscored_form(key))
