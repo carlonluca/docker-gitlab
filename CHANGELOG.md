@@ -14,6 +14,12 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 15.10.3 (2023-04-14)
+
+### Fixed (1 change)
+
+- [Fix suggested_reviewers run when rails is disabled](gitlab-org/omnibus-gitlab@0f8811ebd44b29cc03c1d9b29839011f782172e3) ([merge request](gitlab-org/omnibus-gitlab!6794))
+
 ## 15.10.2 (2023-04-05)
 
 No changes.
