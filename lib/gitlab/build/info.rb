@@ -9,6 +9,8 @@ require_relative 'image'
 
 module Build
   class Info
+    TagsNotFoundError = Class.new(StandardError)
+
     DEPLOYER_OS_MAPPING = {
       'AUTO_DEPLOY_ENVIRONMENT' => 'ubuntu-xenial',
       'PATCH_DEPLOY_ENVIRONMENT' => 'ubuntu-bionic',
@@ -91,7 +93,17 @@ module Build
 
         # Level decides tag at which position you want. Level one gives you
         # latest stable tag, two gives you the one just before it and so on.
-        `git -c versionsort.prereleaseSuffix=rc tag -l '#{version}#{Info.tag_match_pattern}' --sort=-v:refname | awk '!/rc/' | head -#{level}`.split("\n").last
+        output = `git -c versionsort.prereleaseSuffix=rc tag -l '#{version}#{Info.tag_match_pattern}' --sort=-v:refname | awk '!/rc/' | head -#{level}`&.split("\n")&.last
+
+        # If no tags exist that start with the specified version, we need to
+        # fall back to the available latest stable tag. For that, we run the
+        # same command without the version in the filter argument.
+        raise TagsNotFoundError if output.nil?
+
+        output
+      rescue TagsNotFoundError
+        puts "No tags found in #{version}.x series. Falling back to latest available tag."
+        `git -c versionsort.prereleaseSuffix=rc tag -l '#{Info.tag_match_pattern}' --sort=-v:refname | awk '!/rc/' | head -#{level}`.split("\n").last
       end
 
       def docker_tag
@@ -140,7 +152,10 @@ module Build
         if Gitlab::Util.get_env('CI_SERVER_HOST') == 'dev.gitlab.org'
           package == "gitlab-ee" ? 'gitlab/gitlab-ee' : 'gitlab/gitlabhq'
         else
-          package == "gitlab-ee" ? 'gitlab-org/gitlab' : 'gitlab-org/gitlab-foss'
+          namespace = Gitlab::Version.security_channel? ? "gitlab-org/security" : "gitlab-org"
+          project = package == "gitlab-ee" ? 'gitlab' : 'gitlab-foss'
+
+          "#{namespace}/#{project}"
         end
       end
 
@@ -180,7 +195,11 @@ module Build
       end
 
       def gcp_release_bucket
-        Gitlab::Util.get_env('GITLAB_COM_PKGS_BUCKET') || "gitlab-com-pkgs"
+        # All tagged builds are pushed to the release bucket
+        # whereas regular branch builds use a separate one
+        gcp_pkgs_release_bucket = Gitlab::Util.get_env('GITLAB_COM_PKGS_RELEASE_BUCKET') || 'gitlab-com-pkgs-release'
+        gcp_pkgs_builds_bucket = Gitlab::Util.get_env('GITLAB_COM_PKGS_BUILDS_BUCKET') || 'gitlab-com-pkgs-builds'
+        Check.on_tag? ? gcp_pkgs_release_bucket : gcp_pkgs_builds_bucket
       end
 
       def gcp_release_bucket_sa_file

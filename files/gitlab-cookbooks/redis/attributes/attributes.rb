@@ -38,6 +38,7 @@ default['redis']['save'] = ['900 1', '300 10', '60 10000']
 default['redis']['io_threads'] = 1
 default['redis']['io_threads_do_reads'] = false
 default['redis']['stop_writes_on_bgsave_error'] = true
+default['redis']['startup_delay'] = 0
 
 default['redis']['rename_commands'] = nil
 
@@ -66,3 +67,6 @@ default['redis']['tls_session_cache_timeout'] = nil
 default['redis']['announce_ip'] = nil
 default['redis']['announce_port'] = nil
 default['redis']['announce_ip_from_hostname'] = false
+
+## Runit settings
+default['redis']['runit_sv_timeout'] = nil

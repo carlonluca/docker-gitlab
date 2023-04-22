@@ -112,13 +112,14 @@ dependency 'runit'
 dependency 'go-crond'
 dependency 'docker-distribution-pruner'
 
-dependency 'mail_room'
 dependency 'grafana-dashboards'
 if Build::Check.include_ee?
   dependency 'consul'
   dependency 'pgbouncer-exporter'
-  dependency 'spamcheck'
-  dependency 'spam-classifier'
+  unless OhaiHelper.raspberry_pi?
+    dependency 'spamcheck'
+    dependency 'spam-classifier'
+  end
 end
 dependency 'alertmanager'
 dependency 'node-exporter'

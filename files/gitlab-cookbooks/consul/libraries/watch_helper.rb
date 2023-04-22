@@ -1,6 +1,8 @@
 require 'json'
 
 module WatchHelper
+  WATCHER_FILENAME_PREFIX = 'watcher_'.freeze
+
   class Watcher
     attr_reader :name, :handler_script, :handler_template, :type, :consul_config_file, :template_variables, :service_name
 
@@ -9,7 +11,7 @@ module WatchHelper
       @handler_script = handler_script
       @handler_template = handler_template
       @type = type
-      @consul_config_file = "#{consul_watch_config_directory}/watcher_#{name}.json"
+      @consul_config_file = "#{consul_watch_config_directory}/#{WATCHER_FILENAME_PREFIX}#{name}.json"
       @service_name = "service:#{name}"
       @template_variables = template_variables.merge({ "watcher_service_name" => @service_name })
     end
@@ -71,6 +73,19 @@ module WatchHelper
 
     def watchers
       @all_watchers.select { |watcher| @enabled_watchers.include? watcher.name }
+    end
+
+    def excess_watcher_configs
+      enabled_watcher_configs = watchers.map { |w| File.basename w.consul_config_file }
+      Dir.glob("#{@consul_config_directory}/*")
+        .reject { |f| !File.basename(f).start_with? WATCHER_FILENAME_PREFIX }
+        .reject { |f| enabled_watcher_configs.include? f }
+    end
+
+    def excess_handler_scripts
+      enabled_handlers = watchers.map { |w| File.basename w.handler_script }
+      Dir.glob("#{@handler_directory}/*")
+        .reject { |h| enabled_handlers.include? h }
     end
   end
 end

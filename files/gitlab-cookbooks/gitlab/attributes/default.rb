@@ -693,40 +693,40 @@ default['gitlab']['web-server']['external_users'] = []
 # gitlab-workhorse
 ####
 
-default['gitlab']['gitlab-workhorse']['enable'] = false
-default['gitlab']['gitlab-workhorse']['ha'] = false
-default['gitlab']['gitlab-workhorse']['alt_document_root'] = nil
-default['gitlab']['gitlab-workhorse']['shutdown_timeout'] = nil
-default['gitlab']['gitlab-workhorse']['workhorse_keywatcher'] = true
-default['gitlab']['gitlab-workhorse']['listen_network'] = "unix"
-default['gitlab']['gitlab-workhorse']['listen_umask'] = 000
-default['gitlab']['gitlab-workhorse']['sockets_directory'] = nil
-default['gitlab']['gitlab-workhorse']['listen_addr'] = nil
-default['gitlab']['gitlab-workhorse']['auth_backend'] = "http://localhost:8080"
-default['gitlab']['gitlab-workhorse']['auth_socket'] = nil
-default['gitlab']['gitlab-workhorse']['pprof_listen_addr'] = "''" # put an empty string on the command line
-default['gitlab']['gitlab-workhorse']['prometheus_listen_addr'] = "localhost:9229"
-default['gitlab']['gitlab-workhorse']['dir'] = "/var/opt/gitlab/gitlab-workhorse"
-default['gitlab']['gitlab-workhorse']['log_directory'] = "/var/log/gitlab/gitlab-workhorse"
-default['gitlab']['gitlab-workhorse']['proxy_headers_timeout'] = nil
-default['gitlab']['gitlab-workhorse']['api_limit'] = nil
-default['gitlab']['gitlab-workhorse']['api_queue_duration'] = nil
-default['gitlab']['gitlab-workhorse']['api_queue_limit'] = nil
-default['gitlab']['gitlab-workhorse']['api_ci_long_polling_duration'] = nil
-default['gitlab']['gitlab-workhorse']['propagate_correlation_id'] = false
-default['gitlab']['gitlab-workhorse']['trusted_cidrs_for_x_forwarded_for'] = nil
-default['gitlab']['gitlab-workhorse']['trusted_cidrs_for_propagation'] = nil
-default['gitlab']['gitlab-workhorse']['log_format'] = "json"
-default['gitlab']['gitlab-workhorse']['env_directory'] = '/opt/gitlab/etc/gitlab-workhorse/env'
-default['gitlab']['gitlab-workhorse']['env'] = {
+default['gitlab']['gitlab_workhorse']['enable'] = false
+default['gitlab']['gitlab_workhorse']['ha'] = false
+default['gitlab']['gitlab_workhorse']['alt_document_root'] = nil
+default['gitlab']['gitlab_workhorse']['shutdown_timeout'] = nil
+default['gitlab']['gitlab_workhorse']['workhorse_keywatcher'] = true
+default['gitlab']['gitlab_workhorse']['listen_network'] = "unix"
+default['gitlab']['gitlab_workhorse']['listen_umask'] = 000
+default['gitlab']['gitlab_workhorse']['sockets_directory'] = nil
+default['gitlab']['gitlab_workhorse']['listen_addr'] = nil
+default['gitlab']['gitlab_workhorse']['auth_backend'] = "http://localhost:8080"
+default['gitlab']['gitlab_workhorse']['auth_socket'] = nil
+default['gitlab']['gitlab_workhorse']['pprof_listen_addr'] = "''" # put an empty string on the command line
+default['gitlab']['gitlab_workhorse']['prometheus_listen_addr'] = "localhost:9229"
+default['gitlab']['gitlab_workhorse']['dir'] = "/var/opt/gitlab/gitlab-workhorse"
+default['gitlab']['gitlab_workhorse']['log_directory'] = "/var/log/gitlab/gitlab-workhorse"
+default['gitlab']['gitlab_workhorse']['proxy_headers_timeout'] = nil
+default['gitlab']['gitlab_workhorse']['api_limit'] = nil
+default['gitlab']['gitlab_workhorse']['api_queue_duration'] = nil
+default['gitlab']['gitlab_workhorse']['api_queue_limit'] = nil
+default['gitlab']['gitlab_workhorse']['api_ci_long_polling_duration'] = nil
+default['gitlab']['gitlab_workhorse']['propagate_correlation_id'] = false
+default['gitlab']['gitlab_workhorse']['trusted_cidrs_for_x_forwarded_for'] = nil
+default['gitlab']['gitlab_workhorse']['trusted_cidrs_for_propagation'] = nil
+default['gitlab']['gitlab_workhorse']['log_format'] = "json"
+default['gitlab']['gitlab_workhorse']['env_directory'] = '/opt/gitlab/etc/gitlab-workhorse/env'
+default['gitlab']['gitlab_workhorse']['env'] = {
   'PATH' => "#{node['package']['install-dir']}/bin:#{node['package']['install-dir']}/embedded/bin:/bin:/usr/bin",
   'HOME' => node['gitlab']['user']['home'],
   'SSL_CERT_DIR' => "#{node['package']['install-dir']}/embedded/ssl/certs/"
 }
-default['gitlab']['gitlab-workhorse']['image_scaler_max_procs'] = [2, node.dig('cpu', 'total').to_i / 2, node.dig('cpu', 'real').to_i / 2].max
-default['gitlab']['gitlab-workhorse']['image_scaler_max_filesize'] = 250_000
-default['gitlab']['gitlab-workhorse']['consul_service_name'] = 'workhorse'
-default['gitlab']['gitlab-workhorse']['consul_service_meta'] = nil
+default['gitlab']['gitlab_workhorse']['image_scaler_max_procs'] = [2, node.dig('cpu', 'total').to_i / 2, node.dig('cpu', 'real').to_i / 2].max
+default['gitlab']['gitlab_workhorse']['image_scaler_max_filesize'] = 250_000
+default['gitlab']['gitlab_workhorse']['consul_service_name'] = 'workhorse'
+default['gitlab']['gitlab_workhorse']['consul_service_meta'] = nil
 
 ####
 # mailroom
@@ -850,6 +850,7 @@ default['gitlab']['logging']['logrotate_compress'] = "compress" # see 'man logro
 default['gitlab']['logging']['logrotate_method'] = "copytruncate" # see 'man logrotate'
 default['gitlab']['logging']['logrotate_postrotate'] = nil # no postrotate command by default
 default['gitlab']['logging']['logrotate_dateformat'] = nil # use date extensions for rotated files rather than numbers e.g. a value of "-%Y-%m-%d" would give rotated files like production.log-2016-03-09.gz
+default['gitlab']['logging']['log_group'] = nil # log group for logs (svlogd only at this time)
 
 ###
 # Remote syslog
@@ -881,9 +882,9 @@ default['gitlab']['gitlab-ci']['gitlab_ci_add_pusher'] = nil
 ####
 # Mattermost NGINX
 ####
-default['gitlab']['mattermost-nginx'] = default['gitlab']['nginx'].dup
-default['gitlab']['mattermost-nginx']['enable'] = false
-default['gitlab']['mattermost-nginx']['proxy_set_headers'] = {
+default['gitlab']['mattermost_nginx'] = default['gitlab']['nginx'].dup
+default['gitlab']['mattermost_nginx']['enable'] = false
+default['gitlab']['mattermost_nginx']['proxy_set_headers'] = {
   "Host" => "$http_host",
   "X-Real-IP" => "$remote_addr",
   "X-Forwarded-For" => "$proxy_add_x_forwarded_for",
@@ -892,14 +893,14 @@ default['gitlab']['mattermost-nginx']['proxy_set_headers'] = {
   "Upgrade" => "$http_upgrade",
   "Connection" => "$connection_upgrade"
 }
-default['gitlab']['mattermost-nginx']['referrer_policy'] = 'strict-origin-when-cross-origin'
+default['gitlab']['mattermost_nginx']['referrer_policy'] = 'strict-origin-when-cross-origin'
 
 ####
 # GitLab Pages NGINX
 ####
-default['gitlab']['pages-nginx'] = default['gitlab']['nginx'].dup
-default['gitlab']['pages-nginx']['enable'] = true
-default['gitlab']['pages-nginx']['proxy_set_headers'] = {
+default['gitlab']['pages_nginx'] = default['gitlab']['nginx'].dup
+default['gitlab']['pages_nginx']['enable'] = true
+default['gitlab']['pages_nginx']['proxy_set_headers'] = {
   "Host" => "$http_host",
   "X-Real-IP" => "$remote_addr",
   "X-Forwarded-For" => "$proxy_add_x_forwarded_for",
@@ -909,11 +910,11 @@ default['gitlab']['pages-nginx']['proxy_set_headers'] = {
 ####
 # GitLab Registry NGINX
 ####
-default['gitlab']['registry-nginx'] = default['gitlab']['nginx'].dup
-default['gitlab']['registry-nginx']['enable'] = true
-default['gitlab']['registry-nginx']['https'] = false
-default['gitlab']['registry-nginx']['http2_enabled'] = false
-default['gitlab']['registry-nginx']['proxy_set_headers'] = {
+default['gitlab']['registry_nginx'] = default['gitlab']['nginx'].dup
+default['gitlab']['registry_nginx']['enable'] = true
+default['gitlab']['registry_nginx']['https'] = false
+default['gitlab']['registry_nginx']['http2_enabled'] = false
+default['gitlab']['registry_nginx']['proxy_set_headers'] = {
   "Host" => "$http_host",
   "X-Real-IP" => "$remote_addr",
   "X-Forwarded-For" => "$proxy_add_x_forwarded_for",
@@ -923,12 +924,12 @@ default['gitlab']['registry-nginx']['proxy_set_headers'] = {
 ####
 # GitLab KAS NGINX
 ####
-default['gitlab']['gitlab-kas-nginx'] = default['gitlab']['nginx'].dup
-default['gitlab']['gitlab-kas-nginx']['enable'] = false
-default['gitlab']['gitlab-kas-nginx']['https'] = false
-default['gitlab']['gitlab-kas-nginx']['port'] = 80
-default['gitlab']['gitlab-kas-nginx']['host'] = "kas.gitlab.example.com"
-default['gitlab']['gitlab-kas-nginx']['proxy_set_headers'] = {
+default['gitlab']['gitlab_kas_nginx'] = default['gitlab']['nginx'].dup
+default['gitlab']['gitlab_kas_nginx']['enable'] = false
+default['gitlab']['gitlab_kas_nginx']['https'] = false
+default['gitlab']['gitlab_kas_nginx']['port'] = 80
+default['gitlab']['gitlab_kas_nginx']['host'] = "kas.gitlab.example.com"
+default['gitlab']['gitlab_kas_nginx']['proxy_set_headers'] = {
   "Host" => "$http_host",
   "Upgrade" => "$http_upgrade",
   "Connection" => "$connection_upgrade",
@@ -949,3 +950,8 @@ default['gitlab']['storage-check']['log_directory'] = '/var/log/gitlab/storage-c
 
 default['gitlab']['gitlab-shell'] = Gitlab::Deprecations::NodeAttribute.new(proc { node['gitlab']['gitlab_shell'].to_h }, "node['gitlab']['gitlab-shell']", "node['gitlab']['gitlab_shell']")
 default['gitlab']['remote-syslog'] = Gitlab::Deprecations::NodeAttribute.new(proc { node['gitlab']['remote_syslog'].to_h }, "node['gitlab']['remote-syslog']", "node['gitlab']['remote_syslog']")
+default['gitlab']['gitlab-workhorse'] = Gitlab::Deprecations::NodeAttribute.new(proc { node['gitlab']['gitlab_workhorse'].to_h }, "node['gitlab']['gitlab-workhorse']", "node['gitlab']['gitlab_workhorse']")
+default['gitlab']['mattermost-nginx'] = Gitlab::Deprecations::NodeAttribute.new(proc { node['gitlab']['mattermost_nginx'].to_h }, "node['gitlab']['mattermost-nginx']", "node['gitlab']['mattermost_nginx']")
+default['gitlab']['pages-nginx'] = Gitlab::Deprecations::NodeAttribute.new(proc { node['gitlab']['pages_nginx'].to_h }, "node['gitlab']['pages-nginx']", "node['gitlab']['pages_nginx']")
+default['gitlab']['registry-nginx'] = Gitlab::Deprecations::NodeAttribute.new(proc { node['gitlab']['registry_nginx'].to_h }, "node['gitlab']['registry-nginx']", "node['gitlab']['registry_nginx']")
+default['gitlab']['gitlab-kas-nginx'] = Gitlab::Deprecations::NodeAttribute.new(proc { node['gitlab']['gitlab_kas_nginx'].to_h }, "node['gitlab']['gitlab-kas-nginx']", "node['gitlab']['gitlab_kas_nginx']")

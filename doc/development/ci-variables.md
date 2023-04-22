@@ -48,6 +48,7 @@ These additional variables are available to override or enable different build b
 | OMNIBUS_GEM_SOURCE                            | Non-default remote URI to clone the omnibus gem from. |
 | QA_BUILD_TARGET                               | Build specified QA image. See this [MR](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/91250) for details. Defaults to `qa`. |
 | GITLAB_ASSETS_TAG                             | Tag of the assets image built by the `build-assets-image` job in the `gitlab-org/gitlab` pipelines. Defaults to `$GITLAB_REF_SLUG` or the `gitlab-rails` version. |
+| BUILD_ON_ALL_OS                               | Build all OS images without using manual trigger if set to `true`. |
 
 ## Test variables
 
@@ -105,7 +106,8 @@ These additional variables are available to override or enable different build b
 | RELEASE_BUCKET_REGION                         | S3 bucket region. |
 | RELEASE_BUCKET_S3_ENDPOINT                    | Specify S3 endpoint. Especially useful when S3 compatible storage service is adopted. |
 | GITLAB_BUNDLE_GEMFILE                         | Set Gemfile path required by `gitlab-rails` bundle. Default is `Gemfile`. |
-| GITLAB_COM_PKGS_BUCKET                        | GCS bucket where release packages are pushed for SaaS deployments. |
+| GITLAB_COM_PKGS_RELEASE_BUCKET                | GCS bucket where release packages are pushed. |
+| GITLAB_COM_PKGS_BUILDS_BUCKET                 | GCS bucket where regular branch packages are pushed. |
 | GITLAB_COM_PKGS_SA_FILE                       | Service account key used for pushing release packages for SaaS deployments, it must have write access to the pkgs bucket. |
 
 ## Unknown/outdated variables

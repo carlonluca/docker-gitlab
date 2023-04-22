@@ -162,6 +162,42 @@ RSpec.describe Build::Info do
         expect(described_class.latest_stable_tag).to eq('12.121.12+ee.0')
       end
     end
+
+    describe 'on stable branches' do
+      before do
+        stub_env_var('CI_COMMIT_BRANCH', '15-11-stable')
+        stub_is_ee(false)
+      end
+
+      context 'when no tags exist in the stable branch' do
+        before do
+          allow(described_class).to receive(:`).with("git -c versionsort.prereleaseSuffix=rc tag -l '15.11*[+.]ce.*' --sort=-v:refname | awk '!/rc/' | head -1").and_return(nil)
+        end
+
+        it 'returns the latest available stable tag' do
+          # Twice because we are calling the method two times - once to check
+          # the return value and another time to check if the message is
+          # printed
+          expect(described_class).to receive(:`).with("git -c versionsort.prereleaseSuffix=rc tag -l '15.11*[+.]ce.*' --sort=-v:refname | awk '!/rc/' | head -1").twice
+          expect(described_class).to receive(:`).with("git -c versionsort.prereleaseSuffix=rc tag -l '*[+.]ce.*' --sort=-v:refname | awk '!/rc/' | head -1").twice.and_return('15.10.3+ce.0')
+
+          expect(described_class.latest_stable_tag).to eq('15.10.3+ce.0')
+          expect { described_class.latest_stable_tag }.to output(/No tags found in 15.11.x series/).to_stdout
+        end
+      end
+
+      context 'when tags exist in the stable branch' do
+        before do
+          allow(described_class).to receive(:`).with("git -c versionsort.prereleaseSuffix=rc tag -l '15.11*[+.]ce.*' --sort=-v:refname | awk '!/rc/' | head -1").and_return('15.11.0+ce.0')
+        end
+
+        it 'returns the latest available stable tag' do
+          expect(described_class).to receive(:`).with("git -c versionsort.prereleaseSuffix=rc tag -l '15.11*[+.]ce.*' --sort=-v:refname | awk '!/rc/' | head -1")
+          expect(described_class).not_to receive(:`).with("git -c versionsort.prereleaseSuffix=rc tag -l '*[+.]ce.*' --sort=-v:refname | awk '!/rc/' | head -1")
+          expect(described_class.latest_stable_tag).to eq('15.11.0+ce.0')
+        end
+      end
+    end
   end
 
   describe '.gitlab_version' do
@@ -233,6 +269,86 @@ RSpec.describe Build::Info do
       it 'returns security mirror for GitLab EE with attached credential' do
         allow(Build::Info).to receive(:package).and_return("gitlab-ee")
         expect(described_class.gitlab_rails_repo).to eq("https://gitlab-ci-token:CJT@gitlab.com/gitlab-org/security/gitlab.git")
+      end
+    end
+  end
+
+  describe '.gitlab_rails_project_path' do
+    context 'on CE' do
+      before do
+        stub_is_ee(false)
+      end
+
+      context 'on build mirror' do
+        before do
+          stub_env_var('CI_SERVER_HOST', 'dev.gitlab.org')
+          stub_env_var('SECURITY_SOURCES', '')
+        end
+
+        it 'returns correct path for GitLab rails project' do
+          expect(described_class.gitlab_rails_project_path).to eq("gitlab/gitlabhq")
+        end
+      end
+
+      context 'on canonical and QA mirror' do
+        before do
+          stub_env_var('CI_SERVER_HOST', 'gitlab.com')
+          stub_env_var('SECURITY_SOURCES', '')
+        end
+
+        it 'returns correct path for GitLab rails project' do
+          expect(described_class.gitlab_rails_project_path).to eq("gitlab-org/gitlab-foss")
+        end
+      end
+
+      context 'on security mirror' do
+        before do
+          stub_env_var('CI_SERVER_HOST', 'gitlab.com')
+          stub_env_var('SECURITY_SOURCES', 'true')
+        end
+
+        it 'returns correct path for GitLab rails project' do
+          expect(described_class.gitlab_rails_project_path).to eq("gitlab-org/security/gitlab-foss")
+        end
+      end
+    end
+
+    context 'on EE' do
+      before do
+        stub_is_ee(true)
+      end
+
+      context 'on build mirror' do
+        before do
+          stub_env_var('CI_SERVER_HOST', 'dev.gitlab.org')
+          stub_env_var('SECURITY_SOURCES', '')
+        end
+
+        it 'returns correct path for GitLab rails project' do
+          expect(described_class.gitlab_rails_project_path).to eq("gitlab/gitlab-ee")
+        end
+      end
+
+      context 'on canonical and QA mirror' do
+        before do
+          stub_env_var('CI_SERVER_HOST', 'gitlab.com')
+          stub_env_var('SECURITY_SOURCES', '')
+        end
+
+        it 'returns correct path for GitLab rails project' do
+          expect(described_class.gitlab_rails_project_path).to eq("gitlab-org/gitlab")
+        end
+      end
+
+      context 'on security mirror' do
+        before do
+          stub_env_var('CI_SERVER_HOST', 'gitlab.com')
+          stub_env_var('SECURITY_SOURCES', 'true')
+        end
+
+        it 'returns correct path for GitLab rails project' do
+          expect(described_class.gitlab_rails_project_path).to eq("gitlab-org/security/gitlab")
+        end
       end
     end
   end
@@ -325,6 +441,18 @@ RSpec.describe Build::Info do
           expect(described_class.gitlab_rails_ref(prepend_version: false)).to eq('arandomcommit')
         end
       end
+    end
+  end
+
+  describe '.gcp_release_bucket' do
+    it 'returns the release bucket when on a tag' do
+      allow(Build::Check).to receive(:on_tag?).and_return(true)
+      expect(described_class.gcp_release_bucket).to eq('gitlab-com-pkgs-release')
+    end
+
+    it 'returns the build bucket when not on a tag' do
+      allow(Build::Check).to receive(:on_tag?).and_return(false)
+      expect(described_class.gcp_release_bucket).to eq('gitlab-com-pkgs-builds')
     end
   end
 end

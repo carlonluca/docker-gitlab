@@ -36,6 +36,11 @@ RSpec.describe SettingsDSL::Utils do
         %w[suggested-reviewers suggested_reviewers],
         %w[gitlab-exporter gitlab_exporter],
         %w[remote-syslog remote_syslog],
+        %w[gitlab-workhorse gitlab_workhorse],
+        %w[gitlab-kas gitlab_kas],
+        %w[geo-secondary geo_secondary],
+        %w[geo-logcursor geo_logcursor],
+        %w[geo-postgresql geo_postgresql],
       ].each do |input, output|
         expect(subject.sanitized_key(input)).to eq(output)
       end

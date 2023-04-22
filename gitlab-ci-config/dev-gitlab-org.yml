@@ -92,6 +92,7 @@
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE == "CE_BRANCH_BUILD_PIPELINE"'
     - if: '$PIPELINE_TYPE == "CE_NIGHTLY_BUILD_PIPELINE"'
+    - if: '$PIPELINE_TYPE == "EE_BRANCH_BUILD_PIPELINE" && $CI_PIPELINE_SOURCE == "parent_pipeline"'
 
 .tag_template: &tag_build
   stage: package
@@ -317,19 +318,11 @@ Ubuntu-22.04-arm-branch:
 CentOS-7-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/centos_7:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
-CentOS-8-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/centos_8:${BUILDER_IMAGE_REVISION}"
+AlmaLinux-8-branch:
+  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
-CentOS-8-arm64-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/centos_8_arm64:${BUILDER_IMAGE_REVISION}"
-  extends: .branch_template
-  tags:
-  - docker-arm-builder
-OpenSUSE-15.3-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.3:${BUILDER_IMAGE_REVISION}"
-  extends: .branch_template
-OpenSUSE-15.3-arm64-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.3_arm64:${BUILDER_IMAGE_REVISION}"
+AlmaLinux-8-arm64-branch:
+  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8_arm64:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
   tags:
   - docker-arm-builder
@@ -358,22 +351,26 @@ AmazonLinux-2022-arm64-branch:
   tags:
   - docker-arm-builder
 SLES-12.5-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/sles_12sp5:${BUILDER_IMAGE_REVISION}"
+  image: "${DEV_BUILDER_IMAGE_REGISTRY}/sles_12sp5:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
+  variables:
+    DOCKER_AUTH_CONFIG: $DEV_BUILDER_DOCKER_AUTH_CONFIG
   rules:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE =~ /EE_(NIGHTLY|BRANCH)_BUILD_PIPELINE$/'
 SLES-15.2-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/sles_15sp2:${BUILDER_IMAGE_REVISION}"
+  image: "${DEV_BUILDER_IMAGE_REGISTRY}/sles_15sp2:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
+  variables:
+    DOCKER_AUTH_CONFIG: $DEV_BUILDER_DOCKER_AUTH_CONFIG
   rules:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE =~ /EE_(NIGHTLY|BRANCH)_BUILD_PIPELINE$/'
 AmazonLinux-2-fips-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2_fips:${BUILDER_IMAGE_REVISION}"
   extends: .fips_branch_template
-CentOS-8-fips-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/centos_8_fips:${BUILDER_IMAGE_REVISION}"
+AlmaLinux-8-fips-branch:
+  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8_fips:${BUILDER_IMAGE_REVISION}"
   extends: .fips_branch_template
 Ubuntu-18.04-fips-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_18.04_fips:${BUILDER_IMAGE_REVISION}"
@@ -461,7 +458,7 @@ RAT-Nightly:
 # This job runs only on nightly EE builds
 RAT-Nightly-FIPS:
   stage: slow_jobs
-  image: "${BUILDER_IMAGE_REGISTRY}/centos_8_fips:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8_fips:${BUILDER_IMAGE_REVISION}"
   variables:
     USE_SYSTEM_SSL: "true"
     RAT_REFERENCE_ARCHITECTURE: "omnibus-gitlab-mrs-fips"
@@ -469,7 +466,7 @@ RAT-Nightly-FIPS:
     - bundle exec rake qa:rat:nightly
   cache: !reference [.branch-cache]
   needs:
-    - CentOS-8-fips-branch
+    - AlmaLinux-8-fips-branch
   allow_failure: true
   rules:
     - !reference [.default_rules, rules]
@@ -622,19 +619,11 @@ Ubuntu-22.04-arm:
 CentOS-7:
   image: "${BUILDER_IMAGE_REGISTRY}/centos_7:${BUILDER_IMAGE_REVISION}"
   extends: .tag_template
-CentOS-8:
-  image: "${BUILDER_IMAGE_REGISTRY}/centos_8:${BUILDER_IMAGE_REVISION}"
+AlmaLinux-8:
+  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8:${BUILDER_IMAGE_REVISION}"
   extends: .tag_template
-CentOS-8-arm64:
-  image: "${BUILDER_IMAGE_REGISTRY}/centos_8_arm64:${BUILDER_IMAGE_REVISION}"
-  extends: .tag_template
-  tags:
-  - docker-arm-builder
-OpenSUSE-15.3:
-  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.3:${BUILDER_IMAGE_REVISION}"
-  extends: .tag_template
-OpenSUSE-15.3-arm64:
-  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.3_arm64:${BUILDER_IMAGE_REVISION}"
+AlmaLinux-8-arm64:
+  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8_arm64:${BUILDER_IMAGE_REVISION}"
   extends: .tag_template
   tags:
   - docker-arm-builder
@@ -677,8 +666,8 @@ SLES-15.2:
 AmazonLinux-2-fips:
   image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2_fips:${BUILDER_IMAGE_REVISION}"
   extends: .fips_tag_template
-CentOS-8-fips:
-  image: "${BUILDER_IMAGE_REGISTRY}/centos_8_fips:${BUILDER_IMAGE_REVISION}"
+AlmaLinux-8-fips:
+  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8_fips:${BUILDER_IMAGE_REVISION}"
   extends: .fips_tag_template
 Ubuntu-18.04-fips:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_18.04_fips:${BUILDER_IMAGE_REVISION}"
@@ -757,33 +746,19 @@ CentOS-7-staging:
       optional: true
     - job: CentOS-7-branch
       optional: true
-CentOS-8-staging:
+AlmaLinux-8-staging:
   extends: .staging_upload_template
   needs:
-    - job: CentOS-8
+    - job: AlmaLinux-8
       optional: true
-    - job: CentOS-8-branch
+    - job: AlmaLinux-8-branch
       optional: true
-CentOS-8-arm64-staging:
+AlmaLinux-8-arm64-staging:
   extends: .staging_upload_template
   needs:
-    - job: CentOS-8-arm64
+    - job: AlmaLinux-8-arm64
       optional: true
-    - job: CentOS-8-arm64-branch
-      optional: true
-OpenSUSE-15.3-staging:
-  extends: .staging_upload_template
-  needs:
-    - job: OpenSUSE-15.3
-      optional: true
-    - job: OpenSUSE-15.3-branch
-      optional: true
-OpenSUSE-15.3-arm64-staging:
-  extends: .staging_upload_template
-  needs:
-    - job: OpenSUSE-15.3-arm64
-      optional: true
-    - job: OpenSUSE-15.3-arm64-branch
+    - job: AlmaLinux-8-arm64-branch
       optional: true
 OpenSUSE-15.4-staging:
   extends: .staging_upload_template
@@ -854,12 +829,12 @@ AmazonLinux-2-fips-staging:
       optional: true
     - job: AmazonLinux-2-fips-branch
       optional: true
-CentOS-8-fips-staging:
+AlmaLinux-8-fips-staging:
   extends: .fips_staging_upload_template
   needs:
-    - job: CentOS-8-fips
+    - job: AlmaLinux-8-fips
       optional: true
-    - job: CentOS-8-fips-branch
+    - job: AlmaLinux-8-fips-branch
       optional: true
 Ubuntu-18.04-fips-staging:
   extends: .fips_staging_upload_template
@@ -917,22 +892,14 @@ CentOS-7-release:
   extends: .production_release_template
   needs:
     - CentOS-7
-CentOS-8-release:
+AlmaLinux-8-release:
   extends: .production_release_template
   needs:
-    - CentOS-8
-CentOS-8-arm64-release:
+    - AlmaLinux-8
+AlmaLinux-8-arm64-release:
   extends: .production_release_template
   needs:
-    - CentOS-8-arm64
-OpenSUSE-15.3-release:
-  extends: .production_release_template
-  needs:
-    - OpenSUSE-15.3
-OpenSUSE-15.3-arm64-release:
-  extends: .production_release_template
-  needs:
-    - OpenSUSE-15.3-arm64
+    - AlmaLinux-8-arm64
 OpenSUSE-15.4-release:
   extends: .production_release_template
   needs:
@@ -979,10 +946,10 @@ AmazonLinux-2-fips-release:
   extends: .fips_release_template
   needs:
     - AmazonLinux-2-fips
-CentOS-8-fips-release:
+AlmaLinux-8-fips-release:
   extends: .fips_release_template
   needs:
-    - CentOS-8-fips
+    - AlmaLinux-8-fips
 Ubuntu-18.04-fips-release:
   extends: .fips_release_template
   needs:
@@ -1164,9 +1131,9 @@ check-packages:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE =~ /_TAG_BUILD_PIPELINE$/'
 
-print-release-contents:
+create-gitlab-release:
   stage: package-and-image-release
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04-ruby:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/ruby_docker:${BUILDER_IMAGE_REVISION}"
   needs:
     - job: AWS
       artifacts: true
@@ -1179,7 +1146,11 @@ print-release-contents:
       artifacts: true
       optional: true
   script:
-    - bundle exec rake release:print_details
+    - bundle exec rake release:print_details | tee release_info.txt
+  release:
+    name: "GitLab ${GITLAB_EDITION} ${CI_COMMIT_TAG}"
+    tag_name: $CI_COMMIT_TAG
+    description: './release_info.txt'
   allow_failure: true
   rules:
     - !reference [.default_rules, rules]
