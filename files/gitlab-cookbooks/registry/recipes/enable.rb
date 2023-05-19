@@ -15,11 +15,12 @@
 # limitations under the License.
 #
 account_helper = AccountHelper.new(node)
+logfiles_helper = LogfilesHelper.new(node)
+logging_settings = logfiles_helper.logging_settings('registry')
 registry_uid = node['registry']['uid']
 registry_gid = node['registry']['gid']
 
 working_dir = node['registry']['dir']
-log_directory = node['registry']['log_directory']
 log_format = node['registry']['log_formatter']
 env_directory = node['registry']['env_directory']
 
@@ -36,19 +37,24 @@ account "Docker registry user and group" do
   gid registry_gid
   shell '/bin/sh'
   home working_dir
-  manage node['gitlab']['manage-accounts']['enable']
+  manage node['gitlab']['manage_accounts']['enable']
 end
 
-[
-  working_dir,
-  log_directory,
-].each do |dir|
-  directory "create #{dir} and set the owner" do
-    path dir
-    owner account_helper.registry_user
-    mode '0700'
-    recursive true
+directory "create #{working_dir} and set the owner" do
+  path working_dir
+  owner account_helper.registry_user
+  mode '0700'
+  recursive true
+end
+
+# Create log_directory
+directory logging_settings[:log_directory] do
+  owner logging_settings[:log_directory_owner]
+  mode logging_settings[:log_directory_mode]
+  if log_group = logging_settings[:log_directory_group]
+    group log_group
   end
+  recursive true
 end
 
 env_dir env_directory do
@@ -56,12 +62,12 @@ env_dir env_directory do
   notifies :restart, "runit_service[registry]"
 end
 
-directory node['gitlab']['gitlab-rails']['registry_path'] do
+directory node['gitlab']['gitlab_rails']['registry_path'] do
   owner account_helper.registry_user
   group account_helper.gitlab_group
   mode '0770'
   recursive true
-  only_if { node['gitlab']['manage-storage-directories']['enable'] }
+  only_if { node['gitlab']['manage_storage_directories']['enable'] }
 end
 
 cert_file_path = File.join(working_dir, "gitlab-registry.crt")
@@ -76,17 +82,19 @@ end
 template "#{working_dir}/config.yml" do
   source "registry-config.yml.erb"
   owner account_helper.registry_user
-  variables node['registry'].to_hash.merge(node['gitlab']['gitlab-rails'].to_hash)
+  variables node['registry'].to_hash.merge(node['gitlab']['gitlab_rails'].to_hash)
   mode "0644"
   notifies :restart, "runit_service[registry]"
 end
 
 runit_service 'registry' do
   options({
-    log_directory: log_directory,
+    log_directory: logging_settings[:log_directory],
+    log_user: logging_settings[:runit_owner],
+    log_group: logging_settings[:runit_group],
     log_format: log_format
   }.merge(params))
-  log_options node['gitlab']['logging'].to_hash.merge(node['registry'].to_hash)
+  log_options logging_settings[:options]
 end
 
 version_file 'Create version file for Registry' do

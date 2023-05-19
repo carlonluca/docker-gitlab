@@ -326,6 +326,14 @@ AlmaLinux-8-arm64-branch:
   extends: .branch_template
   tags:
   - docker-arm-builder
+AlmaLinux-9-branch:
+  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_9:${BUILDER_IMAGE_REVISION}"
+  extends: .branch_template
+AlmaLinux-9-arm64-branch:
+  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_9_arm64:${BUILDER_IMAGE_REVISION}"
+  extends: .branch_template
+  tags:
+  - docker-arm-builder
 OpenSUSE-15.4-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.4:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
@@ -390,7 +398,7 @@ Docker-branch:
   - docker-builder
   cache: !reference [.branch-cache]
   needs:
-    - job: Ubuntu-20.04-branch
+    - job: Ubuntu-22.04-branch
       artifacts: false
     - job: generate-facts
       optional: true
@@ -423,7 +431,7 @@ QA-branch:
   - docker-builder
   cache: !reference [.branch-cache]
   needs:
-    - job: Ubuntu-20.04-branch
+    - job: Ubuntu-22.04-branch
       artifacts: false
     - job: generate-facts
       optional: true
@@ -449,7 +457,7 @@ RAT-Nightly:
     - bundle exec rake qa:rat:nightly
   cache: !reference [.branch-cache]
   needs:
-    - Ubuntu-20.04-branch
+    - Ubuntu-22.04-branch
   allow_failure: true
   rules:
     - !reference [.default_rules, rules]
@@ -510,6 +518,10 @@ Ubuntu-22.04:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_22.04:${BUILDER_IMAGE_REVISION}"
   stage: package
   extends: .tag_template
+  rules:
+    - !reference [.default_rules, rules]
+  # Also build for auto-deploy tags
+    - if: '$PIPELINE_TYPE =~ /(_RC|_TAG|AUTO_DEPLOY)_BUILD_PIPELINE$/'
 
 ## Build the docker image for QA
 ## This is necessary for the deployment
@@ -588,6 +600,9 @@ Ubuntu-22.04-staging:
       optional: true
     - job: Ubuntu-22.04-branch
       optional: true
+  rules:
+    - !reference [.default_rules, rules]
+    - if: '$PIPELINE_TYPE =~ /(_RC|_TAG|AUTO_DEPLOY|NIGHTLY)_BUILD_PIPELINE$/'
 
 ### Package builds
 Debian-10:
@@ -624,6 +639,14 @@ AlmaLinux-8:
   extends: .tag_template
 AlmaLinux-8-arm64:
   image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8_arm64:${BUILDER_IMAGE_REVISION}"
+  extends: .tag_template
+  tags:
+  - docker-arm-builder
+AlmaLinux-9:
+  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_9:${BUILDER_IMAGE_REVISION}"
+  extends: .tag_template
+AlmaLinux-9-arm64:
+  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_9_arm64:${BUILDER_IMAGE_REVISION}"
   extends: .tag_template
   tags:
   - docker-arm-builder
@@ -686,7 +709,7 @@ Docker:
   - docker-builder
   cache: !reference [.tag-cache]
   needs:
-    - job: Ubuntu-20.04
+    - job: Ubuntu-22.04
       artifacts: false
     - job: generate-facts
       optional: true
@@ -759,6 +782,20 @@ AlmaLinux-8-arm64-staging:
     - job: AlmaLinux-8-arm64
       optional: true
     - job: AlmaLinux-8-arm64-branch
+      optional: true
+AlmaLinux-9-staging:
+  extends: .staging_upload_template
+  needs:
+    - job: AlmaLinux-9
+      optional: true
+    - job: AlmaLinux-9-branch
+      optional: true
+AlmaLinux-9-arm64-staging:
+  extends: .staging_upload_template
+  needs:
+    - job: AlmaLinux-9-arm64
+      optional: true
+    - job: AlmaLinux-9-arm64-branch
       optional: true
 OpenSUSE-15.4-staging:
   extends: .staging_upload_template
@@ -900,6 +937,14 @@ AlmaLinux-8-arm64-release:
   extends: .production_release_template
   needs:
     - AlmaLinux-8-arm64
+AlmaLinux-9-release:
+  extends: .production_release_template
+  needs:
+    - AlmaLinux-9
+AlmaLinux-9-arm64-release:
+  extends: .production_release_template
+  needs:
+    - AlmaLinux-9-arm64
 OpenSUSE-15.4-release:
   extends: .production_release_template
   needs:
@@ -1074,7 +1119,7 @@ RAT-Tag:
     - bundle exec rake qa:rat:tag
   cache: !reference [.tag-cache]
   needs:
-    - Ubuntu-20.04
+    - Ubuntu-22.04
   allow_failure: true
   rules:
     - !reference [.default_rules, rules]

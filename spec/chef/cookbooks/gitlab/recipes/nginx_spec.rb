@@ -554,7 +554,10 @@ RSpec.describe 'nginx' do
   context 'when grafana is enabled' do
     before do
       stub_gitlab_rb(
-        grafana: { enable: true }
+        grafana: {
+          enable: true,
+          enable_deprecated_service: true
+        }
       )
     end
 
@@ -869,22 +872,21 @@ RSpec.describe 'nginx' do
 
   include_examples "consul service discovery", "nginx", "nginx"
 
-  describe 'logrotate settings' do
+  context 'log directory and runit group' do
     context 'default values' do
-      it_behaves_like 'configured logrotate service', 'nginx', 'root', 'root'
+      it_behaves_like 'enabled logged service', 'nginx', true, { log_directory_owner: 'root', log_directory_group: 'gitlab-www' }
     end
 
-    context 'specified username and group' do
+    context 'custom values' do
       before do
         stub_gitlab_rb(
-          web_server: {
-            username: 'foo',
-            group: 'bar'
+          nginx: {
+            log_group: 'fugee'
           }
         )
       end
-
-      it_behaves_like 'configured logrotate service', 'nginx', 'root', 'root'
+      it_behaves_like 'configured logrotate service', 'nginx', 'root', 'fugee'
+      it_behaves_like 'enabled logged service', 'nginx', true, { log_directory_owner: 'root', log_group: 'fugee' }
     end
   end
 

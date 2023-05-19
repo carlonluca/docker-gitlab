@@ -19,7 +19,7 @@ require_relative '../../gitaly/libraries/gitaly.rb'
 require_relative '../../package/libraries/settings_dsl.rb'
 
 module GitlabRails
-  ALLOWED_DATABASES = %w[main ci geo].freeze
+  ALLOWED_DATABASES = %w[main ci geo embedding].freeze
   MAIN_DATABASES = %w[main geo].freeze
   SHARED_DATABASE_ATTRIBUTES = %w[db_host db_port db_database].freeze
 
@@ -34,6 +34,7 @@ module GitlabRails
       parse_incoming_email_logfile
       parse_service_desk_email_logfile
       parse_maximum_request_duration
+      validate_smtp_settings!
     end
 
     def parse_directories
@@ -185,7 +186,7 @@ module GitlabRails
     end
 
     def database_attributes
-      Gitlab['node']['gitlab']['gitlab-rails'].keys.select { |k| k.start_with?('db_') }
+      Gitlab['node']['gitlab']['gitlab_rails'].keys.select { |k| k.start_with?('db_') }
     end
 
     def generate_main_database
@@ -203,8 +204,14 @@ module GitlabRails
         next unless Gitlab['gitlab_rails']['databases']['main'][attribute].nil?
 
         Gitlab['gitlab_rails']['databases']['main'][attribute] =
-          [Gitlab['gitlab_rails'][attribute], Gitlab['node']['gitlab']['gitlab-rails'][attribute]].compact.first
+          [Gitlab['gitlab_rails'][attribute], Gitlab['node']['gitlab']['gitlab_rails'][attribute]].compact.first
       end
+    end
+
+    def default_ci_connection_to_main
+      # If there's an explicit configuration to disable the ci connection or
+      # have a different config for ci we should respect that.
+      Gitlab['gitlab_rails']['databases']['ci'] ||= { 'enable' => true }
     end
 
     def parse_databases
@@ -212,6 +219,7 @@ module GitlabRails
       # settings
       generate_main_database
 
+      default_ci_connection_to_main
       # Weed out the databases that are either not allowed or not enabled explicitly (except for main and geo)
       Gitlab['gitlab_rails']['databases'].to_h.each do |database, settings|
         if !MAIN_DATABASES.include?(database) && settings['enable'] != true
@@ -268,7 +276,7 @@ module GitlabRails
     end
 
     def parse_shared_dir
-      Gitlab['gitlab_rails']['shared_path'] ||= Gitlab['node']['gitlab']['gitlab-rails']['shared_path']
+      Gitlab['gitlab_rails']['shared_path'] ||= Gitlab['node']['gitlab']['gitlab_rails']['shared_path']
     end
 
     def parse_artifacts_dir
@@ -359,6 +367,10 @@ module GitlabRails
       return if Gitlab['gitlab_rails']['max_request_duration_seconds'] < worker_timeout
 
       raise "The maximum request duration needs to be smaller than the worker timeout (#{worker_timeout}s)"
+    end
+
+    def validate_smtp_settings!
+      SmtpHelper.validate_smtp_settings!(Gitlab['gitlab_rails'])
     end
 
     def public_path

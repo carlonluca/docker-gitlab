@@ -6,39 +6,42 @@ RSpec.describe 'gitlab::gitlab-rails' do
     let(:database_yml_template) { chef_run.template('/var/opt/gitlab/gitlab-rails/etc/database.yml') }
     let(:database_yml_file_content) { ChefSpec::Renderer.new(chef_run, database_yml_template).content }
     let(:database_yml) { YAML.safe_load(database_yml_file_content, [], [], true, symbolize_names: true) }
+    let(:default_database_settings) do
+      {
+        adapter: 'postgresql',
+        application_name: nil,
+        collation: nil,
+        connect_timeout: nil,
+        database: "gitlabhq_production",
+        encoding: "unicode",
+        host: "/var/opt/gitlab/postgresql",
+        keepalives: nil,
+        keepalives_count: nil,
+        keepalives_idle: nil,
+        keepalives_interval: nil,
+        load_balancing: {
+          hosts: []
+        },
+        password: nil,
+        port: 5432,
+        prepared_statements: false,
+        socket: nil,
+        sslca: nil,
+        sslcompression: 0,
+        sslmode: nil,
+        sslrootcert: nil,
+        statement_limit: 1000,
+        tcp_user_timeout: nil,
+        username: "gitlab",
+        variables: {
+          statement_timeout: nil
+        }
+      }
+    end
     let(:default_content) do
       {
-        main: {
-          adapter: 'postgresql',
-          application_name: nil,
-          collation: nil,
-          connect_timeout: nil,
-          database: "gitlabhq_production",
-          database_tasks: true,
-          encoding: "unicode",
-          host: "/var/opt/gitlab/postgresql",
-          keepalives: nil,
-          keepalives_count: nil,
-          keepalives_idle: nil,
-          keepalives_interval: nil,
-          load_balancing: {
-            hosts: []
-          },
-          password: nil,
-          port: 5432,
-          prepared_statements: false,
-          socket: nil,
-          sslca: nil,
-          sslcompression: 0,
-          sslmode: nil,
-          sslrootcert: nil,
-          statement_limit: 1000,
-          tcp_user_timeout: nil,
-          username: "gitlab",
-          variables: {
-            statement_timeout: nil
-          }
-        }
+        main: default_database_settings.merge(database_tasks: true),
+        ci: default_database_settings.merge(database_tasks: false)
       }
     end
 
@@ -111,6 +114,24 @@ RSpec.describe 'gitlab::gitlab-rails' do
       end
 
       context 'with additional databases specified' do
+        context 'with ci database disabled' do
+          before do
+            stub_gitlab_rb(
+              gitlab_rails: {
+                databases: {
+                  ci: {
+                    enable: false
+                  }
+                }
+              }
+            )
+          end
+
+          it 'renders database.yml without ci database' do
+            expect(database_yml[:production].keys).not_to include('ci')
+          end
+        end
+
         context 'when using the same database as main:' do
           before do
             stub_gitlab_rb(
@@ -199,12 +220,19 @@ RSpec.describe 'gitlab::gitlab-rails' do
               gitlab_rails: {
                 databases: {
                   main: {
-                    db_connect_timeout: 30,
+                    db_connect_timeout: 30
                   },
                   ci: {
+                    db_host: 'the-ci-host',
                     enable: true,
                     db_connect_timeout: 50,
                     db_database_tasks: false
+                  },
+                  embedding: {
+                    db_host: 'the-embedding-host',
+                    enable: true,
+                    db_load_balancing: {},
+                    db_database_tasks: true
                   }
                 }
               }
@@ -214,8 +242,14 @@ RSpec.describe 'gitlab::gitlab-rails' do
           it 'renders database.yml with user specified DB settings' do
             expect(database_yml[:production][:main][:connect_timeout]).to eq(30)
             expect(database_yml[:production][:main][:database_tasks]).to eq(true)
+            expect(database_yml[:production][:main]).to have_key(:load_balancing)
+            expect(database_yml[:production][:ci][:host]).to eq('the-ci-host')
             expect(database_yml[:production][:ci][:connect_timeout]).to eq(50)
             expect(database_yml[:production][:ci][:database_tasks]).to eq(false)
+            expect(database_yml[:production][:embedding][:host]).to eq('the-embedding-host')
+            expect(database_yml[:production][:embedding][:connect_timeout]).to eq(30)
+            expect(database_yml[:production][:embedding][:load_balancing]).to eq({})
+            expect(database_yml[:production][:embedding][:database_tasks]).to eq(true)
           end
         end
 

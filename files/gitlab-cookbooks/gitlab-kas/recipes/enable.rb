@@ -17,30 +17,30 @@
 account_helper = AccountHelper.new(node)
 omnibus_helper = OmnibusHelper.new(node)
 redis_helper = RedisHelper.new(node)
+logfiles_helper = LogfilesHelper.new(node)
+logging_settings = logfiles_helper.logging_settings('gitlab-kas')
 
 working_dir = node['gitlab_kas']['dir']
-log_directory = node['gitlab_kas']['log_directory']
 env_directory = node['gitlab_kas']['env_directory']
 gitlab_kas_static_etc_dir = '/opt/gitlab/etc/gitlab-kas'
 gitlab_kas_config_file = File.join(working_dir, 'gitlab-kas-config.yml')
 gitlab_kas_authentication_secret_file = File.join(working_dir, 'authentication_secret_file')
 gitlab_kas_private_api_authentication_secret_file = File.join(working_dir, 'private_api_authentication_secret_file')
 redis_host, redis_port, redis_password = redis_helper.redis_params
-redis_sentinels = node['gitlab']['gitlab-rails']['redis_sentinels']
+redis_sentinels = node['gitlab']['gitlab_rails']['redis_sentinels']
 redis_sentinels_master_name = node['redis']['master_name']
 gitlab_kas_redis_password_file = File.join(working_dir, 'redis_password_file')
 redis_default_port = URI::Redis::DEFAULT_PORT
 redis_network = redis_helper.redis_url.scheme == 'unix' ? 'unix' : 'tcp'
-redis_ssl = node['gitlab']['gitlab-rails']['redis_ssl']
+redis_ssl = node['gitlab']['gitlab_rails']['redis_ssl']
 redis_address = if redis_network == 'tcp'
                   "#{redis_host}:#{redis_port || redis_default_port}"
                 else
-                  node['gitlab']['gitlab-rails']['redis_socket']
+                  node['gitlab']['gitlab_rails']['redis_socket']
                 end
 
 [
   working_dir,
-  log_directory,
   gitlab_kas_static_etc_dir
 ].each do |dir|
   directory dir do
@@ -48,6 +48,16 @@ redis_address = if redis_network == 'tcp'
     mode '0700'
     recursive true
   end
+end
+
+# Create log_directory
+directory logging_settings[:log_directory] do
+  owner logging_settings[:log_directory_owner]
+  mode logging_settings[:log_directory_mode]
+  if log_group = logging_settings[:log_directory_group]
+    group log_group
+  end
+  recursive true
 end
 
 ruby_block 'websocket TLS termination' do
@@ -121,12 +131,14 @@ end
 
 runit_service 'gitlab-kas' do
   options({
-    log_directory: log_directory,
+    log_directory: logging_settings[:log_directory],
+    log_user: logging_settings[:runit_owner],
+    log_group: logging_settings[:runit_group],
     env_directory: env_directory,
     user: account_helper.gitlab_user,
     groupname: account_helper.gitlab_group,
     config_file: gitlab_kas_config_file,
   }.merge(params))
-  log_options node['gitlab']['logging'].to_hash.merge(node['gitlab_kas'].to_hash)
+  log_options logging_settings[:options]
   sensitive true
 end

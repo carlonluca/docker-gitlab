@@ -1196,6 +1196,56 @@ RSpec.describe 'gitlab::gitlab-rails' do
   end
 
   context 'SMTP settings' do
+    context 'defaults' do
+      before do
+        stub_gitlab_rb(
+          gitlab_rails: {
+            smtp_enable: true
+          }
+        )
+      end
+
+      it 'renders the default timeout values' do
+        expect(chef_run).to create_templatesymlink('Create a smtp_settings.rb and create a symlink to Rails root').with_variables(
+          hash_including(
+            'smtp_open_timeout' => 30,
+            'smtp_read_timeout' => 60
+          )
+        )
+
+        expect(chef_run).to render_file('/var/opt/gitlab/gitlab-rails/etc/smtp_settings.rb').with_content { |content|
+          expect(content).to include('open_timeout: 30')
+          expect(content).to include('read_timeout: 60')
+        }
+      end
+    end
+
+    context 'when timeouts are set' do
+      before do
+        stub_gitlab_rb(
+          gitlab_rails: {
+            smtp_enable: true,
+            smtp_open_timeout: 10,
+            smtp_read_timeout: 20
+          }
+        )
+      end
+
+      it 'renders the timeout values' do
+        expect(chef_run).to create_templatesymlink('Create a smtp_settings.rb and create a symlink to Rails root').with_variables(
+          hash_including(
+            'smtp_open_timeout' => 10,
+            'smtp_read_timeout' => 20
+          )
+        )
+
+        expect(chef_run).to render_file('/var/opt/gitlab/gitlab-rails/etc/smtp_settings.rb').with_content { |content|
+          expect(content).to include('open_timeout: 10')
+          expect(content).to include('read_timeout: 20')
+        }
+      end
+    end
+
     context 'when connection pooling is not configured' do
       it 'creates smtp_settings.rb with pooling disabled' do
         stub_gitlab_rb(
@@ -1232,6 +1282,58 @@ RSpec.describe 'gitlab::gitlab-rails' do
         }
       end
     end
+
+    context 'when STARTTLS is enabled' do
+      before do
+        stub_gitlab_rb(
+          gitlab_rails: {
+            smtp_enable: true,
+            smtp_enable_starttls_auto: true
+          }
+        )
+      end
+
+      it 'enables STARTTLS in the settings' do
+        expect(chef_run).to render_file('/var/opt/gitlab/gitlab-rails/etc/smtp_settings.rb').with_content { |content|
+          expect(content).not_to include('tls =')
+          expect(content).to include('enable_starttls_auto: true')
+        }
+      end
+    end
+
+    context 'when SMTP TLS is enabled' do
+      before do
+        stub_gitlab_rb(
+          gitlab_rails: {
+            smtp_enable: true,
+            smtp_tls: true
+          }
+        )
+      end
+
+      it 'enables SMTP TLS in the settings' do
+        expect(chef_run).to render_file('/var/opt/gitlab/gitlab-rails/etc/smtp_settings.rb').with_content { |content|
+          expect(content).to include('tls: true')
+          expect(content).not_to include('enable_starttls_auto')
+        }
+      end
+    end
+
+    context 'when TLS and STARTTLS are enabled' do
+      before do
+        stub_gitlab_rb(
+          gitlab_rails: {
+            smtp_enable: true,
+            smtp_tls: true,
+            smtp_enable_starttls_auto: true
+          }
+        )
+      end
+
+      it 'raises an exception' do
+        expect { chef_run }.to raise_error(RuntimeError)
+      end
+    end
   end
 
   describe 'cleaning up the legacy sidekiq log symlink' do
@@ -1245,6 +1347,24 @@ RSpec.describe 'gitlab::gitlab-rails' do
       allow(File).to receive(:symlink?).with('/var/log/gitlab/gitlab-rails/sidekiq.log') { false }
 
       expect(chef_run).not_to delete_link('/var/log/gitlab/gitlab-rails/sidekiq.log')
+    end
+  end
+
+  describe 'log directory and runit group' do
+    context 'default values' do
+      it_behaves_like 'enabled logged service', 'gitlab-rails', false, { log_directory_owner: 'git' }
+    end
+
+    context 'custom values' do
+      before do
+        stub_gitlab_rb(
+          gitlab_rails: {
+            log_group: 'fugee'
+          }
+        )
+      end
+      it_behaves_like 'configured logrotate service', 'gitlab-rails', 'git', 'fugee'
+      it_behaves_like 'enabled logged service', 'gitlab-rails', false, { log_directory_owner: 'git', log_group: 'fugee' }
     end
   end
 end

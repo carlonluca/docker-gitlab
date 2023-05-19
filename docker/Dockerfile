@@ -1,4 +1,4 @@
-FROM ubuntu:jammy
+FROM ubuntu:22.04
 MAINTAINER GitLab Inc. <support@gitlab.com>
 
 SHELL ["/bin/sh", "-c"]
@@ -17,7 +17,6 @@ RUN apt-get update -q \
       vim \
       nano \
       less \
-      libatomic1 \
       perl \
       libperl5.34 \
     && rm -rf /var/lib/apt/lists/*

@@ -17,17 +17,17 @@
 #
 account_helper = AccountHelper.new(node)
 omnibus_helper = OmnibusHelper.new(node)
+logfiles_helper = LogfilesHelper.new(node)
+logging_settings = logfiles_helper.logging_settings('puma')
 
-metrics_dir = File.join(node['gitlab']['runtime-dir'].to_s, 'gitlab/puma') unless node['gitlab']['runtime-dir'].nil?
+metrics_dir = File.join(node['gitlab']['runtime_dir'].to_s, 'gitlab/puma') unless node['gitlab']['runtime_dir'].nil?
 
-rails_app = 'gitlab-rails'
 svc = 'puma'
 user = account_helper.gitlab_user
-rails_home = node['gitlab']['gitlab-rails']['dir']
+rails_home = node['gitlab']['gitlab_rails']['dir']
 puma_listen_socket = node['gitlab'][svc]['socket']
 puma_pidfile = node['gitlab'][svc]['pidfile']
 puma_state_path = node['gitlab'][svc]['state_path']
-puma_log_dir = node['gitlab'][svc]['log_directory']
 puma_socket_dir = File.dirname(puma_listen_socket) if puma_listen_socket && !puma_listen_socket.empty?
 puma_listen_host = node['gitlab'][svc]['listen']
 
@@ -44,22 +44,26 @@ puma_ssl_verify_mode = node['gitlab'][svc]['ssl_verify_mode']
 
 puma_etc_dir = File.join(rails_home, "etc")
 puma_working_dir = File.join(rails_home, "working")
-puma_log_dir = node['gitlab'][svc]['log_directory']
 puma_rb = File.join(puma_etc_dir, "puma.rb")
 
 node.default['gitlab'][svc]['worker_processes'] = Puma.workers unless node['gitlab'][svc]['worker_processes']
 
 actioncable_worker_pool_size = node['gitlab']['actioncable']['worker_pool_size']
 
-[
-  puma_log_dir,
-  File.dirname(puma_pidfile)
-].each do |dir_name|
-  directory dir_name do
-    owner user
-    mode '0700'
-    recursive true
+directory File.dirname(puma_pidfile) do
+  owner user
+  mode '0700'
+  recursive true
+end
+
+# Create log_directory
+directory logging_settings[:log_directory] do
+  owner logging_settings[:log_directory_owner]
+  mode logging_settings[:log_directory_mode]
+  if log_group = logging_settings[:log_directory_group]
+    group log_group
   end
+  recursive true
 end
 
 if puma_socket_dir
@@ -72,7 +76,7 @@ if puma_socket_dir
 end
 
 puma_config puma_rb do
-  environment node['gitlab'][rails_app]['environment']
+  environment node['gitlab']['gitlab_rails']['environment']
   listen_socket puma_listen_socket
   listen_tcp puma_listen_tcp
   ssl_listen_host puma_listen_ssl_host
@@ -88,8 +92,8 @@ puma_config puma_rb do
   worker_processes node['gitlab'][svc]['worker_processes']
   min_threads node['gitlab'][svc]['min_threads']
   max_threads node['gitlab'][svc]['max_threads']
-  stderr_path File.join(puma_log_dir, "puma_stderr.log")
-  stdout_path File.join(puma_log_dir, "puma_stdout.log")
+  stderr_path File.join(logging_settings[:log_directory], "puma_stderr.log")
+  stdout_path File.join(logging_settings[:log_directory], "puma_stdout.log")
   pid puma_pidfile
   state_path puma_state_path
   owner "root"
@@ -110,14 +114,15 @@ runit_service svc do
     service: svc,
     user: account_helper.gitlab_user,
     groupname: account_helper.gitlab_group,
-    rails_app: rails_app,
     puma_rb: puma_rb,
-    log_directory: puma_log_dir,
+    log_directory: logging_settings[:log_directory],
+    log_user: logging_settings[:runit_owner],
+    log_group: logging_settings[:runit_group],
     actioncable_worker_pool_size: actioncable_worker_pool_size,
     metrics_dir: metrics_dir,
     clean_metrics_dir: false
   }.merge(params))
-  log_options node['gitlab']['logging'].to_hash.merge(node['gitlab'][svc].to_hash)
+  log_options logging_settings[:options]
 end
 
 if node['gitlab']['bootstrap']['enable']

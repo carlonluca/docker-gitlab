@@ -22,7 +22,8 @@ license_file 'LICENSE'
 skip_transitive_dependency_licensing true
 
 dependency 'ruby'
-dependency 'postgresql_new'
+dependency 'rubygems'
+dependency 'postgresql'
 
 build do
   patch source: 'add-license-file.patch'

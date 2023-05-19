@@ -132,12 +132,13 @@ default['monitoring']['gitlab_exporter']['prometheus_scrape_tls_server_name'] = 
 default['monitoring']['gitlab_exporter']['prometheus_scrape_tls_skip_verification'] = false
 
 # To completely disable prometheus, and all of it's exporters, set to false
-default['gitlab']['prometheus-monitoring']['enable'] = true
+default['gitlab']['prometheus_monitoring']['enable'] = true
 
 ####
 # Grafana
 ###
 default['monitoring']['grafana']['enable'] = false
+default['monitoring']['grafana']['enable_deprecated_service'] = false
 default['monitoring']['grafana']['log_directory'] = '/var/log/gitlab/grafana'
 default['monitoring']['grafana']['home'] = '/var/opt/gitlab/grafana'
 default['monitoring']['grafana']['http_addr'] = 'localhost'
@@ -196,3 +197,4 @@ default['monitoring']['redis-exporter'] = Gitlab::Deprecations::NodeAttribute.ne
 default['monitoring']['postgres-exporter'] = Gitlab::Deprecations::NodeAttribute.new(proc { node['monitoring']['postgres_exporter'].to_h }, "node['monitoring']['postgres-exporter']", "node['monitoring']['postgres_exporter']")
 default['monitoring']['pgbouncer-exporter'] = Gitlab::Deprecations::NodeAttribute.new(proc { node['monitoring']['pgbouncer_exporter'].to_h }, "node['monitoring']['pgbouncer-exporter']", "node['monitoring']['pgbouncer_exporter']")
 default['monitoring']['gitlab-exporter'] = Gitlab::Deprecations::NodeAttribute.new(proc { node['monitoring']['gitlab_exporter'].to_h }, "node['monitoring']['gitlab-exporter']", "node['monitoring']['gitlab_exporter']")
+default['gitlab']['prometheus-monitoring'] = Gitlab::Deprecations::NodeAttribute.new(proc { node['gitlab']['prometheus_monitoring'].to_h }, "node['gitlab']['prometheus-monitoring']", "node['gitlab']['prometheus_monitoring']")

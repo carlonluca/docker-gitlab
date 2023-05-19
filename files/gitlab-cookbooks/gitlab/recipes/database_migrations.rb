@@ -19,9 +19,9 @@ require 'digest'
 omnibus_helper = OmnibusHelper.new(node)
 migration_helper = RailsMigrationHelper.new(node)
 
-initial_root_password = node['gitlab']['gitlab-rails']['initial_root_password']
-initial_license_file = node['gitlab']['gitlab-rails']['initial_license_file'] || Dir.glob('/etc/gitlab/*.gitlab-license').first
-initial_runner_token = node['gitlab']['gitlab-rails']['initial_shared_runners_registration_token']
+initial_root_password = node['gitlab']['gitlab_rails']['initial_root_password']
+initial_license_file = node['gitlab']['gitlab_rails']['initial_license_file'] || Dir.glob('/etc/gitlab/*.gitlab-license').first
+initial_runner_token = node['gitlab']['gitlab_rails']['initial_shared_runners_registration_token']
 
 dependent_services = []
 dependent_services << "runit_service[puma]" if omnibus_helper.should_notify?("puma")
@@ -37,8 +37,8 @@ ruby_block "check remote PG version" do
     remote_db_version = GitlabRailsEnvHelper.db_version
     if remote_db_version && remote_db_version.to_f < 13
       LoggingHelper.warning(%q(
-        Note that PostgreSQL 13 will become the minimum required PostgreSQL version in GitLab 16.0.
-        Support for PostgreSQL 12 will be removed.
+        Note that PostgreSQL 13 is the minimum required PostgreSQL version in GitLab 16.0.
+        Support for PostgreSQL 12 has been removed.
         To upgrade, please see: https://docs.gitlab.com/omnibus/settings/database.html#upgrade-packaged-postgresql-server
       ))
     end

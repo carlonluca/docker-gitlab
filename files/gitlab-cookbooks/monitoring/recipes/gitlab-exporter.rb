@@ -17,9 +17,10 @@
 #
 account_helper = AccountHelper.new(node)
 redis_helper = RedisHelper.new(node)
+logfiles_helper = LogfilesHelper.new(node)
+logging_settings = logfiles_helper.logging_settings('gitlab-exporter')
 gitlab_user = account_helper.gitlab_user
 gitlab_exporter_dir = node['monitoring']['gitlab_exporter']['home']
-gitlab_exporter_log_dir = node['monitoring']['gitlab_exporter']['log_directory']
 env_directory = node['monitoring']['gitlab_exporter']['env_directory']
 
 directory gitlab_exporter_dir do
@@ -28,9 +29,13 @@ directory gitlab_exporter_dir do
   recursive true
 end
 
-directory gitlab_exporter_log_dir do
-  owner gitlab_user
-  mode "0700"
+# Create log_directory
+directory logging_settings[:log_directory] do
+  owner logging_settings[:log_directory_owner]
+  mode logging_settings[:log_directory_mode]
+  if log_group = logging_settings[:log_directory_group]
+    group log_group
+  end
   recursive true
 end
 
@@ -39,12 +44,12 @@ env_dir env_directory do
   notifies :restart, "runit_service[gitlab-exporter]"
 end
 
-connection_string = "dbname=#{node['gitlab']['gitlab-rails']['db_database']} user=#{node['gitlab']['gitlab-rails']['db_username']}"
+connection_string = "dbname=#{node['gitlab']['gitlab_rails']['db_database']} user=#{node['gitlab']['gitlab_rails']['db_username']}"
 
 connection_string += if node['postgresql']['enabled']
                        " host=#{node['postgresql']['dir']}"
                      else
-                       " host=#{node['gitlab']['gitlab-rails']['db_host']} port=#{node['gitlab']['gitlab-rails']['db_port']} password=#{node['gitlab']['gitlab-rails']['db_password']}"
+                       " host=#{node['gitlab']['gitlab_rails']['db_host']} port=#{node['gitlab']['gitlab_rails']['db_port']} password=#{node['gitlab']['gitlab_rails']['db_password']}"
                      end
 
 redis_url = redis_helper.redis_url(support_sentinel_groupname: false)
@@ -61,7 +66,7 @@ template "#{gitlab_exporter_dir}/gitlab-exporter.yml" do
     elasticsearch_authorization: node['monitoring']['gitlab_exporter']['elasticsearch_authorization'],
     redis_url: redis_url,
     connection_string: connection_string,
-    redis_enable_client: node['gitlab']['gitlab-rails']['redis_enable_client']
+    redis_enable_client: node['gitlab']['gitlab_rails']['redis_enable_client']
   )
   sensitive true
 end
@@ -74,9 +79,11 @@ end
 
 runit_service "gitlab-exporter" do
   options({
-    log_directory: gitlab_exporter_log_dir
+    log_directory: logging_settings[:log_directory],
+    log_user: logging_settings[:runit_owner],
+    log_group: logging_settings[:runit_group],
   }.merge(params))
-  log_options node['gitlab']['logging'].to_hash.merge(node['monitoring']['gitlab_exporter'].to_hash)
+  log_options logging_settings[:options]
 end
 
 if node['gitlab']['bootstrap']['enable']

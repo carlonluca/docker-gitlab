@@ -535,6 +535,13 @@ To opt out of automatic PostgreSQL upgrades during GitLab package upgrades, run:
 sudo touch /etc/gitlab/disable-postgresql-upgrade
 ```
 
+#### GitLab 16.0 and later
+
+PostgreSQL version 12 is no longer supported and the binaries have been
+removed. To proceed, administrators must:
+
+1. Ensure the installation is using [PostgreSQL 13](#upgrade-packaged-postgresql-server)
+
 #### GitLab 15.11 and later
 
 In GitLab 15.11, PostgreSQL will automatically be upgraded to 13.x except for the following cases:
@@ -690,21 +697,24 @@ this.
 
 > The `gitlab:db:decomposition:connection_status` Rake task was [introduced](https://gitlab.com/gitlab-org/gitlab/-/merge_requests/111927) in GitLab 15.11.
 
-In GitLab 16.0, GitLab will default to using two database connections, that point to the same
-PostgreSQL database.
+In GitLab 16.0, GitLab defaults to using two database connections that point to the same PostgreSQL database.
 
-To opt-in for this feature, you first need to ensure PostgreSQL `max_connections` is high enough (using more than 50% of the available max connections).
+Prior to upgrading to GitLab 16.0, you can check that PostgreSQL `max_connections` is high enough
+(using more than 50% of the available max connections).
 You can verify this by running the following Rake task:
 
 ```shell
 sudo gitlab-rake gitlab:db:decomposition:connection_status
 ```
 
-If the task indicates that `max_connections` is high enough, you can enable this feature by updating
-this setting in `/etc/gitlab/gitlab.rb`:
+If the task indicates that `max_connections` is high enough, then you can proceed with the upgrade.
+
+If, for any reason, you wish to remain on single connection, and you are upgrading 
+from GitLab 15.11 or earlier to GitLab 16.0, or switch back to single database connection
+update this setting in `/etc/gitlab/gitlab.rb`:
 
 ```ruby
-gitlab_rails['databases']['ci']['enable'] = true
+gitlab_rails['databases']['ci']['enable'] = false
 ```
 
 ### Connecting to the bundled PostgreSQL database
@@ -828,7 +838,7 @@ both the root and intermediate certificates.
 
    ```ruby
    gitlab_rails['db_sslmode'] = "verify-full"
-   gitlab_rails['db_sslrootcert'] = "your-full-ca-bundle.pem"
+   gitlab_rails['db_sslrootcert'] = "<full_path_to_your_ca-bundle.pem>"
    ```
 
    If you are using Amazon RDS for your PostgreSQL server, ensure you
@@ -898,7 +908,7 @@ correct executables by running both the [backup](https://docs.gitlab.com/ee/rake
 
 ### Upgrade a non-packaged PostgreSQL database
 
-You can upgrade the external database as suggested by the provider after stopping all the processes that are connected to the database (Puma, Sidekiq):
+You can upgrade the external database after stopping all the processes that are connected to the database (Puma, Sidekiq):
 
 ```shell
 sudo gitlab-ctl stop puma
@@ -907,20 +917,20 @@ sudo gitlab-ctl stop sidekiq
 
 Before proceeding with the upgrade, note the following:
 
-- Before upgrading, review the [GitLab and PostgreSQL version compatibility table](https://docs.gitlab.com/ee/administration/package_information/postgresql_versions.html)
-  to determine your upgrade path. When using GitLab backup or restore, you
-  _must_ keep the same version of GitLab; first, upgrade PostgreSQL, and then GitLab.
+- Check compatibility between GitLab releases and PostgreSQL versions:
+  - Read about which GitLab versions introduced a requirement for a
+    [minimum PostgreSQL version](https://docs.gitlab.com/ee/install/requirements.html#postgresql-requirements).
+  - Read about significant changes to the PostgreSQL versions which
+    [shipped with Omnibus](https://docs.gitlab.com/ee/administration/package_information/postgresql_versions.html):
+    Omnibus GitLab is tested for compatibility with the major releases of PostgreSQL that it ships with.
+- When using GitLab backup or restore, you _must_ keep the same version of GitLab.
+  If you plan to upgrade to a later GitLab version as well, upgrade PostgreSQL first.
 - The [backup and restore Rake task](https://docs.gitlab.com/ee/raketasks/backup_restore.html#create-a-backup-of-the-gitlab-system)
   can be used to back up and restore the database to a later version of PostgreSQL.
-- If configuring a version number whose binaries are unavailable on the file
-  system, GitLab/Rails uses the default database's version binaries (default as
-  per [GitLab and PostgreSQL version compatibility table](https://docs.gitlab.com/ee/administration/package_information/postgresql_versions.html)).
-- If you're using Amazon RDS and are seeing extremely high (near 100%) CPU
-  utilization following a major version upgrade (for example, from `10.x` to
-  `11.x`), running an `ANALYZE VERBOSE;` query may be necessary to recreate query
-  plans and reduce CPU utilization on the database server(s).
-  [Amazon recommends this](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.PostgreSQL.html)
-  as part of a major version upgrade.
+- If a PostgreSQL version is specified with `postgresql['version']` that doesn't ship
+  with that Omnibus GitLab release, the
+  [default version in the compatibility table](https://docs.gitlab.com/ee/administration/package_information/postgresql_versions.html)
+  determines which client binaries (such as the PostgreSQL backup/restore binaries) are active.
 
 The following example demonstrates upgrading from a database host running PostgreSQL 12 to another database host running PostgreSQL 13 and incurs downtime:
 
@@ -984,6 +994,20 @@ when your installation is using PgBouncer.
 
    ```shell
    sudo gitlab-ctl start
+   ```
+
+1. After a upgrading PostgreSQL to a new major release:
+
+   - With Amazon RDS ([as recommended by AWS](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.PostgreSQL.html)), or
+   - If the database server is running very high (near 100%) CPU utilization.
+
+   Recreating the table statistics will ensure efficient query plans are picked
+   and reduce database server CPU load.
+
+   Run the following query on the PostgreSQL database console:
+
+   ```SQL
+   SET statement_timeout = 0; ANALYZE VERBOSE;
    ```
 
 ### Seed the database (fresh installs only)

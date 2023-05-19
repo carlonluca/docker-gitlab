@@ -27,6 +27,7 @@ license_file 'NOTICE'
 skip_transitive_dependency_licensing true
 
 dependency 'ruby'
+dependency 'rubygems'
 dependency 'libffi'
 dependency 'rb-readline'
 
@@ -42,4 +43,10 @@ build do
       " --version '#{version}'" \
       " --bindir '#{install_dir}/embedded/bin'" \
       ' --no-document', env: env
+
+  patch source: "Version-17-EOL-detection.patch",
+        target: "#{install_dir}/embedded/lib/ruby/gems/3.0.0/gems/chef-#{version}/lib/chef/client.rb"
+
+  patch source: "utf8-locale-support.patch",
+        target: "#{install_dir}/embedded/lib/ruby/gems/3.0.0/gems/chef-config-#{version}/lib/chef-config/config.rb"
 end

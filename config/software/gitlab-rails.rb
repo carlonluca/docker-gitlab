@@ -42,14 +42,13 @@ license_file combined_licenses_file
 
 dependency 'pkg-config-lite'
 dependency 'ruby'
-dependency 'bundler'
+dependency 'rubygems'
 dependency 'libxml2'
 dependency 'libxslt'
 dependency 'curl'
 dependency 'rsync'
 dependency 'libicu'
 dependency 'postgresql'
-dependency 'postgresql_new'
 dependency 'python-docutils'
 dependency 'krb5'
 dependency 'registry'
@@ -120,8 +119,9 @@ build do
   # Disable zstd decompression support to avoid linking against libzstd,
   # which may not be a safe system dependency to use.
   bundle 'config build.ruby-magic --with-magic-flags=--disable-zstdlib', env: env
-  bundle "config set --local frozen 'true'"
-  bundle "install --without #{bundle_without.join(' ')} --jobs #{workers} --retry 5", env: env
+  bundle "config set --local frozen 'true'", env: env
+  bundle "config set --local without #{bundle_without.join(' ')}", env: env
+  bundle "install --jobs #{workers} --retry 5", env: env
 
   block 'correct omniauth-jwt permissions' do
     # omniauth-jwt has some of its files 0600, make them 0644
@@ -143,11 +143,23 @@ build do
       shellout!("#{embedded_bin('gem')} uninstall --force google-protobuf", env: env)
       shellout!("#{embedded_bin('gem')} install google-protobuf --version #{protobuf_version} --platform=ruby", env: env)
     end
+  end
 
-    # Delete unused shared objects included in grpc gem
-    grpc_path = shellout!("#{embedded_bin('bundle')} show grpc", env: env).stdout.strip
+  block 'delete unneeded precompiled shared libraries' do
+    next if OhaiHelper.ruby_native_gems_unsupported?
+
     ruby_ver = shellout!("#{embedded_bin('ruby')} -e 'puts RUBY_VERSION.match(/\\d+\\.\\d+/)[0]'", env: env).stdout.chomp
-    command "find #{File.join(grpc_path, 'src/ruby/lib/grpc')} ! -path '*/#{ruby_ver}/*' -name 'grpc_c.so' -type f -print -delete"
+    gem_paths = {
+      'grpc' => 'src/ruby/lib/grpc',
+      'prometheus-client-mmap' => 'lib',
+      'nokogiri' => 'lib'
+    }
+
+    # Delete unused shared libraries included in the gems
+    gem_paths.each do |name, base_path|
+      gem_path = shellout!("#{embedded_bin('bundle')} show #{name}", env: env).stdout.strip
+      command "find #{File.join(gem_path, base_path)} ! -path '*/#{ruby_ver}/*' -name '*.so' -type f -print -delete"
+    end
   end
 
   # In order to compile the assets, we need to get to a state where rake can

@@ -87,13 +87,13 @@ module Gitlab
             note: "Geo does not require Foreign Data Wrapper (FDW) to be configured to replicate data."
           },
           {
-            config_keys: %w(gitlab gitlab-rails extra_piwik_site_id),
+            config_keys: %w(gitlab gitlab_rails extra_piwik_site_id),
             deprecation: '13.7',
             removal: '14.0', # https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/6139
             note: "Piwik config keys have been renamed to reflect the rebranding to Matomo. Please update gitlab_rails['extra_piwik_site_id'] to gitlab_rails['extra_matomo_site_id']."
           },
           {
-            config_keys: %w(gitlab gitlab-rails extra_piwik_url),
+            config_keys: %w(gitlab gitlab_rails extra_piwik_url),
             deprecation: '13.7',
             removal: '14.0', # https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/6139
             note: "Piwik config keys have been renamed to reflect the rebranding to Matomo. Please update gitlab_rails['extra_piwik_url'] to gitlab_rails['extra_matomo_url']."
@@ -111,7 +111,7 @@ module Gitlab
             note: 'The experimental_queue_selector option is now called queue_selector.'
           },
           {
-            config_keys: %w(gitlab gitlab-rails analytics_instance_statistics_count_job_trigger_worker_cron),
+            config_keys: %w(gitlab gitlab_rails analytics_instance_statistics_count_job_trigger_worker_cron),
             deprecation: '13.10',
             removal: '14.0', # https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/6003
             note: 'The config have been renamed, use analytics_usage_trends_count_job_trigger_worker_cron option.'
@@ -171,37 +171,37 @@ module Gitlab
             note: "Use `gitaly['runtime_dir']` instead."
           },
           {
-            config_keys: %w(gitlab gitlab-rails object_store connection openstack_username),
+            config_keys: %w(gitlab gitlab_rails object_store connection openstack_username),
             deprecation: '14.9',
             removal: '15.0',
             note: "Update object storage configuration to use S3 API instead of SWIFT."
           },
           {
-            config_keys: %w(gitlab gitlab-rails object_store connection rackspace_username),
+            config_keys: %w(gitlab gitlab_rails object_store connection rackspace_username),
             deprecation: '14.9',
             removal: '15.0',
             note: "Migrate object storage to another provider other than Rackspace."
           },
           {
-            config_keys: %w(gitlab gitlab-rails pseudonymizer_manifest),
+            config_keys: %w(gitlab gitlab_rails pseudonymizer_manifest),
             deprecation: '14.7',
             removal: '15.0',
             note: "Starting with GitLab 14.7, Pseudonymizer has been deprecated and will be removed."
           },
           {
-            config_keys: %w(gitlab gitlab-rails pseudonymizer_upload_remote_directory),
+            config_keys: %w(gitlab gitlab_rails pseudonymizer_upload_remote_directory),
             deprecation: '14.7',
             removal: '15.0',
             note: "Starting with GitLab 14.7, Pseudonymizer has been deprecated and will be removed."
           },
           {
-            config_keys: %w(gitlab gitlab-rails pseudonymizer_upload_connection),
+            config_keys: %w(gitlab gitlab_rails pseudonymizer_upload_connection),
             deprecation: '14.7',
             removal: '15.0',
             note: "Starting with GitLab 14.7, Pseudonymizer has been deprecated and will be removed."
           },
           {
-            config_keys: %w(gitlab gitlab-rails pseudonymizer_worker_cron),
+            config_keys: %w(gitlab gitlab_rails pseudonymizer_worker_cron),
             deprecation: '14.7',
             removal: '15.0',
             note: "Starting with GitLab 14.7, Pseudonymizer has been deprecated and will be removed."
@@ -213,73 +213,73 @@ module Gitlab
             note: "Starting with GitLab 14.8, SelfSignedCert has been deprecated and will be removed. Install self-signed certificates into `/etc/gitlab/trusted-certs` instead."
           },
           {
-            config_keys: %w(gitlab gitlab-rails artifacts_object_store_direct_upload),
+            config_keys: %w(gitlab gitlab_rails artifacts_object_store_direct_upload),
             deprecation: '14.9',
             removal: '15.0',
             note: "Starting with GitLab 15.0, only direct uploads will be permitted deprecating this configuration key."
           },
           {
-            config_keys: %w(gitlab gitlab-rails artifacts_object_store_background_upload),
+            config_keys: %w(gitlab gitlab_rails artifacts_object_store_background_upload),
             deprecation: '14.9',
             removal: '15.0',
             note: "Starting with GitLab 15.0, only direct uploads will be permitted deprecating this configuration key."
           },
           {
-            config_keys: %w(gitlab gitlab-rails external_diffs_object_store_direct_upload),
+            config_keys: %w(gitlab gitlab_rails external_diffs_object_store_direct_upload),
             deprecation: '14.9',
             removal: '15.0',
             note: "Starting with GitLab 15.0, only direct uploads will be permitted deprecating this configuration key."
           },
           {
-            config_keys: %w(gitlab gitlab-rails external_diffs_object_store_background_upload),
+            config_keys: %w(gitlab gitlab_rails external_diffs_object_store_background_upload),
             deprecation: '14.9',
             removal: '15.0',
             note: "Starting with GitLab 15.0, only direct uploads will be permitted deprecating this configuration key."
           },
           {
-            config_keys: %w(gitlab gitlab-rails lfs_object_store_direct_upload),
+            config_keys: %w(gitlab gitlab_rails lfs_object_store_direct_upload),
             deprecation: '14.9',
             removal: '15.0',
             note: "Starting with GitLab 15.0, only direct uploads will be permitted deprecating this configuration key."
           },
           {
-            config_keys: %w(gitlab gitlab-rails lfs_object_store_background_upload),
+            config_keys: %w(gitlab gitlab_rails lfs_object_store_background_upload),
             deprecation: '14.9',
             removal: '15.0',
             note: "Starting with GitLab 15.0, only direct uploads will be permitted deprecating this configuration key."
           },
           {
-            config_keys: %w(gitlab gitlab-rails uploads_object_store_direct_upload),
+            config_keys: %w(gitlab gitlab_rails uploads_object_store_direct_upload),
             deprecation: '14.9',
             removal: '15.0',
             note: "Starting with GitLab 15.0, only direct uploads will be permitted deprecating this configuration key."
           },
           {
-            config_keys: %w(gitlab gitlab-rails uploads_object_store_background_upload),
+            config_keys: %w(gitlab gitlab_rails uploads_object_store_background_upload),
             deprecation: '14.9',
             removal: '15.0',
             note: "Starting with GitLab 15.0, only direct uploads will be permitted deprecating this configuration key."
           },
           {
-            config_keys: %w(gitlab gitlab-rails packages_object_store_direct_upload),
+            config_keys: %w(gitlab gitlab_rails packages_object_store_direct_upload),
             deprecation: '14.9',
             removal: '15.0',
             note: "Starting with GitLab 15.0, only direct uploads will be permitted deprecating this configuration key."
           },
           {
-            config_keys: %w(gitlab gitlab-rails packages_object_store_background_upload),
+            config_keys: %w(gitlab gitlab_rails packages_object_store_background_upload),
             deprecation: '14.9',
             removal: '15.0',
             note: "Starting with GitLab 15.0, only direct uploads will be permitted deprecating this configuration key."
           },
           {
-            config_keys: %w(gitlab gitlab-rails dependency_proxy_object_store_direct_upload),
+            config_keys: %w(gitlab gitlab_rails dependency_proxy_object_store_direct_upload),
             deprecation: '14.9',
             removal: '15.0',
             note: "Starting with GitLab 15.0, only direct uploads will be permitted deprecating this configuration key."
           },
           {
-            config_keys: %w(gitlab gitlab-rails dependency_proxy_object_store_background_upload),
+            config_keys: %w(gitlab gitlab_rails dependency_proxy_object_store_background_upload),
             deprecation: '14.9',
             removal: '15.0',
             note: "Starting with GitLab 15.0, only direct uploads will be permitted deprecating this configuration key."
@@ -321,13 +321,13 @@ module Gitlab
             note: "Starting with GitLab 16.0, Praefect DB metrics will no longer be available on `/metrics` and must be scraped from `/db_metrics`."
           },
           {
-            config_keys: %w(gitlab gitlab-rails enable_jemalloc),
+            config_keys: %w(gitlab gitlab_rails enable_jemalloc),
             deprecation: '15.5',
             removal: '15.5',
             note: "Starting with GitLab 15.5, jemalloc is compiled in with the Ruby interpreter and can no longer be disabled."
           },
           {
-            config_keys: %w(gitlab gitlab-rails gitlab_default_can_create_group),
+            config_keys: %w(gitlab gitlab_rails gitlab_default_can_create_group),
             deprecation: '15.5',
             removal: '16.0',
             note: "Starting with GitLab 15.5, this setting cannot be controlled via the configuration file anymore. Follow the steps at https://docs.gitlab.com/ee/user/admin_area/settings/account_and_limit_settings.html#prevent-users-from-creating-top-level-groups, to configure this setting via the Admin UI or the API"
@@ -348,6 +348,7 @@ module Gitlab
 
         deprecations += praefect_legacy_configuration_deprecations
         deprecations += gitaly_legacy_configuration_deprecations
+        deprecations += gitaly_ruby_deprecations
 
         deprecations += identify_deprecated_config(existing_config, ['gitlab', 'unicorn'], ['enable', 'svlogd_prefix'], "13.10", "14.0", "Starting with GitLab 14.0, Unicorn is no longer supported and users must switch to Puma, following https://docs.gitlab.com/ee/administration/operations/puma.html.")
         deprecations += identify_deprecated_config(existing_config, ['repmgr'], ['enable'], "13.3", "14.0", "Starting with GitLab 14.0, Repmgr is no longer supported and users must switch to Patroni, following https://docs.gitlab.com/ee/administration/postgresql/replication_and_failover.html#switching-from-repmgr-to-patroni.")
@@ -424,7 +425,6 @@ module Gitlab
           'logging_level',
           'logging_format',
           'logging_sentry_dsn',
-          'logging_ruby_sentry_dsn',
           'logging_sentry_environment',
           'log_directory',
           'prometheus_grpc_latency_buckets',
@@ -435,10 +435,6 @@ module Gitlab
           'use_bundled_git',
           'gpg_signing_key_path',
           'gitconfig',
-          'ruby_max_rss',
-          'ruby_graceful_restart_timeout',
-          'ruby_restart_delay',
-          'ruby_num_workers',
           'storage',
           'custom_hooks_dir',
           'daily_maintenance_disabled',
@@ -464,6 +460,23 @@ module Gitlab
             deprecation: '15.10',
             removal: '16.0', # https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/7439
             note: "In GitLab 15.10, Gitaly's configuration in Omnibus GitLab was changed to structurally match Gitaly's own configuration. Please see the migration instructions at https://docs.gitlab.com/ee/update/#15100"
+          }
+        end
+      end
+
+      def gitaly_ruby_deprecations
+        [
+          'logging_ruby_sentry_dsn',
+          'ruby_max_rss',
+          'ruby_graceful_restart_timeout',
+          'ruby_restart_delay',
+          'ruby_num_workers',
+        ].map do |key|
+          {
+            config_keys: ['gitaly', key],
+            deprecation: '16.0',
+            removal: '17.0',
+            note: "Gitaly-ruby is removed in GitLab 16.0, and thus this setting is now unused."
           }
         end
       end
@@ -563,6 +576,12 @@ module Gitlab
         EOS
         messages += deprecate_only_if_value(incoming_version, existing_config, type, ['praefect'], 'failover_election_strategy', 'sql', '13.12', '14.0', note: praefect_note, ignore_deprecation: true)
         messages += deprecate_only_if_value(incoming_version, existing_config, type, ['praefect'], 'failover_election_strategy', 'local', '13.12', '14.0', note: praefect_note, ignore_deprecation: true)
+
+        grafana_note = <<~EOS
+          The bundled Grafana is deprecated and no longer available. We recommond following
+          https://docs.gitlab.com/ee/administration/monitoring/performance/grafana_configuration.html#deprecation.
+        EOS
+        messages += deprecate_only_if_value(incoming_version, existing_config, type, ['monitoring', 'grafana', 'internal'], 'enable', true, '16.0', '16.3', note: grafana_note)
 
         messages
       end

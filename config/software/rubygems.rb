@@ -1,6 +1,5 @@
 #
-# Copyright 2012-2016 Chef Software, Inc.
-# Copyright 2017-2022 GitLab Inc.
+# Copyright 2016-2023 GitLab Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,26 +14,19 @@
 # limitations under the License.
 #
 
-name 'bundler'
-# Pin the bundler version to avoid breaking changes in later versions
-default_version '2.3.15'
+name 'rubygems'
+default_version '3.4.13'
 
 license 'MIT'
-license_file 'LICENSE'
+license_file 'LICENSE.txt'
 
 skip_transitive_dependency_licensing true
 
 dependency 'ruby'
 
 build do
-  patch source: "add-license-file.patch"
+  patch source: "license/add-license-file.patch"
   env = with_standard_compiler_flags(with_embedded_path)
 
-  v_opts = "--version '#{version}'" unless version.nil?
-
-  gem [
-    'install bundler',
-    v_opts,
-    '--no-document --force'
-  ].compact.join(' '), env: env
+  gem "update --no-document --system #{version}", env: env
 end
