@@ -19,6 +19,7 @@ RUN apt-get update -q \
       less \
       perl \
       libperl5.34 \
+      libatomic1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Use BusyBox
