@@ -113,6 +113,13 @@ build do
 
   bundle "config set --local gemfile #{gitlab_bundle_gemfile}" if gitlab_bundle_gemfile != 'Gemfile'
   bundle 'config force_ruby_platform true', env: env if OhaiHelper.ruby_native_gems_unsupported?
+
+  # This works around an issue with the grpc gem attempting to include
+  # /opt/gitlab/include headers instead of the vendored re2 headers:
+  # https://github.com/grpc/grpc/pull/32580. This can be removed
+  # after grpc is updated with that pull request.
+  env['CPPFLAGS'] = "-Ithird_party/re2 #{env['CPPFLAGS']}" if OhaiHelper.arm?
+
   bundle 'config build.gpgme --use-system-libraries', env: env
   bundle "config build.nokogiri --use-system-libraries --with-xml2-include=#{install_dir}/embedded/include/libxml2 --with-xslt-include=#{install_dir}/embedded/include/libxslt", env: env
   bundle 'config build.grpc --with-ldflags=-Wl,--no-as-needed --with-dldflags=-latomic', env: env if OhaiHelper.raspberry_pi?
@@ -123,33 +130,12 @@ build do
   bundle "config set --local without #{bundle_without.join(' ')}", env: env
   bundle "install --jobs #{workers} --retry 5", env: env
 
-  block 'correct omniauth-jwt permissions' do
-    # omniauth-jwt has some of its files 0600, make them 0644
-    show = shellout!("#{embedded_bin('bundle')} show omniauth-jwt", env: env, returns: [0, 7])
-    if show.exitstatus.zero?
-      path = show.stdout.strip
-      command "chmod -R g=u-w,o=u-w #{path}"
-    end
-  end
-
-  # One of our gems, google-protobuf is known to have issues with older gcc versions
-  # when using the pre-built extensions. We will remove it and rebuild it here.
-  block 'reinstall google-protobuf gem' do
-    require 'fileutils'
-
-    unless OhaiHelper.ruby_native_gems_unsupported?
-      current_gem = shellout!("#{embedded_bin('bundle')} show | grep google-protobuf", env: env).stdout
-      protobuf_version = current_gem[/google-protobuf \((.*)\)/, 1]
-      shellout!("#{embedded_bin('gem')} uninstall --force google-protobuf", env: env)
-      shellout!("#{embedded_bin('gem')} install google-protobuf --version #{protobuf_version} --platform=ruby", env: env)
-    end
-  end
-
   block 'delete unneeded precompiled shared libraries' do
     next if OhaiHelper.ruby_native_gems_unsupported?
 
     ruby_ver = shellout!("#{embedded_bin('ruby')} -e 'puts RUBY_VERSION.match(/\\d+\\.\\d+/)[0]'", env: env).stdout.chomp
     gem_paths = {
+      'google-protobuf' => 'lib/google',
       'grpc' => 'src/ruby/lib/grpc',
       'prometheus-client-mmap' => 'lib',
       'nokogiri' => 'lib'

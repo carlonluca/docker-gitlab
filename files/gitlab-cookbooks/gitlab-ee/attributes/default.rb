@@ -21,6 +21,7 @@ default['gitlab']['sentinel']['dir'] = '/var/opt/gitlab/sentinel'
 default['gitlab']['sentinel']['log_directory'] = '/var/log/gitlab/sentinel'
 default['gitlab']['sentinel']['ha'] = false
 default['gitlab']['sentinel']['port'] = 26379
+default['gitlab']['sentinel']['password'] = nil
 default['gitlab']['sentinel']['quorum'] = 1
 default['gitlab']['sentinel']['announce_ip'] = nil
 default['gitlab']['sentinel']['announce_port'] = nil
@@ -65,7 +66,7 @@ default['gitlab']['geo_secondary']['db_username'] = "gitlab_geo"
 default['gitlab']['geo_secondary']['db_password'] = nil
 default['gitlab']['geo_secondary']['db_load_balancing'] = { 'hosts' => [] }
 # Path to postgresql socket directory
-default['gitlab']['geo_secondary']['db_host'] = "/var/opt/gitlab/geo-postgresql"
+default['gitlab']['geo_secondary']['db_host'] = nil # when `nil` - value is set from geo_postgresql['dir']
 default['gitlab']['geo_secondary']['db_port'] = 5431
 default['gitlab']['geo_secondary']['db_socket'] = nil
 default['gitlab']['geo_secondary']['db_sslmode'] = nil

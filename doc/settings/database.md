@@ -100,6 +100,12 @@ of your database is `database.example.com`, and your external GitLab hostname
 is `gitlab.example.com`. You will either need a wildcard certificate for
 `*.example.com` or two different SSL certificates.
 
+The `ssl_cert_file`, `ssl_key_file`, and `ssl_ca_file` files direct PostgreSQL to where
+on the filesystem to find the certificate, key, and bundle. These changes are applied to
+`postgresql.conf`. The directives `internal_certificate` and `internal_key` are used to
+populate the contents of these files. The contents can be added directly or
+loaded from file as shown in the following example.
+
 After you have these files, enable SSL:
 
 1. Edit `/etc/gitlab/gitlab.rb`:
@@ -108,14 +114,8 @@ After you have these files, enable SSL:
    postgresql['ssl_cert_file'] = '/custom/path/to/server.crt'
    postgresql['ssl_key_file'] = '/custom/path/to/server.key'
    postgresql['ssl_ca_file'] = '/custom/path/to/bundle.pem'
-   postgresql['internal_certificate'] = "-----BEGIN CERTIFICATE-----
-   ...base64-encoded certificate...
-   -----END CERTIFICATE-----
-   "
-   postgresql['internal_key'] = "-----BEGIN RSA PRIVATE KEY-----
-   ...base64-encoded private key...
-   -----END RSA PRIVATE KEY-----
-   "
+   postgresql['internal_certificate'] = File.read('/custom/path/to/server.crt')
+   postgresql['internal_key'] = File.read('/custom/path/to/server.key')
    ```
 
    Relative paths will be rooted in the PostgreSQL data directory
@@ -709,7 +709,7 @@ sudo gitlab-rake gitlab:db:decomposition:connection_status
 
 If the task indicates that `max_connections` is high enough, then you can proceed with the upgrade.
 
-If, for any reason, you wish to remain on single connection, and you are upgrading 
+If, for any reason, you wish to remain on single connection, and you are upgrading
 from GitLab 15.11 or earlier to GitLab 16.0, or switch back to single database connection
 update this setting in `/etc/gitlab/gitlab.rb`:
 
@@ -1350,7 +1350,7 @@ replication user's password.
    If you can't find your `slot_name` here, or there is no output returned, your Geo secondaries may not be healthy. In that case, make sure the [secondaries are healthy and replication is working](https://docs.gitlab.com/ee/administration/geo/replication/troubleshooting.html#check-the-health-of-the-secondary-node).
 
 1. Gather the replication user's password. It was set while setting up Geo in
-   [Step 1. Configure the primary server](https://docs.gitlab.com/ee/administration/geo/setup/database.html#step-1-configure-the-primary-server).
+   [Step 1. Configure the primary site](https://docs.gitlab.com/ee/administration/geo/setup/database.html#step-1-configure-the-primary-site).
 
 1. Manually upgrade PostgreSQL on the Geo primary. Run on the Geo primary's
    database node:

@@ -295,7 +295,7 @@ rubocop:
 
 # Perform documentation linting on Markdown files
 docs-lint markdown:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.17-vale-2.24.0-markdownlint-0.33.0-markdownlint2-0.6.0
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.17-vale-2.25.2-markdownlint-0.34.0-markdownlint2-0.7.1
   stage: check
   cache: {}
   needs: []
@@ -312,7 +312,7 @@ docs-lint markdown:
 
 # Perform link checks on published HTML files
 docs-lint links:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-html:alpine-3.17-ruby-3.2.1-f53af000
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-html:alpine-3.17-ruby-3.2.2-b8f266e8
   stage: check
   cache: {}
   needs: []
@@ -396,8 +396,8 @@ AlmaLinux 8 knapsack: !reference [.knapsack]
 AlmaLinux 9 knapsack: !reference [.knapsack]
 Debian 10 knapsack: !reference [.knapsack]
 Debian 11 knapsack: !reference [.knapsack]
+Debian 12 knapsack: !reference [.knapsack]
 OpenSUSE 15.4 knapsack: !reference [.knapsack]
-Ubuntu 16.04 knapsack: !reference [.knapsack]
 Ubuntu 18.04 knapsack: !reference [.knapsack]
 Ubuntu 20.04 knapsack: !reference [.knapsack]
 Ubuntu 22.04 knapsack: !reference [.knapsack]
@@ -419,12 +419,6 @@ build library specs:
         coverage_format: cobertura
         path: coverage/coverage.xml
 
-Ubuntu 16.04 specs:
-  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/ubuntu_16.04-ruby:${BUILDER_IMAGE_REVISION}"
-  extends: .chef_spec_template
-  parallel: 6
-  needs:
-  - Ubuntu 16.04 knapsack
 Ubuntu 18.04 specs :
   image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/ubuntu_18.04-ruby:${BUILDER_IMAGE_REVISION}"
   extends: .chef_spec_template
@@ -455,6 +449,12 @@ Debian 11 specs :
   parallel: 6
   needs:
   - Debian 11 knapsack
+Debian 12 specs :
+  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/debian_12-ruby:${BUILDER_IMAGE_REVISION}"
+  extends: .chef_spec_template
+  parallel: 6
+  needs:
+  - Debian 12 knapsack
 Centos 7 specs :
   image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/centos_7-ruby:${BUILDER_IMAGE_REVISION}"
   extends: .chef_spec_template
@@ -568,6 +568,8 @@ qa-test:
     ALLURE_JOB_NAME: $ALLURE_JOB_NAME
     GITLAB_SEMVER_VERSION: $GITLAB_SEMVER_VERSION # latest semver gitlab version used for testing upgrade paths
     SKIP_OMNIBUS_TRIGGER: "true"
+    GITLAB_AUTH_TOKEN: $DANGER_GITLAB_API_TOKEN
+    ALLURE_MERGE_REQUEST_IID: $CI_MERGE_REQUEST_IID
   inherit:
    variables: false
   trigger:
@@ -775,7 +777,6 @@ build-package-on-all-os:
     # Triggers from GitLab Rails/Gitaly/GitLab Pages pipeline which forced building on all OS automatically
     - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/ && $BUILD_ON_ALL_OS == "true"'
       when: always
-      allow_failure: true
       variables: !reference [.build-package-on-all-os-vars]
     # MR pipelines from omnibus-gitlab that change files which require building on all OS automatically
     - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/ && $CI_PIPELINE_SOURCE != "pipeline"'
@@ -785,7 +786,6 @@ build-package-on-all-os:
        - config/software/**
        - config/patches/**
       when: always
-      allow_failure: true
       variables: !reference [.build-package-on-all-os-vars]
     # Covering the remaining scenarios - provide the job to be manually run by developers, if required
     # (i) MR pipelines from omnibus-gitlab that doesn't change files which require building on all OS
