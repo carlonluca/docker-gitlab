@@ -35,7 +35,6 @@ version '13.11' do
 end
 
 major_version = '13'
-libpq = 'libpq.so.5'
 
 source url: "https://ftp.postgresql.org/pub/source/v#{version}/postgresql-#{version}.tar.bz2"
 
@@ -59,8 +58,6 @@ build do
 
   make "world -j #{workers}", env: env
   make 'install-world', env: env
-
-  link "#{prefix}/lib/#{libpq}", "#{install_dir}/embedded/lib/#{libpq}"
 
   # NOTE: There are several dependencies which require these files in these
   # locations and have dependency on `postgresql_new`. So when this block is

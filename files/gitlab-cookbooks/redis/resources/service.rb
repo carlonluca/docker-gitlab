@@ -2,11 +2,11 @@ unified_mode true
 
 property :socket_group, String
 property :dir, String, default: lazy { node['redis']['dir'] }
-property :account_helper, default: lazy { AccountHelper.new(node) }
-property :omnibus_helper, default: lazy { OmnibusHelper.new(node) }
-property :redis_helper, default: lazy { RedisHelper.new(node) }
+property :account_helper, default: lazy { AccountHelper.new(node) }, sensitive: true
+property :omnibus_helper, default: lazy { OmnibusHelper.new(node) }, sensitive: true
+property :redis_helper, default: lazy { RedisHelper.new(node) }, sensitive: true
 property :runit_sv_timeout, [Integer, nil], default: lazy { node['redis']['runit_sv_timeout'] }
-property :logfiles_helper, default: lazy { LogfilesHelper.new(node) }
+property :logfiles_helper, default: lazy { LogfilesHelper.new(node) }, sensitive: true
 
 action :create do
   logging_settings = new_resource.logfiles_helper.logging_settings('redis')
@@ -63,6 +63,8 @@ action :create do
     sensitive true
   end
 
+  open_files_ulimit = node['redis']['open_files_ulimit']
+
   runit_service 'redis' do
     start_down node['redis']['start_down']
     template_name 'redis'
@@ -71,6 +73,7 @@ action :create do
       log_directory: logging_settings[:log_directory],
       log_user: logging_settings[:runit_owner],
       log_group: logging_settings[:runit_group],
+      open_files_ulimit: open_files_ulimit
     }.merge(new_resource))
     sv_timeout new_resource.runit_sv_timeout
     log_options logging_settings[:options]

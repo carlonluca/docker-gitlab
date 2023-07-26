@@ -189,18 +189,25 @@ add_command_under_category 'pg-upgrade', 'database',
     Kernel.exit 0
   end
 
+  total_space_needed = 0 # in MiB
   unless options[:skip_disk_check]
-    check_dirs = [@db_worker.tmp_dir]
-    check_dirs << @db_worker.data_dir if pg_enabled || patroni_enabled
-    check_dirs << File.join(@attributes['gitlab']['geo_postgresql']['dir'], 'data') if geo_enabled
+    check_dirs = {}
+    check_dirs[@db_worker.data_dir] = 0 if pg_enabled || patroni_enabled
+    check_dirs[File.join(@attributes['gitlab']['geo_postgresql']['dir'], 'data')] = 0 if geo_enabled
+    check_dirs.each_key do |dir|
+      check_dirs[dir] = @db_worker.space_needed(dir)
+      total_space_needed += check_dirs[dir]
+    end
+    # We need space for all databases if using --tmp-dir.
+    check_dirs = { @db_worker.tmp_dir => total_space_needed } if @db_worker.tmp_dir
 
-    check_dirs.compact.uniq.each do |dir|
+    check_dirs.each do |dir, space_needed|
       unless GitlabCtl::Util.progress_message(
         "Checking if disk for directory #{dir} has enough free space for PostgreSQL upgrade"
       ) do
-        @db_worker.enough_free_space?(dir)
+        @db_worker.enough_free_space?(dir, space_needed)
       end
-        log "Upgrade requires #{@db_worker.space_needed(dir)}MB, but only #{@db_worker.space_free(dir)}MB is free."
+        log "Upgrade requires #{space_needed}MB, but only #{@db_worker.space_free(dir)}MB is free."
         Kernel.exit 1
       end
       next
@@ -276,11 +283,11 @@ add_command_under_category 'pg-upgrade', 'database',
     elsif @instance_type == :patroni_standby_leader
       patroni_standby_leader_upgrade
     end
-  elsif @roles.include?('geo-primary')
+  elsif @roles.include?('geo_primary')
     log 'Detected a GEO primary node'
     @instance_type = :geo_primary
     general_upgrade
-  elsif @roles.include?('geo-secondary')
+  elsif @roles.include?('geo_secondary')
     log 'Detected a Geo secondary node'
     @instance_type = :geo_secondary
     geo_secondary_upgrade(options[:tmp_dir], options[:timeout])
@@ -447,8 +454,10 @@ def geo_secondary_upgrade(tmp_dir, timeout)
     log('Upgrading the postgresql database')
     begin
       promote_database
-    rescue GitlabCtl::Errors::ExecutionError
-      die "There was an error promoting the database. Please check the logs"
+    rescue GitlabCtl::Errors::ExecutionError => e
+      log "STDOUT: #{e.stdout}"
+      log "STDERR: #{e.stderr}"
+      die "There was an error promoting the database from standby, please check the logs and output."
     end
 
     # Restart the database after promotion, and wait for it to be ready
@@ -456,12 +465,11 @@ def geo_secondary_upgrade(tmp_dir, timeout)
     GitlabCtl::PostgreSQL.wait_for_postgresql(600)
 
     common_pre_upgrade
-
-    # Only disable maintenance_mode if geo-pg is not enabled
-    common_post_upgrade(!@geo_pg_enabled)
+    cleanup_data_dir
   end
 
   geo_pg_upgrade
+  common_post_upgrade
 end
 
 def geo_pg_upgrade
@@ -485,7 +493,6 @@ def geo_pg_upgrade
   rescue GitlabCtl::Errors::ExecutionError
     die "Error running pg_upgrade on secondary, please check logs"
   end
-  common_post_upgrade
 end
 
 def get_locale_encoding
@@ -737,7 +744,7 @@ def old_version
 end
 
 def default_version
-  PGVersion.parse(version_from_manifest('postgresql_new')) || PGVersion.parse(version_from_manifest('postgresql'))
+  PGVersion.parse(version_from_manifest('postgresql'))
 end
 
 def new_version
