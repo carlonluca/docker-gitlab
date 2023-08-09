@@ -14,6 +14,21 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 16.2.3 (2023-08-03)
+
+No changes.
+
+## 16.2.2 (2023-08-01)
+
+### Changed (1 change)
+
+- [Toggle recommend_pg_upgrade to false for now](gitlab-org/security/omnibus-gitlab@71c787efc52d4317af192fded7574af39e50b6d8)
+
+### Security (2 changes)
+
+- [Mattermost July 2023 security updates](gitlab-org/security/omnibus-gitlab@f0c8a99320bf06c5a781c9f62abd75ecb1455c91) ([merge request](gitlab-org/security/omnibus-gitlab!358))
+- [Update libxml2 to 2.10.4](gitlab-org/security/omnibus-gitlab@f8e7a0687bb7266e3d69790d0772e35820a44b96) ([merge request](gitlab-org/security/omnibus-gitlab!357))
+
 ## 16.2.1 (2023-07-25)
 
 No changes.
