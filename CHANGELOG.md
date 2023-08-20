@@ -14,6 +14,12 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 16.2.4 (2023-08-11)
+
+### Fixed (1 change)
+
+- [Set proxy_http_version v1.0 for health monitoring endpoints](gitlab-org/omnibus-gitlab@7318761272dc022c5273c96cffce4c991abb4bca) ([merge request](gitlab-org/omnibus-gitlab!7075))
+
 ## 16.2.3 (2023-08-03)
 
 No changes.
