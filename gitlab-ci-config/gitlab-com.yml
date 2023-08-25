@@ -84,8 +84,7 @@
     when: always
     paths:
       - pkg/
-  tags:
-    - triggered-packages
+  tags: !reference [.distribution-amd64-tags]
   needs:
     - job: fetch-assets
       optional: true
@@ -142,6 +141,7 @@
 
 .base-trigger-job-variables:
   ALTERNATIVE_SOURCES: 'true'
+  SECURITY_SOURCES: ${SECURITY_SOURCES}
   BUILDER_IMAGE_REVISION: ${BUILDER_IMAGE_REVISION}
   BUILDER_IMAGE_REGISTRY: ${BUILDER_IMAGE_REGISTRY}
   PUBLIC_BUILDER_IMAGE_REGISTRY: ${PUBLIC_BUILDER_IMAGE_REGISTRY}
@@ -149,7 +149,7 @@
   GITLAB_VERSION: ${GITLAB_VERSION}
   GITLAB_SHELL_VERSION: ${GITLAB_SHELL_VERSION}
   GITLAB_PAGES_VERSION: ${GITLAB_PAGES_VERSION}
-  GITALY_VERSION: ${GITALY_SERVER_VERSION}
+  GITALY_SERVER_VERSION: ${GITALY_SERVER_VERSION}
   GITLAB_ELASTICSEARCH_INDEXER_VERSION: ${GITLAB_ELASTICSEARCH_INDEXER_VERSION}
   GITLAB_KAS_VERSION: ${GITLAB_KAS_VERSION}
   TOP_UPSTREAM_SOURCE_PROJECT: ${TOP_UPSTREAM_SOURCE_PROJECT}
@@ -254,8 +254,7 @@ update-trigger-package-cache:
     - echo "Cache is up to date!"
   cache:
     policy: push  # We want to rebuild the cache from scratch to ensure stale dependencies are cleaned up.
-  tags:
-    - triggered-packages
+  tags: !reference [.distribution-amd64-tags]
   rules:
     - if: '$PIPELINE_TYPE == "TRIGGER_CACHE_UPDATE_PIPELINE"'
   needs:
@@ -400,7 +399,7 @@ Ubuntu 18.04 knapsack: !reference [.knapsack]
 Ubuntu 20.04 knapsack: !reference [.knapsack]
 Ubuntu 22.04 knapsack: !reference [.knapsack]
 AmazonLinux 2 knapsack: !reference [.knapsack]
-AmazonLinux 2022 knapsack: !reference [.knapsack]
+AmazonLinux 2023 knapsack: !reference [.knapsack]
 
 build library specs:
   image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/ubuntu_20.04-ruby:${BUILDER_IMAGE_REVISION}"
@@ -483,12 +482,12 @@ AmazonLinux 2 specs :
   parallel: 6
   needs:
   - AmazonLinux 2 knapsack
-AmazonLinux 2022 specs :
-  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/amazonlinux_2022-ruby:${BUILDER_IMAGE_REVISION}"
+AmazonLinux 2023 specs :
+  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/amazonlinux_2023-ruby:${BUILDER_IMAGE_REVISION}"
   extends: .chef_spec_template
   parallel: 6
   needs:
-  - AmazonLinux 2022 knapsack
+  - AmazonLinux 2023 knapsack
 
 
 update-knapsack:
@@ -563,7 +562,8 @@ qa-test:
   variables:
     RELEASE: $QA_RELEASE
     QA_IMAGE: $QA_IMAGE
-    ALLURE_JOB_NAME: $ALLURE_JOB_NAME
+    QA_RUN_ALL_TESTS: "false"
+    QA_SUITES: "QA::Scenario::Test::Integration::GitalyCluster,QA::Scenario::Test::Integration::InstanceSAML,QA::Scenario::Test::Integration::LDAPNoServer,QA::Scenario::Test::Integration::LDAPNoTLS,QA::Scenario::Test::Integration::LDAPTLS,QA::Scenario::Test::Integration::Mattermost,QA::Scenario::Test::Integration::Mtls,QA::Scenario::Test::Integration::ObjectStorageGcs,QA::Scenario::Test::Integration::RegistryTLS,QA::Scenario::Test::Integration::RegistryWithCDN,QA::Scenario::Test::Integration::SMTP,QA::Scenario::Test::Integration::Registry,QA::Scenario::Test::Instance::ObjectStorage,QA::Scenario::Test::Instance::RepositoryStorage,QA::Scenario::Test::Instance::GitlabPages,QA::Scenario::Test::Instance::Metrics,QA::EE::Scenario::Test::Integration::GroupSAML,QA::Scenario::Test::Instance::All,QA::Scenario::Test::Instance::Smoke"
     GITLAB_SEMVER_VERSION: $GITLAB_SEMVER_VERSION # latest semver gitlab version used for testing upgrade paths
     SKIP_OMNIBUS_TRIGGER: "true"
     GITLAB_AUTH_TOKEN: $DANGER_GITLAB_API_TOKEN
@@ -750,15 +750,9 @@ pages:
     - if: '$PIPELINE_TYPE == "LICENSE_PAGE_UPDATE_PIPELINE"'
 
 .build-package-on-all-os-vars:
+  extends: .base-trigger-job-variables
   SKIP_JOB_REGEX: '/Ubuntu-22.04|Docker|QA/'
   PIPELINE_TYPE: "${EDITION}_BRANCH_BUILD_PIPELINE"
-  ALTERNATIVE_SOURCES: 'true'
-  GITLAB_VERSION: ${GITLAB_VERSION}
-  GITLAB_SHELL_VERSION: ${GITLAB_SHELL_VERSION}
-  GITLAB_PAGES_VERSION: ${GITLAB_PAGES_VERSION}
-  GITALY_VERSION: ${GITALY_SERVER_VERSION}
-  GITLAB_ELASTICSEARCH_INDEXER_VERSION: ${GITLAB_ELASTICSEARCH_INDEXER_VERSION}
-  GITLAB_KAS_VERSION: ${GITLAB_KAS_VERSION}
   CACHE_EDITION: ${EDITION}
   ee: ${ee}
 

@@ -1,3 +1,6 @@
+require_relative 'info/git'
+require_relative 'info/package'
+
 module Build
   class Facts
     class << self
@@ -12,7 +15,7 @@ module Build
           :latest_stable_tag,
           :latest_tag
         ].each do |fact|
-          content = Build::Info.send(fact) # rubocop:disable GitlabSecurity/PublicSend
+          content = Build::Info::Git.send(fact) # rubocop:disable GitlabSecurity/PublicSend
           File.write("build_facts/#{fact}", content) unless content.nil?
         end
       end
@@ -63,7 +66,7 @@ module Build
           BUILDER_IMAGE_REGISTRY=#{Gitlab::Util.get_env('BUILDER_IMAGE_REGISTRY')}
           PUBLIC_BUILDER_IMAGE_REGISTRY=#{Gitlab::Util.get_env('PUBLIC_BUILDER_IMAGE_REGISTRY')}
           COMPILE_ASSETS=#{Gitlab::Util.get_env('COMPILE_ASSETS') || 'false'}
-          EDITION=#{Build::Info.edition.upcase}
+          EDITION=#{Build::Info::Package.edition.upcase}
           ee=#{Build::Check.is_ee? || 'false'}
         ]
       end
@@ -73,8 +76,8 @@ module Build
           QA_RELEASE=#{Build::GitlabImage.gitlab_registry_image_address(tag: Build::Info.docker_tag)}
           QA_IMAGE=#{Build::Info.qa_image}
           QA_TESTS=#{Gitlab::Util.get_env('QA_TESTS')}
-          ALLURE_JOB_NAME=#{allure_job_name}-#{Build::Info.edition}
-          GITLAB_SEMVER_VERSION=#{Build::Info.latest_stable_tag.tr('+', '-')}
+          ALLURE_JOB_NAME=#{allure_job_name}-#{Build::Info::Package.edition}
+          GITLAB_SEMVER_VERSION=#{Build::Info::Git.latest_stable_tag.tr('+', '-')}
           RAT_REFERENCE_ARCHITECTURE=#{Gitlab::Util.get_env('RAT_REFERENCE_ARCHITECTURE') || 'omnibus-gitlab-mrs'}
           RAT_FIPS_REFERENCE_ARCHITECTURE=#{Gitlab::Util.get_env('RAT_FIPS_REFERENCE_ARCHITECTURE') || 'omnibus-gitlab-mrs-fips-ubuntu'}
           RAT_PACKAGE_URL=#{Gitlab::Util.get_env('PACKAGE_URL') || Build::Info::CI.triggered_package_download_url(fips: false)}

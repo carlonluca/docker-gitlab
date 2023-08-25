@@ -3,6 +3,7 @@ require_relative '../docker_operations'
 require_relative '../build/qa'
 require_relative '../build/check'
 require_relative '../build/info'
+require_relative "../build/info/git"
 require_relative '../build/gitlab_image'
 require_relative '../build/qa_image'
 require_relative '../build/rat'
@@ -38,7 +39,7 @@ namespace :qa do
       Gitlab::Util.section('qa:copy:stable') do
         # Using `Build::Info.gitlab_version` allows to have
         # gitlab/gitlab-{ce,ee}-qa:X.Y.Z-{ce,ee} without the build number, as
-        # opposed to using something like `Build::Info.release_version`.
+        # opposed to using something like `Build::Info::Package.release_version`.
         Build::QAImage.copy_image_to_dockerhub(Build::Info.gitlab_version)
       end
     end
@@ -64,7 +65,7 @@ namespace :qa do
     task :staging do
       Gitlab::Util.section('qa:push:staging') do
         Build::QAImage.tag_and_push_to_gitlab_registry(Build::Info.gitlab_version)
-        Build::QAImage.tag_and_push_to_gitlab_registry(Build::Info.commit_sha)
+        Build::QAImage.tag_and_push_to_gitlab_registry(Build::Info::Git.commit_sha)
       end
     end
 

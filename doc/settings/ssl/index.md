@@ -4,10 +4,9 @@ group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
-# Configure SSL for the GitLab Linux package **(FREE SELF)**
+# Configure SSL for a Linux package installation **(FREE SELF)**
 
-The GitLab Linux package (Omnibus GitLab) supports several common use cases for
-SSL configuration.
+The Linux package supports several common use cases for SSL configuration.
 
 By default, HTTPS is not enabled. To enable HTTPS, you can:
 
@@ -169,6 +168,35 @@ To configure GitLab to use a custom ACME server:
    sudo gitlab-ctl reconfigure
    ```
 
+### Add alternative domains to the certificate
+
+You can add alternative domains (or subject alternative names) to the Let's Encrypt certificate.
+This can be helpful if you would like to use the [bundled NGINX](../nginx.md) as a
+[reverse proxy for other backend applications](../nginx.md#inserting-custom-settings-into-the-nginx-configuration).
+
+The DNS records for the alternative domains must point to the GitLab instance.
+
+To add alternative domains to your Let's Encrypt certificate:
+
+1. Edit `/etc/gitlab/gitlab.rb` and add the alternative domains:
+
+    ```ruby
+    # Separate multiple domains with commas
+    letsencrypt['alt_names'] = ['another-application.example.com']
+    ```
+
+1. Reconfigure GitLab:
+
+   ```shell
+   sudo gitlab-ctl reconfigure
+   ```  
+
+The resulting Let's Encrypt certificates generated for the main GitLab application will
+include the alternative domains specified. The generated files are located at:
+
+- `/etc/gitlab/ssl/gitlab.example.com.key` for the key.
+- `/etc/gitlab/ssl/gitlab.example.com.crt` for the certificate.
+
 ## Configure HTTPS manually
 
 WARNING:
@@ -207,7 +235,7 @@ To enable HTTPS:
    sudo cp gitlab.example.com.key gitlab.example.com.crt /etc/gitlab/ssl/
    ```
 
-   In the example, the hostname is `gitlab.example.com`, so Omnibus GitLab
+   In the example, the hostname is `gitlab.example.com`, so the Linux package installation
    looks for private key and public certificate files called
    `/etc/gitlab/ssl/gitlab.example.com.key` and `/etc/gitlab/ssl/gitlab.example.com.crt`,
    respectively. If you want, you can
@@ -218,7 +246,7 @@ To enable HTTPS:
    then all intermediate certificates, and finally the root CA.
 
 1. Optional. If the `certificate.key` file is password protected, NGINX doesn't ask for
-   the password when you reconfigure GitLab. In that case, Omnibus GitLab
+   the password when you reconfigure GitLab. In that case, the Linux package installation
    fails silently with no error messages.
 
    To specify the password for the key file, store the password in a text file
@@ -293,7 +321,7 @@ as part of the `external_url`:
 
 ### Change the default SSL certificate location
 
-If your hostname is `gitlab.example.com`, Omnibus GitLab
+If your hostname is `gitlab.example.com`, a Linux package installation
 looks for a private key called `/etc/gitlab/ssl/gitlab.example.com.key`
 and a public certificate called `/etc/gitlab/ssl/gitlab.example.com.crt`
 by default.
@@ -341,7 +369,7 @@ sudo gitlab-ctl hup registry
 
 ## Configure a reverse proxy or load balancer SSL termination
 
-By default, Omnibus GitLab auto-detects whether to use SSL if `external_url`
+By default, Linux package installations auto-detect whether to use SSL if `external_url`
 contains `https://` and configures NGINX for SSL termination.
 However, if you configure GitLab to run behind a reverse proxy or an external load balancer,
 some environments may want to terminate SSL outside the GitLab application.
@@ -365,7 +393,7 @@ The external load balancer may need access to a GitLab endpoint
 that returns a `200` status code (for installations requiring login, the root
 page returns a `302` redirect to the login page). In that case, it's
 recommended to leverage a
-[health check endpoint](https://docs.gitlab.com/ee/user/admin_area/monitoring/health_check.html).
+[health check endpoint](https://docs.gitlab.com/ee/administration/monitoring/health_check.html).
 
 Other bundled components, like the Container Registry, GitLab Pages, or Mattermost,
 use a similar strategy for proxied SSL. Set the particular component's `*_external_url` with `https://` and
@@ -445,7 +473,7 @@ By default, when you specify that your GitLab instance is reachable
 through HTTPS, the [HTTP/2 protocol](https://www.rfc-editor.org/rfc/rfc7540) is
 also enabled.
 
-The Omnibus GitLab package sets the required SSL ciphers that are compatible with
+The Linux package sets the required SSL ciphers that are compatible with
 the HTTP/2 protocol.
 
 If you specify your own [custom SSL ciphers](#use-custom-ssl-ciphers) and a cipher is
@@ -551,7 +579,7 @@ collection of trusted root certification authorities which are used to verify
 certificate authenticity.
 
 NOTE:
-For installations that use self-signed certificates, Omnibus GitLab
+For installations that use self-signed certificates, the Linux package
 provides a way to manage these certificates. For more technical details how
 this works, see the [details](#details-on-how-gitlab-and-ssl-work)
 at the bottom of this page.
@@ -600,11 +628,11 @@ For external resources GitLab must connect to, you can use:
 
 ## Details on how GitLab and SSL work
 
-GitLab-Omnibus includes its own library of OpenSSL and links all compiled
+The Linux package includes its own library of OpenSSL and links all compiled
 programs (e.g. Ruby, PostgreSQL, etc.) against this library. This library is
 compiled to look for certificates in `/opt/gitlab/embedded/ssl/certs`.
 
-GitLab-Omnibus manages custom certificates by symlinking any certificate that
+The Linux package manages custom certificates by symlinking any certificate that
 gets added to `/etc/gitlab/trusted-certs/` to `/opt/gitlab/embedded/ssl/certs`
 using the [c_rehash](https://www.openssl.org/docs/manmaster/man1/c_rehash.html)
 tool. For example, let's suppose we add `customcacert.pem` to

@@ -4,13 +4,16 @@ group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
-# Configuration options for the GitLab Linux package **(FREE SELF)**
+# Configuration options for Linux package installations **(FREE SELF)**
 
 To configure GitLab, set the relevant options in the `/etc/gitlab/gitlab.rb` file.
 
 [`gitlab.rb.template`](https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/files/gitlab-config-template/gitlab.rb.template)
 contains a complete list of available options. New installations have all the
 options of the template listed in `/etc/gitlab/gitlab.rb` by default.
+
+NOTE:
+The examples provided when you edit `/etc/gitlab/gitlab.rb` might not always reflect the default settings for an instance.
 
 For a list of default settings, see the
 [package defaults](https://docs.gitlab.com/ee/administration/package_information/defaults.html).
@@ -26,7 +29,7 @@ for more details about the use of DNS in a self-managed GitLab instance.
 To change the external URL:
 
 1. Optional. Before you change the external URL, determine if you have previously
-   defined a [custom **Home page URL** or **After sign-out path**](https://docs.gitlab.com/ee/user/admin_area/settings/sign_in_restrictions.html#sign-in-information).
+   defined a [custom **Home page URL** or **After sign-out path**](https://docs.gitlab.com/ee/administration/settings/sign_in_restrictions.html#sign-in-information).
    Both of these settings might cause unintentional redirecting after configuring
    a new external URL. If you have defined any URLs, remove them completely.
 
@@ -57,7 +60,7 @@ To change the external URL:
 
 ### Specify the external URL at the time of installation
 
-If you use the GitLab Linux package, you can set up your GitLab instance
+If you use the Linux package, you can set up your GitLab instance
 with the minimum number of commands by using the `EXTERNAL_URL` environment variable.
 If this variable is set, it is automatically detected and its value is written
 as `external_url` in the `gitlab.rb` file.
@@ -109,7 +112,7 @@ If you have any issues, see the [troubleshooting section](#relative-url-troubles
 
 ## Load external configuration file from non-root user
 
-Omnibus GitLab package loads all configuration from `/etc/gitlab/gitlab.rb` file.
+Linux package installations load all configuration from `/etc/gitlab/gitlab.rb` file.
 This file has strict file permissions and is owned by the `root` user. The reason for strict permissions
 and ownership is that `/etc/gitlab/gitlab.rb` is being executed as Ruby code by the `root` user during `gitlab-ctl reconfigure`. This means
 that users who have to write access to `/etc/gitlab/gitlab.rb` can add a configuration that is executed as code by `root`.
@@ -137,7 +140,7 @@ postgresql['internal_certificate'] = File.read('/path/to/server.crt')
 
 ## Store Git data in an alternative directory
 
-By default, Omnibus GitLab stores the Git repository data under
+By default, Linux package installations store the Git repository data under
 `/var/opt/gitlab/git-data`. The repositories are stored in a subfolder called
 `repositories`.
 
@@ -215,7 +218,7 @@ endpoint and specify the `repository_storage` attribute.
 NOTE:
 We do not recommend changing the user or group of an existing installation because it can cause unpredictable side effects.
 
-By default, Omnibus GitLab uses the user name `git` for Git GitLab Shell login,
+By default, Linux package installations use the user name `git` for Git GitLab Shell login,
 ownership of the Git data itself, and SSH URL generation on the web interface.
 Similarly, the `git` group is used for group ownership of the Git data.
 
@@ -240,7 +243,7 @@ Make sure that the new user can access the `repositories` and `uploads` director
 
 ## Specify numeric user and group identifiers
 
-Omnibus GitLab creates users for GitLab, PostgreSQL, Redis, NGINX, etc. To
+Linux package installations create users for GitLab, PostgreSQL, Redis, NGINX, etc. To
 specify the numeric identifiers for these users:
 
 1. Edit `/etc/gitlab/gitlab.rb`:
@@ -268,7 +271,8 @@ specify the numeric identifiers for these users:
    sudo gitlab-ctl reconfigure
    ```
 
-1. Optional. If you're changing `user['uid']` and `user['gid']`, make sure to update the uid/guid of any files not managed by Omnibus directly, for example, the logs:
+1. Optional. If you're changing `user['uid']` and `user['gid']`, make sure to update the uid/guid of any files not managed by the Linux package
+   directly, for example, the logs:
 
 ```shell
 find /var/log/gitlab -uid <old_uid> | xargs -I:: chown git ::
@@ -279,14 +283,14 @@ find /var/opt/gitlab -gid <old_uid> | xargs -I:: chgrp git ::
 
 ## Disable user and group account management
 
-By default, Omnibus GitLab creates system user and group accounts,
+By default, Linux package installations create system user and group accounts,
 as well as keeping the information updated.
 These system accounts run various components of the package.
 Most users don't need to change this behavior.
 However, if your system accounts are managed by other software, for example, LDAP, you
 might need to disable account management done by the GitLab package.
 
-By default, the Omnibus GitLab package expects the following users and groups to exist:
+By default, the Linux package installations expect the following users and groups to exist:
 
 | Linux user and group | Required                                | Description                                                          |
 | -------------------- | --------------------------------------- | -------------------------------------------------------------------- |
@@ -392,7 +396,7 @@ To move an existing home directory, GitLab services need to be stopped and some 
 
 ## Disable storage directories management
 
-The Omnibus GitLab package takes care of creating all the necessary directories
+The Linux package takes care of creating all the necessary directories
 with the correct ownership and permissions, as well as keeping this updated.
 
 Some of the directories hold large amounts of data so in certain setups,
@@ -400,7 +404,7 @@ those directories are most likely mounted on an NFS (or some other) share.
 
 Some types of mounts don't allow the automatic creation of directories by the root user
 (default user for initial setup), for example, NFS with `root_squash` enabled on the
-share. To work around this, the Omnibus GitLab package attempts to create
+share. To work around this, the Linux package attempts to create
 those directories using the directory's owner user.
 
 ### Disable the `/etc/gitlab` directory management
@@ -425,7 +429,7 @@ that directory:
 If you are mounting all GitLab storage directories, each on a separate mount,
 you should completely disable the management of storage directories.
 
-The Omnibus GitLab package expects these directories to exist
+Linux package installations expect these directories to exist
 on the file system. It is up to you to create and set correct
 permissions if this setting is set.
 
@@ -462,9 +466,9 @@ To disable the management of storage directories:
    sudo gitlab-ctl reconfigure
    ```
 
-## Start Omnibus GitLab services only after a given file system is mounted
+## Start Linux package installation services only after a given file system is mounted
 
-If you want to prevent Omnibus GitLab services (NGINX, Redis, Puma, etc.)
+If you want to prevent Linux package installation services (NGINX, Redis, Puma, etc.)
 from starting before a given file system is mounted:
 
 1. Edit `/etc/gitlab/gitlab.rb`:
@@ -487,7 +491,7 @@ of each Puma process (Rails metrics). Every Puma process needs to write
 a metrics file to a temporary location for each controller request.
 Prometheus then collects all these files and processes their values.
 
-To avoid creating disk I/O, the Omnibus GitLab package uses a
+To avoid creating disk I/O, the Linux package uses a
 runtime directory.
 
 During `reconfigure`, the package check if `/run` is a `tmpfs` mount.
@@ -690,12 +694,8 @@ To add a CSP:
 
 ## Set initial root password on installation
 
-The initial password for the administrator user `root` can be set at the installation time
-with the `GITLAB_ROOT_PASSWORD` environment variable:
-
-```shell
-sudo GITLAB_ROOT_PASSWORD="<strongpassword>" EXTERNAL_URL="http://gitlab.example.com" apt install gitlab-ee
-```
+The initial password for the administrator user `root` can be set at installation time. For more information, see
+[Set up the initial password](../installation/index.md#set-up-the-initial-password).
 
 ## Set allowed hosts to prevent host header attacks
 

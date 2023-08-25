@@ -121,7 +121,7 @@ Monitoring roles are used to set up monitoring of installations. For additional 
 
   Configures a central monitoring server to collect metrics and provide dashboards.
 
-  Enables Prometheus, Alertmanager, and Grafana.
+  Enables Prometheus and Alertmanager.
 
 ### PostgreSQL Roles
 
@@ -185,7 +185,7 @@ information, see the
 
 Spamcheck roles are used to setup and configure Spamcheck services. For additional
 information, see the
-[Spamcheck documentation](https://docs.gitlab.com/ee/user/admin_area/reporting/spamcheck.html)
+[Spamcheck documentation](https://docs.gitlab.com/ee/administration/reporting/spamcheck.html)
 
 - **spamcheck_role** (`gitlab-ee`)
 

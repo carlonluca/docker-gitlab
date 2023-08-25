@@ -4,7 +4,7 @@ group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
-# Installing GitLab with Omnibus packages **(FREE SELF)**
+# Install GitLab with the Linux package **(FREE SELF)**
 
 ## Prerequisites
 
@@ -21,7 +21,7 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 
 ## Installation and Configuration
 
-These configuration settings are commonly used when configuring Omnibus GitLab.
+These configuration settings are commonly used when configuring a Linux package installation.
 For a complete list of settings, see the [README](../index.md#configuring) file.
 
 - [Installing GitLab](https://about.gitlab.com/install/).
@@ -37,16 +37,16 @@ For a complete list of settings, see the [README](../index.md#configuring) file.
 - [Enabling GitLab Pages](https://docs.gitlab.com/ee/administration/pages/).
   - If you want HTTPS enabled, you must get wildcard certificates.
 - [Enabling Elasticsearch](https://docs.gitlab.com/ee/integration/advanced_search/elasticsearch.html).
-- [GitLab Mattermost](https://docs.gitlab.com/ee/integration/mattermost/) Set up the Mattermost messaging app that ships with Omnibus GitLab package.
+- [GitLab Mattermost](https://docs.gitlab.com/ee/integration/mattermost/). Set up the Mattermost messaging app that ships with the Linux package.
 - [GitLab Prometheus](https://docs.gitlab.com/ee/administration/monitoring/prometheus/index.html)
-  Set up the Prometheus monitoring included in the Omnibus GitLab package.
+  Set up the Prometheus monitoring included in the Linux package.
 - [GitLab High Availability Roles](../roles/index.md).
 
 ### Set up the initial password
 
-> [Introduced](https://gitlab.com/gitlab-org/omnibus-gitlab/-/merge_requests/5331) in Omnibus GitLab 14.0.
+> [Introduced](https://gitlab.com/gitlab-org/omnibus-gitlab/-/merge_requests/5331) in GitLab 14.0.
 
-By default, Omnibus GitLab automatically generates a password for the
+By default, a Linux package installation automatically generates a password for the
 initial administrator user account (`root`) and stores it to
 `/etc/gitlab/initial_root_password` for at least 24 hours. For security reasons,
 after 24 hours, this file is automatically removed by the first `gitlab-ctl reconfigure`.
@@ -59,10 +59,16 @@ To provide a custom initial root password, you have two options:
 
 - Pass the `GITLAB_ROOT_PASSWORD` environment variable to the
   [installation command](https://about.gitlab.com/install/) provided
-  the hostname for the server is set up correctly.
+  the hostname for the server is set up correctly:
+
+  ```shell
+  sudo GITLAB_ROOT_PASSWORD="<strongpassword>" EXTERNAL_URL="http://gitlab.example.com" apt install gitlab-ee
+  ```
+
   If during the installation GitLab doesn't automatically perform a
   reconfigure, you have to pass the `GITLAB_ROOT_PASSWORD` variable to the
   first `gitlab-ctl reconfigure` run.
+
 - Before the first reconfigure, edit `/etc/gitlab/gitlab.rb` (create it if it
   doesn't exist) and set:
 
@@ -87,8 +93,8 @@ To uninstall the Linux package, you can opt to either keep your data (repositori
 database, configuration) or remove all of them:
 
 1. Optional. To remove
-   [all users and groups created by Omnibus GitLab](../settings/configuration.md#disable-user-and-group-account-management)
-   before removing the GitLab package (with `apt` or `yum`):
+   [all users and groups created by the Linux package](../settings/configuration.md#disable-user-and-group-account-management)
+   before removing the package (with `apt` or `yum`):
 
    ```shell
    sudo gitlab-ctl stop && sudo gitlab-ctl remove-accounts
@@ -109,6 +115,7 @@ database, configuration) or remove all of them:
      sudo systemctl disable gitlab-runsvdir
      sudo rm /usr/lib/systemd/system/gitlab-runsvdir.service
      sudo systemctl daemon-reload
+     sudo systemctl reset-failed
      sudo gitlab-ctl uninstall
      ```
 

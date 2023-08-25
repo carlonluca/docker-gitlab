@@ -34,7 +34,7 @@ For more documentation on the options available, see the [remote write](https://
 
 Prometheus allows for [recording](https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/) and [alerting](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/) rules.
 
-Omnibus includes some [default rules files](https://gitlab.com/gitlab-org/omnibus-gitlab/tree/master/files/gitlab-cookbooks/monitoring/templates/rules)
+Linux package installations include some [default rules files](https://gitlab.com/gitlab-org/omnibus-gitlab/tree/master/files/gitlab-cookbooks/monitoring/templates/rules)
 that are stored in `/var/opt/gitlab/prometheus/rules/`.
 
 To override the default rules, you can change the default list in `gitlab.rb.`.
@@ -79,13 +79,6 @@ node_exporter['flags'] = {
 ```
 
 For more information on available collectors, see the [upstream documentation](https://github.com/prometheus/node_exporter#collectors).
-
-## Grafana dashboards
-
-[Grafana](https://grafana.com) is a powerful dashboard software for presenting
-Prometheus metrics data. Omnibus GitLab >= 11.9 includes an embedded copy.
-
-See [the embedded Grafana documentation](grafana.md) for more information.
 
 ## Alertmanager options
 
