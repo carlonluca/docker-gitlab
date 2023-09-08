@@ -14,6 +14,14 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 16.3.2 (2023-09-05)
+
+No changes.
+
+## 16.3.1 (2023-08-31)
+
+No changes.
+
 ## 16.3.0 (2023-08-21)
 
 ### Added (1 change)
