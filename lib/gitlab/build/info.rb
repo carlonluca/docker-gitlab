@@ -19,78 +19,8 @@ module Build
         Gitlab::Util.get_env('IMAGE_TAG') || Build::Info::Package.release_version.tr('+', '-')
       end
 
-      def gitlab_version
-        # Get the branch/version/commit of GitLab CE/EE repo against which package
-        # is built. If GITLAB_VERSION variable is specified, as in triggered builds,
-        # we use that. Else, we use the value in VERSION file.
-
-        if Gitlab::Util.get_env('GITLAB_VERSION').nil? || Gitlab::Util.get_env('GITLAB_VERSION').empty?
-          File.read('VERSION').strip
-        else
-          Gitlab::Util.get_env('GITLAB_VERSION')
-        end
-      end
-
-      def gitlab_version_slug
-        gitlab_version.downcase
-          .gsub(/[^a-z0-9]/, '-')[0..62]
-          .gsub(/(\A-+|-+\z)/, '')
-      end
-
-      def gitlab_rails_ref(prepend_version: true)
-        # Returns the immutable git ref of GitLab rails being used.
-        #
-        # 1. In feature branch pipelines, generate-facts job will create
-        #    version fact files which will contain the commit SHA of GitLab
-        #    rails. This will be used by `Gitlab::Version` class and will be
-        #    presented as version of `gitlab-rails` software component.
-        # 2. In stable branch and tag pipelines, these version fact files will
-        #    not be created. However, in such cases, VERSION file will be
-        #    anyway pointing to immutable references (git tags), and hence we
-        #    can directly use it.
-        Gitlab::Version.new('gitlab-rails').print(prepend_version)
-      end
-
-      def gitlab_rails_project_path
-        if Gitlab::Util.get_env('CI_SERVER_HOST') == 'dev.gitlab.org'
-          Build::Info::Package.name == "gitlab-ee" ? 'gitlab/gitlab-ee' : 'gitlab/gitlabhq'
-        else
-          namespace = Gitlab::Version.security_channel? ? "gitlab-org/security" : "gitlab-org"
-          project = Build::Info::Package.name == "gitlab-ee" ? 'gitlab' : 'gitlab-foss'
-
-          "#{namespace}/#{project}"
-        end
-      end
-
-      def gitlab_rails_repo
-        gitlab_rails =
-          if Build::Info::Package.name == "gitlab-ce"
-            "gitlab-rails"
-          else
-            "gitlab-rails-ee"
-          end
-
-        Gitlab::Version.new(gitlab_rails).remote
-      end
-
       def qa_image
-        Gitlab::Util.get_env('QA_IMAGE') || "#{Gitlab::Util.get_env('CI_REGISTRY')}/#{gitlab_rails_project_path}/#{Build::Info::Package.name}-qa:#{gitlab_rails_ref(prepend_version: false)}"
-      end
-
-      def release_bucket
-        # Tag builds are releases and they get pushed to a specific S3 bucket
-        # whereas regular branch builds use a separate one
-        downloads_bucket = Gitlab::Util.get_env('RELEASE_BUCKET') || "downloads-packages"
-        builds_bucket = Gitlab::Util.get_env('BUILDS_BUCKET') || "omnibus-builds"
-        Check.on_tag? ? downloads_bucket : builds_bucket
-      end
-
-      def release_bucket_region
-        Gitlab::Util.get_env('RELEASE_BUCKET_REGION') || "eu-west-1"
-      end
-
-      def release_bucket_s3_endpoint
-        Gitlab::Util.get_env('RELEASE_BUCKET_S3_ENDPOINT') || "s3.amazonaws.com"
+        Gitlab::Util.get_env('QA_IMAGE') || "#{Gitlab::Util.get_env('CI_REGISTRY')}/#{Build::Info::Components::GitLabRails.project_path}/#{Build::Info::Package.name}-qa:#{Build::Info::Components::GitLabRails.ref(prepend_version: false)}"
       end
 
       def gcp_release_bucket

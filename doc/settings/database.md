@@ -299,8 +299,7 @@ the `postgresql` and `gitlab_rails` sections of `gitlab.rb`.
 The following settings are affected in the `postgresql` block:
 
 - `listen_address`: Controls the address on which PostgreSQL will listen.
-- `port`: Controls the port on which PostgreSQL will listen, and _must be set_
-  if `listen_address` is.
+- `port`: Controls the port on which PostgreSQL listens to. The default is `5432`.
 - `md5_auth_cidr_addresses`: A list of CIDR address blocks that are allowed to
   connect to the server, after authentication with a password.
 - `trust_auth_cidr_addresses`: A list of CIDR address blocks that are allowed
@@ -960,6 +959,9 @@ WARNING:
 Setting `postgresql['version']` while using the PostgreSQL packaged with the Linux package after the initial reconfigure will
 throw errors about the data directory being initialized on a different version of PostgreSQL. If this is encountered,
 see [Revert packaged PostgreSQL server to the previous version](#revert-packaged-postgresql-server-to-the-previous-version).
+
+If you are doing a fresh install on an environment that previously had GitLab installed on it and you are using a pinned PostgreSQL version, first make
+sure that any folders that relate to PostgreSQL are deleted and that there are no PostgreSQL processes running on the instance.
 
 ### Troubleshooting
 

@@ -61,7 +61,7 @@ These systems provide adequate performance to run a small installations of GitLa
 - [Raspberry PI 4 2GB](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/).
 - [DigitalOcean Basic 2GB with SSD](https://www.digitalocean.com/pricing).
 - [Scaleway DEV1-S 2GB/20GB](https://www.scaleway.com/en/pricing/).
-- [GCS e2-small](https://cloud.google.com/compute/docs/machine-types).
+- [GCS e2-small](https://cloud.google.com/compute/docs/machine-resource).
 
 ## Configure Swap
 
@@ -159,22 +159,26 @@ It is advised to configure a maximum concurrency and memory limits enforced by G
 In `/etc/gitlab/gitlab.rb`:
 
 ```ruby
-gitaly['ruby_max_rss'] = 200_000_000
-gitaly['concurrency'] = [
-  {
-    'rpc' => "/gitaly.SmartHTTPService/PostReceivePack",
-    'max_per_repo' => 3
-  }, {
-    'rpc' => "/gitaly.SSHService/SSHUploadPack",
-    'max_per_repo' => 3
-  }
-]
-
-gitaly['cgroups_repositories_count'] = 2
-gitaly['cgroups_mountpoint'] = '/sys/fs/cgroup'
-gitaly['cgroups_hierarchy_root'] = 'gitaly'
-gitaly['cgroups_memory_bytes'] = 500000
-gitaly['cgroups_cpu_shares'] = 512
+gitaly['configuration'] = {
+    concurrency: [
+      {
+        'rpc' => "/gitaly.SmartHTTPService/PostReceivePack",
+        'max_per_repo' => 3,
+      }, {
+        'rpc' => "/gitaly.SSHService/SSHUploadPack",
+        'max_per_repo' => 3,
+      },
+    ],
+    cgroups: {
+        repositories: {
+            count: 2,
+        },
+        mountpoint: '/sys/fs/cgroup',
+        hierarchy_root: 'gitaly',
+        memory_bytes: 500000,
+        cpu_shares: 512,
+    },
+}
 
 gitaly['env'] = {
   'GITALY_COMMAND_SPAWN_MAX_PARALLEL' => '2'
@@ -227,7 +231,7 @@ These features are no longer needed if monitoring is disabled.
 To disable these features you need to go to Admin Area of GitLab
 and disable the Prometheus Metrics feature:
 
-1. On the left sidebar, expand the top-most chevron (**{chevron-down}**).
+1. On the left sidebar, select **Search or go to**.
 1. Select **Admin Area**.
 1. Select **Settings > Metrics and profiling**.
 1. Expand **Metrics - Prometheus**.
@@ -250,21 +254,26 @@ and disable the Prometheus Metrics feature:
      'MALLOC_CONF' => 'dirty_decay_ms:1000,muzzy_decay_ms:1000'
    }
 
-   gitaly['cgroups_repositories_count'] = 2
-   gitaly['cgroups_mountpoint'] = '/sys/fs/cgroup'
-   gitaly['cgroups_hierarchy_root'] = 'gitaly'
-   gitaly['cgroups_memory_bytes'] = 500000
-   gitaly['cgroups_cpu_shares'] = 512
-
-   gitaly['concurrency'] = [
-     {
-       'rpc' => "/gitaly.SmartHTTPService/PostReceivePack",
-       'max_per_repo' => 3
-     }, {
-       'rpc' => "/gitaly.SSHService/SSHUploadPack",
-       'max_per_repo' => 3
-     }
-   ]
+   gitaly['configuration'] = {
+     concurrency: [
+       {
+         'rpc' => "/gitaly.SmartHTTPService/PostReceivePack",
+         'max_per_repo' => 3,
+       }, {
+         'rpc' => "/gitaly.SSHService/SSHUploadPack",
+         'max_per_repo' => 3,
+       },
+     ],
+     cgroups: {
+       repositories: {
+         count: 2,
+       },
+       mountpoint: '/sys/fs/cgroup',
+       hierarchy_root: 'gitaly',
+       memory_bytes: 500000,
+       cpu_shares: 512,
+     },
+   }
    gitaly['env'] = {
      'MALLOC_CONF' => 'dirty_decay_ms:1000,muzzy_decay_ms:1000',
      'GITALY_COMMAND_SPAWN_MAX_PARALLEL' => '2'

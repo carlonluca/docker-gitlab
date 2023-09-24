@@ -42,7 +42,7 @@ variables:
   # To be used for images that exist only on dev.gitlab.org
   DEV_BUILDER_IMAGE_REGISTRY: 'dev.gitlab.org:5005/cookbooks/gitlab-omnibus-builder'
   PUBLIC_BUILDER_IMAGE_REGISTRY: "registry.gitlab.com/gitlab-org/gitlab-omnibus-builder"
-  BUILDER_IMAGE_REVISION: "4.20.0"
+  BUILDER_IMAGE_REVISION: "4.26.0"
   # The registry to pull the assets image from
   ASSET_REGISTRY: "${CI_REGISTRY}"
   ASSET_SYNC_EXISTING_REMOTE_FILES: "keep"
@@ -85,7 +85,7 @@ variables:
 
 ### For services that need a docker daemon
 .docker_job: &docker_job
-  image: "${BUILDER_IMAGE_REGISTRY}/ruby_docker:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/distribution_ci_tools:${BUILDER_IMAGE_REVISION}"
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_HOST: tcp://docker:2375
@@ -107,6 +107,14 @@ variables:
     key: "gems-cache-${CI_JOB_IMAGE}${CACHE_KEY_SUFFIX}"
     paths:
       - gems
+
+.build-package: &build-package
+  - bundle exec rake cache:populate
+  - bundle exec rake cache:restore
+  - bundle exec rake build:project
+  - bundle exec rake build:package:sync
+  - bundle exec rake cache:bundle
+  - bundle exec rake build:component_shas
 
 before_script:
   - echo "PIPELINE_TYPE detected as ${PIPELINE_TYPE}"
@@ -174,7 +182,7 @@ fetch-assets:
 generate-facts:
   extends: .gems-cache
   stage: prepare
-  image: "${BUILDER_IMAGE_REGISTRY}/ruby_docker:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/distribution_ci_tools:${BUILDER_IMAGE_REVISION}"
   script:
     - mkdir -p build_facts
     - bundle exec omnibus manifest gitlab -l nothing > build_facts/version-manifest.json

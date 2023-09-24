@@ -15,7 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require 'yaml'
 require "#{Omnibus::Config.project_root}/lib/gitlab/version"
 require "#{Omnibus::Config.project_root}/lib/gitlab/ohai_helper.rb"
 
@@ -49,11 +48,11 @@ dependency 'curl'
 dependency 'rsync'
 dependency 'libicu'
 dependency 'postgresql'
+dependency 'postgresql_new'
 dependency 'python-docutils'
 dependency 'krb5'
 dependency 'registry'
 dependency 'unzip'
-dependency 'libre2'
 dependency 'gpgme'
 dependency 'graphicsmagick'
 dependency 'exiftool'
@@ -114,12 +113,6 @@ build do
   bundle "config set --local gemfile #{gitlab_bundle_gemfile}" if gitlab_bundle_gemfile != 'Gemfile'
   bundle 'config force_ruby_platform true', env: env if OhaiHelper.ruby_native_gems_unsupported?
 
-  # This works around an issue with the grpc gem attempting to include
-  # /opt/gitlab/include headers instead of the vendored re2 headers:
-  # https://github.com/grpc/grpc/pull/32580. This can be removed
-  # after grpc is updated with that pull request.
-  env['CPPFLAGS'] = "-Ithird_party/re2 #{env['CPPFLAGS']}" if OhaiHelper.arm?
-
   bundle 'config build.gpgme --use-system-libraries', env: env
   bundle "config build.nokogiri --use-system-libraries --with-xml2-include=#{install_dir}/embedded/include/libxml2 --with-xslt-include=#{install_dir}/embedded/include/libxslt", env: env
   bundle 'config build.grpc --with-ldflags=-Wl,--no-as-needed --with-dldflags=-latomic', env: env if OhaiHelper.raspberry_pi?
@@ -138,7 +131,8 @@ build do
       'google-protobuf' => 'lib/google',
       'grpc' => 'src/ruby/lib/grpc',
       'prometheus-client-mmap' => 'lib',
-      'nokogiri' => 'lib'
+      'nokogiri' => 'lib',
+      're2' => 'lib'
     }
 
     # Delete unused shared libraries included in the gems
@@ -151,14 +145,8 @@ build do
   # In order to compile the assets, we need to get to a state where rake can
   # load the Rails environment.
   copy 'config/gitlab.yml.example', 'config/gitlab.yml'
+  copy 'config/database.yml.postgresql', 'config/database.yml'
   copy 'config/secrets.yml.example', 'config/secrets.yml'
-
-  block 'render database.yml' do
-    database_yml = YAML.safe_load(File.read("#{Omnibus::Config.source_dir}/gitlab-rails/config/database.yml.postgresql"))
-    database_yml.each { |_, databases| databases.delete('geo') unless EE }
-
-    File.write("#{Omnibus::Config.source_dir}/gitlab-rails/config/database.yml", YAML.dump(database_yml))
-  end
 
   # Copy asset cache and node modules from cache location to source directory
   move "#{Omnibus::Config.project_root}/assets_cache", "#{Omnibus::Config.source_dir}/gitlab-rails/tmp/cache"
@@ -168,8 +156,8 @@ build do
     'NODE_ENV' => 'production',
     'RAILS_ENV' => 'production',
     'PATH' => "#{install_dir}/embedded/bin:#{Gitlab::Util.get_env('PATH')}",
-    'USE_DB' => 'false',
     'SKIP_STORAGE_VALIDATION' => 'true',
+    'SKIP_DATABASE_CONFIG_VALIDATION' => 'true',
     'NODE_OPTIONS' => '--max_old_space_size=3584'
   }
   assets_compile_env['NO_SOURCEMAPS'] = 'true' if Gitlab::Util.get_env('NO_SOURCEMAPS')
