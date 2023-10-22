@@ -42,7 +42,7 @@ variables:
   # To be used for images that exist only on dev.gitlab.org
   DEV_BUILDER_IMAGE_REGISTRY: 'dev.gitlab.org:5005/cookbooks/gitlab-omnibus-builder'
   PUBLIC_BUILDER_IMAGE_REGISTRY: "registry.gitlab.com/gitlab-org/gitlab-omnibus-builder"
-  BUILDER_IMAGE_REVISION: "4.26.0"
+  BUILDER_IMAGE_REVISION: "4.31.0"
   # The registry to pull the assets image from
   ASSET_REGISTRY: "${CI_REGISTRY}"
   ASSET_SYNC_EXISTING_REMOTE_FILES: "keep"
@@ -65,7 +65,7 @@ variables:
   # NOTE: When `NEXT_RUBY_VERSION` is updated, flip
   # `USE_NEXT_RUBY_VERSION_IN_*` variables to false to avoid surprises.
   NEXT_RUBY_VERSION: "3.0.6"
-  GET_GEO_TAG: "0.7.1"
+  GET_GEO_TAG: "0.7.3"
   CANONICAL_PROJECT_PATH: 'gitlab-org/omnibus-gitlab'
   SECURITY_PROJECT_PATH: 'gitlab-org/security/omnibus-gitlab'
   DEV_PROJECT_PATH: 'gitlab/omnibus-gitlab'
