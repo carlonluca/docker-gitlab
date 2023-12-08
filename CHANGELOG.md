@@ -14,6 +14,13 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 16.6.1 (2023-11-30)
+
+### Security (2 changes)
+
+- [Mattermost Security Update](gitlab-org/security/omnibus-gitlab@9898f6677a65f4fb51bfdb025709baa0e453475c) ([merge request](gitlab-org/security/omnibus-gitlab!400))
+- [Update PostgreSQL 13 and 14](gitlab-org/security/omnibus-gitlab@75404c30511b06b394d26cad5f8d3dc276bae6c1) ([merge request](gitlab-org/security/omnibus-gitlab!395))
+
 ## 16.6.0 (2023-11-15)
 
 ### Added (4 changes)
