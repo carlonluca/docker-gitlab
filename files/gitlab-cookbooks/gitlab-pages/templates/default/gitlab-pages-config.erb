@@ -17,6 +17,9 @@ auth-secret=<%= @auth_secret %>
 <%- if @auth_scope -%>
 auth-scope=<%= @auth_scope %>
 <%- end -%>
+<%- if @auth_timeout -%>
+auth-timeout=<%= @auth_timeout %>
+<%- end -%>
 <%- if @auth_cookie_session_timeout -%>
 auth-cookie-session-timeout=<%= @auth_cookie_session_timeout %>
 <%- end -%>
@@ -187,4 +190,7 @@ redirects-max-rule-count=<%= @redirects_max_rule_count %>
 <%-end -%>
 <%- if @headers -%>
 header=<%= @headers.join(';;') %>
+<%-end -%>
+<%- if @namespace_in_path -%>
+namespace-in-path=<%= @namespace_in_path %>
 <%-end -%>

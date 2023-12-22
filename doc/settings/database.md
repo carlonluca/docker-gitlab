@@ -1,7 +1,7 @@
 ---
 stage: Systems
 group: Distribution
-info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/product/ux/technical-writing/#assignments
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
 # Database settings **(FREE SELF)**
@@ -42,7 +42,7 @@ of that setting in the running PostgreSQL instance.
 #### Automatic restart when the PostgreSQL version changes
 
 By default, Linux package installations automatically restart PostgreSQL when the underlying
-version changes, as suggested by the [upstream documentation](https://www.postgresql.org/docs/13/upgrading.html).
+version changes, as suggested by the [upstream documentation](https://www.postgresql.org/docs/14/upgrading.html).
 This behavior can be controlled using the `auto_restart_on_version_change` setting
 available for `postgresql` and `geo-postgresql`.
 
@@ -73,7 +73,7 @@ to avoid errors like the [one related to loading necessary libraries](#could-not
 Linux package installations automatically enable SSL on the PostgreSQL server, but it will accept
 both encrypted and unencrypted connections by default. Enforcing SSL requires
 using the `hostssl` configuration in `pg_hba.conf`. For more details, see the
-[`pg_hba.conf` documentation](https://www.postgresql.org/docs/13/auth-pg-hba-conf.html).
+[`pg_hba.conf` documentation](https://www.postgresql.org/docs/14/auth-pg-hba-conf.html).
 
 SSL support depends on the following files:
 
@@ -243,8 +243,8 @@ can use this.
    1. The CA file should be owned by the database user, and its permissions should be `0400`
 
    NOTE:
-   Don't use the filenames `server.crt` or `server.key` for these files. These
-   filenames are reserved for the internal use of `omnibus-gitlab`.
+   Don't use the file names `server.crt` or `server.key` for these files. These
+   file names are reserved for the internal use of `omnibus-gitlab`.
 
 1. Ensure the following is set in `gitlab.rb`:
 
@@ -600,6 +600,8 @@ update this setting in `/etc/gitlab/gitlab.rb`:
 gitlab_rails['databases']['ci']['enable'] = false
 ```
 
+In a multi-node environment, this setting should be updated on all Rails and Sidekiq nodes. 
+
 ## Using a non-packaged PostgreSQL database management server
 
 By default, GitLab is configured to use the PostgreSQL server that's included
@@ -857,18 +859,19 @@ when your installation is using PgBouncer.
    sudo gitlab-ctl start
    ```
 
-1. After a upgrading PostgreSQL to a new major release:
-
-   - With Amazon RDS ([as recommended by AWS](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.PostgreSQL.html)), or
-   - If the database server is running very high (near 100%) CPU utilization.
-
-   Recreating the table statistics will ensure efficient query plans are picked
-   and reduce database server CPU load.
-
-   Run the following query on the PostgreSQL database console:
+1. After upgrading PostgreSQL to a new major release, recreate the table statistics to ensure efficient query plans are picked and
+   to reduce database server CPU load.
+   
+   If the upgrade was "in-place" using `pg_upgrade`, run the following query on the PostgreSQL database console:
 
    ```SQL
    SET statement_timeout = 0; ANALYZE VERBOSE;
+   ```
+
+   If the upgrade used `pg_dump` and `pg_restore`, run the following query on the PostgreSQL database console:
+
+   ```SQL
+   SET statement_timeout = 0; VACUUM ANALYZE VERBOSE;
    ```
 
 ### Seed the database (fresh installs only)

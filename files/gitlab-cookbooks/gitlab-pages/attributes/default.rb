@@ -33,6 +33,7 @@ default['gitlab_pages']['gitlab_secret'] = nil
 default['gitlab_pages']['auth_redirect_uri'] = nil
 default['gitlab_pages']['auth_secret'] = nil
 default['gitlab_pages']['auth_scope'] = nil
+default['gitlab_pages']['auth_timeout'] = nil
 default['gitlab_pages']['auth_cookie_session_timeout'] = nil
 default['gitlab_pages']['insecure_ciphers'] = false
 default['gitlab_pages']['tls_min_version'] = nil
@@ -81,6 +82,8 @@ default['gitlab_pages']['redirects_max_config_size'] = nil
 default['gitlab_pages']['redirects_max_path_segments'] = nil
 default['gitlab_pages']['redirects_max_rule_count'] = nil
 default['gitlab_pages']['register_as_oauth_app'] = true
+# Experimental - Enable namespace in path
+default['gitlab_pages']['namespace_in_path'] = false
 
 # Temporarily retain support for `node['gitlab-pages'][*]` usage in
 # `/etc/gitlab/gitlab.rb`

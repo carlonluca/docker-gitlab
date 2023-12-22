@@ -24,6 +24,7 @@ RSpec.describe Build::Check do
         end
 
         it 'when env variable is not set' do
+          stub_env_var('ee', nil)
           stub_is_ee_version(false)
           stub_is_auto_deploy(false)
           expect(described_class.is_ee?).to be_falsy
@@ -32,11 +33,13 @@ RSpec.describe Build::Check do
 
       describe 'GITLAB_VERSION variable' do
         it 'when GITLAB_VERSION ends with -ee' do
+          stub_env_var('ee', nil)
           stub_env_var('GITLAB_VERSION', 'foo-ee')
           expect(described_class.is_ee?).to be_truthy
         end
 
         it 'when GITLAB_VERSION does not end with -ee' do
+          stub_env_var('ee', nil)
           stub_env_var('GITLAB_VERSION', 'foo')
           stub_is_auto_deploy(false)
           expect(described_class.is_ee?).to be_falsy
@@ -262,6 +265,16 @@ RSpec.describe Build::Check do
     context 'when on a regular branch' do
       before do
         stub_branch('my-feature-branch')
+      end
+
+      it 'returns true' do
+        expect(described_class.on_regular_branch?).to be_truthy
+      end
+    end
+
+    context 'when on a feature branch MR pipeline' do
+      before do
+        stub_mr_branch('my-feature-branch')
       end
 
       it 'returns true' do

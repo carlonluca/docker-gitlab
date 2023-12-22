@@ -1,7 +1,7 @@
 ---
 stage: Systems
 group: Distribution
-info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/product/ux/technical-writing/#assignments
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
 # Adding a new Service to Omnibus GitLab
@@ -166,7 +166,7 @@ directory.
 
 Near the end of the recipe you will want to make a call to the runit service definition
 to define your recipe. In order for this work you will need to have created
-a run file in the cookbooks `templates/default` directory. These filenames start
+a run file in the cookbooks `templates/default` directory. These file names start
 with `sv-` followed by the service name, followed by the runit action name.
 
 A service typically needs a `run`, `log-run`, and `log-config`.

@@ -1,7 +1,7 @@
 ---
 stage: Systems
 group: Distribution
-info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/product/ux/technical-writing/#assignments
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
 # Build an `omnibus-gitlab` package locally
@@ -66,17 +66,14 @@ project's [Container Registry](https://gitlab.com/gitlab-org/gitlab-omnibus-buil
 
 1. By default, XZ compression is used to produce the final DEB package,
    which reduces the package size by nearly 30% in comparison to Gzip, with
-   little to no increase in build time. However, the system's package
-   manager must also support the format. If your system's package manager does
-   not support XZ packages, set the `COMPRESS_XZ` environment variable to `false`:
+   little to no increase in build time and a slight increase in installation
+   (decompression) time. However, the system's package manager must also support
+   the format. If your system's package manager does not support XZ packages,
+   set the `COMPRESS_XZ` environment variable to `false`:
 
    ```shell
    export COMPRESS_XZ=false
    ```
-   
-   NOTE: This is feature is disabled by default on RPM platforms due to an
-   as-yet-unexplained increase in packaging time. It can be enabled by setting
-   the `COMPRESS_XZ` environment variable to `true`.
 
 1. Install the libraries and other dependencies:
 

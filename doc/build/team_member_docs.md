@@ -1,7 +1,7 @@
 ---
 stage: Systems
 group: Distribution
-info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/product/ux/technical-writing/#assignments
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
 # GitLab Team member's guide to using official build infrastructure
@@ -41,7 +41,7 @@ Versions of the primary GitLab components like GitLab Rails or Gitaly are contro
 
 Check the following table for more information:
 
-| Filename                            | Environment variable                 | Description |
+| File name                             | Environment variable                 | Description |
 | ------------------------------------ | ------------------------------------ | ----------- |
 | `VERSION`                              | `GITLAB_VERSION`                       | Controls the Git reference of the GitLab Rails application. By default, points to the `master` branch of the GitLab-FOSS repository. If you want to use the GitLab repository, set the environment variable `ee` to true. |
 | `GITALY_SERVER_VERSION`                | `GITALY_SERVER_VERSION`                | Git reference of the [Gitaly](https://gitlab.com/gitlab-org/gitaly) repository. |
@@ -117,7 +117,7 @@ below for details:
 
 ## Build packages for other operating systems
 
-Prerequisite:
+Prerequisites:
 
 - You must have permission to push branches to the `omnibus-gitlab` [release mirror](https://dev.gitlab.org/gitlab/omnibus-gitlab).
 
