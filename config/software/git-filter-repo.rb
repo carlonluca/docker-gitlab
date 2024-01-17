@@ -1,5 +1,6 @@
 #
-# Copyright 2016-2022 GitLab Inc.
+# Copyright:: Copyright (c) 2023 GitLab Inc.
+# License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,20 +15,27 @@
 # limitations under the License.
 #
 
-name 'gitlab-exporter'
-default_version '14.1.0'
+name 'git-filter-repo'
+
+version = Gitlab::Version.new('git-filter-repo', 'v2.38.0')
+default_version version.print(false)
+
 license 'MIT'
-license_file 'LICENSE'
+license_file 'COPYING'
+license_file 'COPYING.gpl'
+license_file 'COPYING.mit'
 
 skip_transitive_dependency_licensing true
 
-dependency 'ruby'
-dependency 'rubygems'
-dependency 'postgresql_new'
+dependency 'git'
+dependency 'python3'
 
 build do
-  patch source: 'add-license-file.patch'
-
   env = with_standard_compiler_flags(with_embedded_path)
-  gem "install gitlab-exporter --no-document --version #{version}", env: env
+
+  patch source: "license/add-license-file.patch"
+  patch source: "license/add-mit-license-file.patch"
+  patch source: "license/add-gpl-license-file.patch"
+
+  command "#{install_dir}/embedded/bin/pip3 install git-filter-repo==#{default_version}", env: env
 end

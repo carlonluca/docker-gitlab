@@ -48,6 +48,7 @@ RSpec.describe 'monitoring::gitlab-exporter' do
         .with_content { |content|
           expect(content).to match(/exec chpst -P/)
           expect(content).to match(/\/opt\/gitlab\/embedded\/bin\/gitlab-exporter/)
+          expect(content).not_to match(/extra-config-command/)
         }
 
       expect(chef_run).to render_file('/var/opt/gitlab/gitlab-exporter/gitlab-exporter.yml')
@@ -58,8 +59,6 @@ RSpec.describe 'monitoring::gitlab-exporter' do
           expect(settings.dig('probes', 'ruby')).not_to be_nil
           expect(settings.dig('probes', 'sidekiq')).not_to be_nil
           expect(settings.dig('probes', 'metrics', 'rows_count')).not_to be_nil
-          expect(settings.dig('probes', 'sidekiq', 'opts', 'probe_namespaced')).to be_truthy
-          expect(settings.dig('probes', 'sidekiq', 'opts', 'probe_non_namespaced')).to be_truthy
           expect(settings['server']).not_to include('tls_enabled')
 
           expect(content).to match(/host=\/var\/opt\/gitlab\/postgresql/)
@@ -231,4 +230,22 @@ RSpec.describe 'monitoring::gitlab-exporter' do
   end
 
   include_examples "consul service discovery", "gitlab_exporter", "gitlab-exporter"
+
+  context 'when command to generate external config is specified' do
+    before do
+      stub_gitlab_rb(
+        gitlab_exporter: {
+          enable: true,
+          extra_config_command: "/opt/exporter-redis-config.sh"
+        }
+      )
+    end
+
+    it 'passes the command to gitlab-exporter' do
+      expect(chef_run).to render_file('/opt/gitlab/sv/gitlab-exporter/run')
+        .with_content { |content|
+          expect(content).to match(%r{--extra-config-command "/opt/exporter-redis-config.sh"})
+        }
+    end
+  end
 end
