@@ -1,5 +1,5 @@
 diff --git a/lib/Image/ExifTool.pm b/lib/Image/ExifTool.pm
-index 6c3a6292..90b57c2e 100644
+index b5349398..13d064e3 100644
 --- a/lib/Image/ExifTool.pm
 +++ b/lib/Image/ExifTool.pm
 @@ -190,19 +190,10 @@ $defaultLang = 'en';    # default language
@@ -11,9 +11,9 @@ index 6c3a6292..90b57c2e 100644
 -                OGG FLAC APE MPC MKV MXF DV PMP IND PGF ICC ITC FLIR FLIF FPF
 -                LFP HTML VRD RTF FITS XISF XCF DSS QTIF FPX PICT ZIP GZIP PLIST
 -                RAR 7Z BZ2 CZI TAR EXE EXR HDR CHM LNK WMF AVC DEX DPX RAW Font
--                RSRC M2TS MacOS PHP PCX DCX DWF DWG DXF WTV Torrent VCard LRI
--                R3D AA PDB PFM2 MRC LIF JXL MOI ISO ALIAS JSON MP3 DICOM PCD ICO
--                TXT);
+-                JUMBF RSRC M2TS MacOS PHP PCX DCX DWF DWG DXF WTV Torrent VCard
+-                LRI R3D AA PDB PFM2 MRC LIF JXL MOI ISO ALIAS JSON MP3 DICOM PCD
+-                ICO TXT AAC);
 +@fileTypes = qw(JPEG TIFF);
  
  # file types that we can write (edit)
@@ -24,7 +24,7 @@ index 6c3a6292..90b57c2e 100644
  my %writeTypes; # lookup for writable file types (hash filled if required)
  
  # file extensions that we can't write for various base types
-@@ -223,346 +214,9 @@ my %createTypes = map { $_ => 1 } qw(XMP ICC MIE VRD DR4 EXIF EXV);
+@@ -224,349 +215,9 @@ my %createTypes = map { $_ => 1 } qw(XMP ICC MIE VRD DR4 EXIF EXV);
  # (if extension may be more than one type, the type is a list where
  #  the writable type should come first if it exists)
  %fileTypeLookup = (
@@ -37,6 +37,7 @@ index 6c3a6292..90b57c2e 100644
 -   '7Z'  => ['7Z', '7z archive'],
 -    A    => ['EXE',  'Static library'],
 -    AA   => ['AA',   'Audible Audiobook'],
+-    AAC  => ['AAC',  'Advanced Audio Coding'],
 -    AAE  => ['PLIST','Apple edit information'],
 -    AAX  => ['MOV',  'Audible Enhanced Audiobook'],
 -    ACR  => ['DICOM','American College of Radiology ACR-NEMA'],
@@ -63,6 +64,7 @@ index 6c3a6292..90b57c2e 100644
 -    BPG  => ['BPG',  'Better Portable Graphics'],
 -    BTF  => ['BTF',  'Big Tagged Image File Format'], #(unofficial)
 -    BZ2  => ['BZ2',  'BZIP2 archive'],
+-    C2PA => ['JUMBF','Coalition for Content Provenance and Authenticity'],
 -    CHM  => ['CHM',  'Microsoft Compiled HTML format'],
 -    CIFF => ['CRW',  'Camera Image File Format'],
 -    COS  => ['COS',  'Capture One Settings'],
@@ -177,6 +179,7 @@ index 6c3a6292..90b57c2e 100644
 -    JPS  => ['JPEG', 'JPEG Stereo image'],
 -    JPX  => ['JP2',  'JPEG 2000 with extensions'],
 -    JSON => ['JSON', 'JavaScript Object Notation'],
+-    JUMBF=> ['JUMBF','JPEG Universal Metadata Box Format'],
 -    JXL  => ['JXL',  'JPEG XL'],
 -    JXR  => ['TIFF', 'JPEG XR'],
 -    K25  => ['TIFF', 'Kodak DC25 RAW'],
@@ -373,7 +376,7 @@ index 6c3a6292..90b57c2e 100644
  # typical extension for each file type (if different than FileType)
 diff --git a/lib/Image/ExifTool/AIFF.pm b/lib/Image/ExifTool/AIFF.pm
 deleted file mode 100644
-index a862a0de..00000000
+index f2c7a68d..00000000
 --- a/lib/Image/ExifTool/AIFF.pm
 +++ /dev/null
 @@ -1,312 +0,0 @@
@@ -666,7 +669,7 @@ index a862a0de..00000000
 -
 -=head1 AUTHOR
 -
--Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
+-Copyright 2003-2024, Phil Harvey (philharvey66 at gmail.com)
 -
 -This library is free software; you can redistribute it and/or modify it
 -under the same terms as Perl itself.

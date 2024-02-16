@@ -1,10 +1,11 @@
 require 'docker'
-require_relative '../docker_operations'
-require_relative '../build/info'
-require_relative '../build/info/ci'
+
 require_relative '../build/check'
 require_relative '../build/gitlab_image'
-require_relative "../util.rb"
+require_relative '../build/info/ci'
+require_relative '../build/info/docker'
+require_relative '../docker_operations'
+require_relative '../util'
 
 namespace :docker do
   namespace :build do
@@ -28,6 +29,10 @@ namespace :docker do
     task :staging do
       Gitlab::Util.section('docker:push:staging') do
         Build::GitlabImage.tag_and_push_to_gitlab_registry(Build::Info::Docker.tag)
+
+        # Also tag with CI_COMMIT_REF_SLUG so that manual testing using Docker
+        # can use the same image name/tag.
+        Build::GitlabImage.tag_and_push_to_gitlab_registry(Build::Info::CI.commit_ref_slug)
       end
     end
 

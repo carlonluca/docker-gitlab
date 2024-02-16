@@ -441,7 +441,8 @@ RSpec.describe 'gitlab::gitlab-rails' do
               redis_tls_ca_cert_file: "/opt/gitlab/embedded/ssl/certs/cacert.pem",
               redis_tls_client_cert_file: nil,
               redis_tls_client_key_file: nil,
-              redis_encrypted_settings_file: "/var/opt/gitlab/gitlab-rails/shared/encrypted_settings/redis.#{instance}.yml.enc"
+              redis_encrypted_settings_file: "/var/opt/gitlab/gitlab-rails/shared/encrypted_settings/redis.#{instance}.yml.enc",
+              redis_extra_config_command: nil
             )
 
             expect(chef_run).to render_file("/var/opt/gitlab/gitlab-rails/etc/redis.#{instance}.yml").with_content { |content|
@@ -484,7 +485,8 @@ RSpec.describe 'gitlab::gitlab-rails' do
               redis_tls_ca_cert_file: "/opt/gitlab/embedded/ssl/certs/cacert.pem",
               redis_tls_client_cert_file: nil,
               redis_tls_client_key_file: nil,
-              redis_encrypted_settings_file: "/var/opt/gitlab/gitlab-rails/shared/encrypted_settings/redis.#{instance}.yml.enc"
+              redis_encrypted_settings_file: "/var/opt/gitlab/gitlab-rails/shared/encrypted_settings/redis.#{instance}.yml.enc",
+              redis_extra_config_command: nil
             )
 
             expect(chef_run).to render_file("/var/opt/gitlab/gitlab-rails/etc/redis.#{instance}.yml").with_content { |content|
@@ -527,7 +529,8 @@ RSpec.describe 'gitlab::gitlab-rails' do
                 redis_tls_ca_cert_file: "/opt/gitlab/embedded/ssl/certs/cacert.pem",
                 redis_tls_client_cert_file: nil,
                 redis_tls_client_key_file: nil,
-                redis_encrypted_settings_file: "/var/opt/gitlab/gitlab-rails/shared/encrypted_settings/redis.#{instance}.yml.enc"
+                redis_encrypted_settings_file: "/var/opt/gitlab/gitlab-rails/shared/encrypted_settings/redis.#{instance}.yml.enc",
+                redis_extra_config_command: nil
               )
 
               expect(chef_run).to render_file("/var/opt/gitlab/gitlab-rails/etc/redis.#{instance}.yml").with_content { |content|
@@ -580,6 +583,59 @@ RSpec.describe 'gitlab::gitlab-rails' do
             expect(chef_run).to render_file("/var/opt/gitlab/gitlab-rails/etc/redis.shared_state.yml").with_content { |content|
               generated_yml = YAML.safe_load(content)
               expect(generated_yml.dig('production', 'secret_file')).to eq(global_secret_file)
+            }
+          end
+        end
+      end
+
+      describe 'extra config command' do
+        let(:cache_command) { '/opt/redis-cache-password.sh' }
+        let(:global_command) { '/opt/redis-global.sh' }
+
+        context 'with single Redis instance' do
+          before do
+            stub_gitlab_rb(
+              gitlab_rails: {
+                redis_extra_config_command: global_command
+              }
+            )
+          end
+
+          it 'populates resque.yml with specified config command' do
+            expect(chef_run).to render_file("/var/opt/gitlab/gitlab-rails/etc/resque.yml").with_content { |content|
+              generated_yml = YAML.safe_load(content)
+              expect(generated_yml.dig('production', 'config_command')).to eq(global_command)
+            }
+          end
+        end
+
+        context 'with separate command for an instance' do
+          cached(:chef_run) do
+            ChefSpec::SoloRunner.new(step_into: %w(templatesymlink)).converge('gitlab::default')
+          end
+
+          before do
+            stub_gitlab_rb(
+              gitlab_rails: {
+                redis_extra_config_command: global_command,
+                redis_cache_instance: 'redis://redis.cache.instance',
+                redis_cache_extra_config_command: cache_command,
+                redis_shared_state_instance: 'redis://redis.shared_state.instance'
+              }
+            )
+          end
+
+          it 'uses specified command for the cache instance' do
+            expect(chef_run).to render_file("/var/opt/gitlab/gitlab-rails/etc/redis.cache.yml").with_content { |content|
+              generated_yml = YAML.safe_load(content)
+              expect(generated_yml.dig('production', 'config_command')).to eq(cache_command)
+            }
+          end
+
+          it 'uses global command for the shared state instance' do
+            expect(chef_run).to render_file("/var/opt/gitlab/gitlab-rails/etc/redis.shared_state.yml").with_content { |content|
+              generated_yml = YAML.safe_load(content)
+              expect(generated_yml.dig('production', 'config_command')).to eq(global_command)
             }
           end
         end
@@ -817,7 +873,8 @@ RSpec.describe 'gitlab::gitlab-rails' do
               'db_sslcompression' => 0,
               'db_sslcert' => nil,
               'db_sslkey' => nil,
-              'db_application_name' => nil
+              'db_application_name' => nil,
+              'db_extra_config_command' => nil
             )
           )
         end
@@ -992,6 +1049,29 @@ RSpec.describe 'gitlab::gitlab-rails' do
                 'db_sslkey' => '/etc/certs/db.key'
               )
             )
+          end
+        end
+
+        context 'when db_extra_config_command is specified' do
+          cached(:chef_run) do
+            ChefSpec::SoloRunner.new(step_into: %w(templatesymlink)).converge('gitlab::default')
+          end
+
+          before do
+            stub_gitlab_rb(
+              gitlab_rails: {
+                db_extra_config_command: '/opt/database-config.sh'
+              }
+            )
+          end
+
+          it 'uses specified value in database.yml' do
+            expect(chef_run).to create_templatesymlink('Create a database.yml and create a symlink to Rails root').with_variables(
+              hash_including(
+                'db_extra_config_command' => '/opt/database-config.sh'
+              )
+            )
+            expect(generated_yml_content.dig('production', 'config_command')).to eq('/opt/database-config.sh')
           end
         end
       end

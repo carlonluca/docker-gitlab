@@ -110,6 +110,9 @@ production: &base
     # Number of seconds to wait for HTTP response after sending webhook HTTP POST request (default: 10)
     webhook_timeout: <%= @webhook_timeout %>
 
+    ## HTTP client settings
+    http_client: <%= @http_client.to_json %>
+
     ### GraphQL Settings
     # Tells the rails application how long it has to complete a GraphQL request.
     # We suggest this value to be higher than the database timeout value
@@ -584,6 +587,12 @@ production: &base
     <% unless @ci_runners_stale_machines_cleanup_worker_cron.nil? %>
     ci_runners_stale_machines_cleanup_worker:
       cron: "<%= @ci_runners_stale_machines_cleanup_worker_cron %>"
+    <% end %>
+
+    # Periodically process catalog resource sync events
+    <% unless @ci_catalog_resources_process_sync_events_worker_cron.nil? %>
+    ci_catalog_resources_process_sync_events_worker:
+      cron: "<%= @ci_catalog_resources_process_sync_events_worker_cron %>"
     <% end %>
 
     ##

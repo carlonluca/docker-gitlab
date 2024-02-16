@@ -4,7 +4,11 @@ group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 ---
 
-# Configuring Redis **(FREE SELF)**
+# Configuring Redis
+
+DETAILS:
+**Tier:** Free, Premium, Ultimate
+**Offering:** Self-managed
 
 ## Using an alternate local Redis instance
 
@@ -103,7 +107,7 @@ redis['tcp_timeout'] = "60"
 redis['tcp_keepalive'] = "300"
 ```
 
-## Announce ip from hostname
+## Announce IP from hostname
 
 Currently the only way to enable hostnames in Redis is by setting `redis['announce_ip']`. However,
 this would need to be set uniquely per Redis instance. `announce_ip_from_hostname` is a boolean that allows us to turn this on or off.
@@ -226,6 +230,10 @@ This setting is disabled by default. To enable it, you can use:
 redis['io_threads'] = 4
 redis['io_threads_do_reads'] = true
 ```
+
+## Provide sensitive configuration to Redis clients without plain text storage
+
+For more information, see the example in [configuration documentation](../settings/configuration.md#provide-redis-password-to-client-components).
 
 ## Troubleshooting
 
