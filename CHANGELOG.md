@@ -14,6 +14,12 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 16.9.2 (2024-03-06)
+
+### Security (1 change)
+
+- [Mattermost Security Updates February 14, 2024](gitlab-org/security/omnibus-gitlab@b0fdcb7d3f7a15f55156bfdfb8faeb8dddbfdae3) ([merge request](gitlab-org/security/omnibus-gitlab!419))
+
 ## 16.9.1 (2024-02-20)
 
 No changes.
