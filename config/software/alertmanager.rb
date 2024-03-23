@@ -20,7 +20,7 @@ require "#{Omnibus::Config.project_root}/lib/gitlab/version"
 require "#{Omnibus::Config.project_root}/lib/gitlab/prometheus_helper"
 
 name 'alertmanager'
-version = Gitlab::Version.new('alertmanager', '0.26.0')
+version = Gitlab::Version.new('alertmanager', '0.27.0')
 default_version version.print
 
 license 'APACHE-2.0'
@@ -38,6 +38,7 @@ build do
   env = {
     'GOPATH' => "#{Omnibus::Config.source_dir}/alertmanager",
     'GO111MODULE' => 'on',
+    'GOTOOLCHAIN' => 'local',
   }
   exporter_source_dir = "#{Omnibus::Config.source_dir}/alertmanager"
   cwd = "#{exporter_source_dir}/src/#{go_source}"

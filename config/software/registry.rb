@@ -19,7 +19,7 @@
 require "#{Omnibus::Config.project_root}/lib/gitlab/version"
 
 name 'registry'
-version = Gitlab::Version.new('registry', 'v3.88.1-gitlab')
+version = Gitlab::Version.new('registry', 'v3.90.0-gitlab')
 
 default_version version.print(false)
 display_version version.print(false).delete_suffix('-gitlab')
@@ -36,7 +36,8 @@ build do
   cwd = "#{registry_source_dir}/#{relative_path}"
   env = {
     'GOPATH' => registry_source_dir,
-    'BUILDTAGS' => 'include_gcs include_oss'
+    'BUILDTAGS' => 'include_gcs include_oss',
+    'GOTOOLCHAIN' => 'local',
   }
 
   make "build", env: env, cwd: cwd

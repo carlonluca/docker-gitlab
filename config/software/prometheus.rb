@@ -20,7 +20,7 @@ require "#{Omnibus::Config.project_root}/lib/gitlab/version"
 require "#{Omnibus::Config.project_root}/lib/gitlab/prometheus_helper"
 
 name 'prometheus'
-version = Gitlab::Version.new('prometheus', '2.49.1')
+version = Gitlab::Version.new('prometheus', '2.50.1')
 default_version version.print
 
 license 'APACHE-2.0'
@@ -39,6 +39,7 @@ build do
   env = {
     'GOPATH' => prometheus_source_dir,
     'GO111MODULE' => 'on',
+    'GOTOOLCHAIN' => 'local',
   }
 
   prom_version = Prometheus::VersionFlags.new(version)

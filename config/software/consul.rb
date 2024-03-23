@@ -18,7 +18,7 @@ name 'consul'
 
 # This version should be keep in sync with consul versions in
 # consul_download.rb and consul_helper.rb.
-version = Gitlab::Version.new('consul', 'v1.16.4')
+version = Gitlab::Version.new('consul', 'v1.16.6')
 default_version version.print(false)
 
 license 'MPL-2.0'
@@ -33,7 +33,9 @@ relative_path 'src/github.com/hashicorp/consul'
 build do
   env = {}
   env['GOPATH'] = "#{Omnibus::Config.source_dir}/consul"
+  env['GOTOOLCHAIN'] = 'local'
   env['PATH'] = "#{Gitlab::Util.get_env('PATH')}:#{env['GOPATH']}/bin"
+
   command 'make dev', env: env
   mkdir "#{install_dir}/embedded/bin"
   copy 'bin/consul', "#{install_dir}/embedded/bin/"

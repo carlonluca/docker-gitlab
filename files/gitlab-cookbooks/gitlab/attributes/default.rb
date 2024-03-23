@@ -301,6 +301,8 @@ default['gitlab']['gitlab_rails']['ldap_admin_group'] = nil
 default['gitlab']['gitlab_rails']['ldap_sync_ssh_keys'] = nil
 default['gitlab']['gitlab_rails']['ldap_sync_time'] = nil
 default['gitlab']['gitlab_rails']['ldap_active_directory'] = nil
+default['gitlab']['gitlab_rails']['ldap_smartcard_ad_cert_field'] = nil
+default['gitlab']['gitlab_rails']['ldap_smartcard_ad_cert_format'] = nil
 ####
 
 default['gitlab']['gitlab_rails']['smartcard_enabled'] = false
@@ -676,7 +678,7 @@ default['gitlab']['puma']['prometheus_scrape_scheme'] = 'http'
 default['gitlab']['puma']['prometheus_scrape_tls_server_name'] = nil
 default['gitlab']['puma']['prometheus_scrape_tls_skip_verification'] = false
 
-default['gitlab']['puma']['somaxconn'] = 1024
+default['gitlab']['puma']['somaxconn'] = 2048
 # Path to the puma server Process ID file
 # defaults to /opt/gitlab/var/puma/puma.pid. The install-dir path is set at build time
 default['gitlab']['puma']['pidfile'] = "#{node['package']['install-dir']}/var/puma/puma.pid"
@@ -847,6 +849,8 @@ default['gitlab']['gitlab_workhorse']['redis_sentinel_master_ip'] = nil
 default['gitlab']['gitlab_workhorse']['redis_sentinel_master_port'] = nil
 
 default['gitlab']['gitlab_workhorse']['extra_config_command'] = nil
+
+default['gitlab']['gitlab_workhorse']['metadata_zip_reader_limit_bytes'] = nil
 
 ####
 # mailroom
