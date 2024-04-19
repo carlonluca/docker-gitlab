@@ -69,6 +69,7 @@ RSpec.describe Build::Facts do
   let(:component_shas) do
     {
       'gitlab-rails' => '6f286d7717f419489a08a9918621f438256e397b',
+      'gitlab-rails-ee' => '6f286d7717f419489a08a9918621f438256e397b',
       'gitaly' => 'b55578ec476e8bc8ecd9775ee7e9960b52e0f6e0',
       'gitlab-shell' => '264d63e81cbf08e3ae75e84433b8d09af15f351f',
       'gitlab-pages' => 'b0cb1f0c0783db2f5176301e6528fe41e1b42abf',
@@ -196,6 +197,7 @@ RSpec.describe Build::Facts do
       stub_env_var('BUILDER_IMAGE_REVISION', '1.2.3')
       stub_env_var('BUILDER_IMAGE_REGISTRY', 'registry.example.com')
       stub_env_var('PUBLIC_BUILDER_IMAGE_REGISTRY', 'registry.example.com')
+      stub_env_var('DEV_BUILDER_IMAGE_REGISTRY', 'dev.gitlab.org:5005')
     end
 
     it 'returns correct variables' do
@@ -209,6 +211,7 @@ RSpec.describe Build::Facts do
         BUILDER_IMAGE_REVISION=1.2.3
         BUILDER_IMAGE_REGISTRY=registry.example.com
         PUBLIC_BUILDER_IMAGE_REGISTRY=registry.example.com
+        DEV_BUILDER_IMAGE_REGISTRY=dev.gitlab.org:5005
         COMPILE_ASSETS=false
         EDITION=CE
         ee=false

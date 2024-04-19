@@ -28,6 +28,8 @@ workflow:
       variables:
         PIPELINE_TYPE: TRIGGER_CACHE_UPDATE_PIPELINE
         CACHE_EDITION: "GITLAB"
+        # We want to rebuild the cache from scratch to ensure stale dependencies are cleaned up.
+        CACHE_POLICY: 'push'
     - if: '$PIPELINE_TYPE == null && $CI_PROJECT_PATH == $QA_PROJECT_PATH && $CACHE_UPDATE == "true"'
       variables:
         PIPELINE_TYPE: TRIGGER_CACHE_UPDATE_PIPELINE
@@ -43,9 +45,6 @@ workflow:
     - if: '$PIPELINE_TYPE == null && $CI_PROJECT_PATH == $CANONICAL_PROJECT_PATH && $CI_PIPELINE_SOURCE == "merge_request_event"'
       variables:
         PIPELINE_TYPE: GITLAB_MR_PIPELINE
-    - if: '$PIPELINE_TYPE == null && $CI_PROJECT_PATH == $CANONICAL_PROJECT_PATH && $CI_COMMIT_REF_PROTECTED == "true"'
-      variables:
-        PIPELINE_TYPE: PROTECTED_TEST_PIPELINE
     - if: '$PIPELINE_TYPE == null && $NIGHTLY && $CI_COMMIT_BRANCH && ($ee == "true" || $GITLAB_VERSION =~ /-ee$/)'
       variables:
         PIPELINE_TYPE: EE_NIGHTLY_BUILD_PIPELINE
@@ -94,6 +93,9 @@ workflow:
         PIPELINE_TYPE: EE_TAG_BUILD_PIPELINE
         CACHE_EDITION: "EE"
         GITLAB_EDITION: "Enterprise Edition"
+    - if: '$PIPELINE_TYPE == null && $CI_PROJECT_PATH == $CANONICAL_PROJECT_PATH && $CI_COMMIT_REF_PROTECTED == "true"'
+      variables:
+        PIPELINE_TYPE: PROTECTED_TEST_PIPELINE
     - if: '$PIPELINE_TYPE == null && $CI_PROJECT_PATH == $SECURITY_PROJECT_PATH && $CI_PIPELINE_SOURCE == "merge_request_event"'
       variables:
         PIPELINE_TYPE: GITLAB_MR_PIPELINE

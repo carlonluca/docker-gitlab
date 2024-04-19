@@ -30,9 +30,17 @@ module Build
         softwares = version_manifest['software']
         results = {}
         Gitlab::Version::COMPONENTS_ENV_VARS.keys.map do |component|
-          next unless softwares.key?(component)
+          # For both `gitlab-rails` and `gitlab-rails-ee`, the key in
+          # version-manifest.json is `gitlab-rails`
+          version_manifest_key = if component == 'gitlab-rails' || component == 'gitlab-rails-ee'
+                                   'gitlab-rails'
+                                 else
+                                   component
+                                 end
 
-          results[component] = softwares[component]['locked_version']
+          next unless softwares.key?(version_manifest_key)
+
+          results[component] = softwares[version_manifest_key]['locked_version']
         end
 
         results
@@ -68,6 +76,7 @@ module Build
           BUILDER_IMAGE_REVISION=#{Gitlab::Util.get_env('BUILDER_IMAGE_REVISION')}
           BUILDER_IMAGE_REGISTRY=#{Gitlab::Util.get_env('BUILDER_IMAGE_REGISTRY')}
           PUBLIC_BUILDER_IMAGE_REGISTRY=#{Gitlab::Util.get_env('PUBLIC_BUILDER_IMAGE_REGISTRY')}
+          DEV_BUILDER_IMAGE_REGISTRY=#{Gitlab::Util.get_env('DEV_BUILDER_IMAGE_REGISTRY')}
           COMPILE_ASSETS=#{Gitlab::Util.get_env('COMPILE_ASSETS') || 'false'}
           EDITION=#{Build::Info::Package.edition.upcase}
           ee=#{Build::Check.is_ee? || 'false'}
@@ -83,8 +92,8 @@ module Build
           GITLAB_SEMVER_VERSION=#{Build::Info::Git.latest_stable_tag.tr('+', '-')}
           RAT_REFERENCE_ARCHITECTURE=#{Gitlab::Util.get_env('RAT_REFERENCE_ARCHITECTURE') || 'omnibus-gitlab-mrs'}
           RAT_FIPS_REFERENCE_ARCHITECTURE=#{Gitlab::Util.get_env('RAT_FIPS_REFERENCE_ARCHITECTURE') || 'omnibus-gitlab-mrs-fips-ubuntu'}
-          RAT_PACKAGE_URL=#{Gitlab::Util.get_env('PACKAGE_URL') || Build::Info::CI.triggered_package_download_url(fips: false)}
-          RAT_FIPS_PACKAGE_URL=#{Gitlab::Util.get_env('FIPS_PACKAGE_URL') || Build::Info::CI.triggered_package_download_url(fips: true)}
+          RAT_PACKAGE_URL=#{Build::Info::CI.package_download_url(fips: false)}
+          RAT_FIPS_PACKAGE_URL=#{Build::Info::CI.package_download_url(job_name: 'Ubuntu-20.04', fips: true)}
         ]
       end
 

@@ -47,15 +47,10 @@ module Build
           URI("#{api_v4_url}/projects/#{project_id}/jobs/#{target_job_id}/artifacts/#{file_path}")
         end
 
-        def triggered_package_download_url(fips: Build::Check.use_system_ssl?)
-          folder = fips ? 'ubuntu-focal_fips' : 'ubuntu-jammy'
-          job_name = fips ? 'Trigger:package:fips' : 'Trigger:package'
-          package_path = "pkg/#{folder}/gitlab.deb"
+        def package_download_url(job_name: "Ubuntu-22.04", arch: 'amd64', fips: Build::Check.use_system_ssl?)
+          return Gitlab::Util.get_env('FIPS_PACKAGE_URL') if fips && Gitlab::Util.get_env('FIPS_PACKAGE_URL')
+          return Gitlab::Util.get_env('PACKAGE_URL') if !fips && Gitlab::Util.get_env('PACKAGE_URL')
 
-          artifact_url(job_name, package_path)
-        end
-
-        def package_download_url(job_name: "Ubuntu-22.04", arch: 'amd64')
           case job_name
           when /AlmaLinux-8/
             # In EL world, amd64 is called x86_64
@@ -74,6 +69,8 @@ module Build
             job_name = "#{job_name}-arm64"
             folder = "#{folder}_aarch64"
           end
+
+          job_name = "#{job_name}-fips" if fips
 
           job_name = "#{job_name}-branch" unless Build::Info::CI.tag_name
 

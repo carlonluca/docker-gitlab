@@ -34,26 +34,6 @@
   needs:
     - rubocop
 
-.trigger-package-cache:
-  cache:
-    key: "Ubuntu-22.04-branch-${BUILDER_IMAGE_REVISION}-${CACHE_EDITION}${CACHE_KEY_SUFFIX}"
-    paths:
-      - cache
-      - gems
-      - assets_cache
-      - node_modules
-    policy: pull
-
-.trigger-fips-package-cache:
-  cache:
-    key: "Ubuntu-22.04-fips-branch-${BUILDER_IMAGE_REVISION}-${CACHE_EDITION}${CACHE_KEY_SUFFIX}"
-    paths:
-      - cache
-      - gems
-      - assets_cache
-      - node_modules
-    policy: pull
-
 .install-gems: &install-gems
   - gem install bundler:${BUNDLER_VERSION}
   - bundle config build.ffi --disable-system-libffi
@@ -61,33 +41,6 @@
   - bundle config set --local frozen 'true'
   - bundle install -j $(nproc)
   - bundle binstubs --all
-
-.trigger-package-common:
-  extends: .trigger-package-cache
-  variables:
-  image: "${BUILDER_IMAGE_REGISTRY}/${BASE_OS}:${BUILDER_IMAGE_REVISION}"
-  stage: trigger-package
-  script:
-    - !reference [.build-package]
-    # Renaming so we can easily generate the artifact URL
-    - mv $PACKAGE_DIRECTORY/*.deb $PACKAGE_DIRECTORY/gitlab.deb
-    - mv $PACKAGE_DIRECTORY/*.deb.size $PACKAGE_DIRECTORY/gitlab.deb.size
-  artifacts:
-    expire_in: 3 days
-    when: always
-    paths:
-      - pkg/
-  tags: !reference [.distribution-amd64-tags]
-  needs:
-    - job: fetch-assets
-      optional: true
-    - job: generate-facts
-      optional: true
-      artifacts: true
-  rules:
-    - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/'
-    - if: '$PIPELINE_TYPE == "DURATION_PLOTTER_PIPELINE"'
-    - if: '$PIPELINE_TYPE == "TRIGGER_CACHE_UPDATE_PIPELINE"'
 
 .spec_template: &spec_template
   extends: .gems-cache-os-dependent
@@ -133,11 +86,14 @@
       junit: junit_rspec.xml
 
 .base-trigger-job-variables:
+  # In trigger jobs, we don't want to pollute cache
+  CACHE_POLICY: 'pull'
   ALTERNATIVE_SOURCES: 'true'
   SECURITY_SOURCES: ${SECURITY_SOURCES}
   BUILDER_IMAGE_REVISION: ${BUILDER_IMAGE_REVISION}
   BUILDER_IMAGE_REGISTRY: ${BUILDER_IMAGE_REGISTRY}
   PUBLIC_BUILDER_IMAGE_REGISTRY: ${PUBLIC_BUILDER_IMAGE_REGISTRY}
+  DEV_BUILDER_IMAGE_REGISTRY: ${DEV_BUILDER_IMAGE_REGISTRY}
   COMPILE_ASSETS: ${COMPILE_ASSETS}
   GITLAB_VERSION: ${GITLAB_VERSION}
   GITLAB_SHELL_VERSION: ${GITLAB_SHELL_VERSION}
@@ -162,7 +118,7 @@
   ee: "true"
 
 .ce-trigger-job:
-  stage: trigger-package
+  stage: qa
   trigger:
     include: '.gitlab-ci.yml'
     strategy: depend
@@ -177,17 +133,6 @@
     - if: '$PIPELINE_TYPE =~ /_MR_PIPELINE$/'
       when: manual
       variables: !reference [.ce-trigger-job-variables]
-
-.trigger-pipeline:
-  stage: trigger-qa
-  image: "${RUBY_IMAGE}"
-  allow_failure: true
-  rules:
-    - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/'
-      when: manual
-  needs:
-    - job: Trigger:package
-      artifacts: false
 
 .review-docs:
   image: "${RUBY_IMAGE}-alpine"
@@ -259,22 +204,6 @@ update-gems-cache-for-docker-jobs:
     - update-gems-cache
     - .docker_job
 
-update-trigger-package-cache:
-  extends: .trigger-package-cache
-  stage: update-cache
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_22.04:${BUILDER_IMAGE_REVISION}"
-  script:
-    - !reference [.build-package]
-    - echo "Cache is up to date!"
-  cache:
-    policy: push  # We want to rebuild the cache from scratch to ensure stale dependencies are cleaned up.
-  tags: !reference [.distribution-amd64-tags]
-  rules:
-    - if: '$PIPELINE_TYPE == "TRIGGER_CACHE_UPDATE_PIPELINE"'
-  needs:
-    - job: fetch-assets
-      optional: true
-
 ###########################
 #     Branch pipeline     #
 ###########################
@@ -325,7 +254,7 @@ docs-lint markdown:
 
 # Perform link checks on published HTML files
 docs-lint links:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-html:alpine-3.19-ruby-3.2.3-eee6c4c0
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-html:alpine-3.19-ruby-3.2.3-a5032206
   stage: check
   cache: {}
   needs: []
@@ -526,60 +455,23 @@ update-knapsack:
 #     Trigger Pipeline     #
 ############################
 
-Trigger:package:
-  extends: .trigger-package-common
-  variables:
-    BASE_OS: "ubuntu_22.04"
-    PACKAGE_DIRECTORY: "pkg/ubuntu-jammy"
-
-Trigger:package:fips:
-  extends:
-    - .trigger-package-common
-    - .trigger-fips-package-cache
-  variables:
-    USE_SYSTEM_SSL: "true"
-    BASE_OS: "ubuntu_20.04_fips"
-    PACKAGE_DIRECTORY: "pkg/ubuntu-focal_fips"
-  allow_failure: true
-  rules:
-    - if: '$PIPELINE_TYPE == "TRIGGERED_EE_PIPELINE"'
-      when: manual
-
 package_size_check:
-  extends: .trigger-package-cache
+  extends: .gems-cache
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_22.04:${BUILDER_IMAGE_REVISION}"
-  stage: trigger-qa
+  stage: qa
   script:
     - bundle exec rake build:package:generate_sizefile
     - bundle exec rake check:package_size
   needs:
-    - job: Trigger:package
+    - job: Ubuntu-22.04-branch
       artifacts: false
   rules:
     - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/'
-
-Trigger:gitlab-docker:
-  extends:
-    - .docker_job
-    - .gems-cache
-  stage: trigger-docker
-  script:
-    - bundle exec rake docker:build:image
-    - bundle exec rake docker:push:triggered
-  rules:
-    - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/'
-    - if: '$PIPELINE_TYPE == "TRIGGER_CACHE_UPDATE_PIPELINE"'
-  needs:
-    - job: Trigger:package
-      artifacts: false
-    - job: generate-facts
-      optional: true
-      artifacts: true
 
 qa-subset-test:
   extends:
     - .qa-template
-  stage: trigger-qa
+  stage: qa
   variables:
     QA_OMNIBUS_MR_TESTS: "only-smoke-reliable"
     QA_RUN_TYPE: ${CI_JOB_NAME}
@@ -602,15 +494,16 @@ qa-subset-test:
   needs:
     - job: generate-facts
       artifacts: true
-    - job: Trigger:package
+    - job: Ubuntu-22.04-branch
       artifacts: false
-    - job: Trigger:gitlab-docker
+    - job: Docker-branch
+      optional: true
       artifacts: false
 
 qa-remaining-test-manual:
   extends:
     - .qa-template
-  stage: trigger-qa
+  stage: qa
   variables:
     QA_RUN_TYPE: ${CI_JOB_NAME}
     QA_OMNIBUS_MR_TESTS: "except-smoke-reliable"
@@ -629,14 +522,15 @@ qa-remaining-test-manual:
   needs:
     - job: generate-facts
       artifacts: true
-    - job: Trigger:package
+    - job: Ubuntu-22.04-branch
       artifacts: false
-    - job: Trigger:gitlab-docker
+    - job: Docker-branch
+      optional: true
       artifacts: false
 
 letsencrypt-test:
   extends: .docker_job
-  stage: trigger-qa
+  stage: qa
   script:
     - echo "${CI_REGISTRY_PASSWORD}" | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
     - curl -L "https://github.com/docker/compose/releases/download/1.29.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -647,11 +541,11 @@ letsencrypt-test:
       when: never
     - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/'
   needs:
-    - job: Trigger:gitlab-docker
+    - job: Docker-branch
       artifacts: false
 
 RAT:
-  stage: trigger-qa
+  stage: qa
   variables:
     PACKAGE_URL: ${RAT_PACKAGE_URL}
     REFERENCE_ARCHITECTURE: ${RAT_REFERENCE_ARCHITECTURE}
@@ -667,8 +561,10 @@ RAT:
     - if: '$PIPELINE_TYPE == "TRIGGERED_EE_PIPELINE"'
       when: manual
       allow_failure: true
+    - if: '$PIPELINE_TYPE == "EE_NIGHTLY_BUILD_PIPELINE"'
+      allow_failure: true
   needs:
-    - job: Trigger:package
+    - job: Ubuntu-22.04-branch
       artifacts: false
     - job: generate-facts
       artifacts: true
@@ -679,13 +575,13 @@ RAT:FIPS:
     PACKAGE_URL: ${RAT_FIPS_PACKAGE_URL}
     REFERENCE_ARCHITECTURE: ${RAT_FIPS_REFERENCE_ARCHITECTURE}
   needs:
-    - job: Trigger:package:fips
+    - job: Ubuntu-20.04-fips-branch
       artifacts: false
     - job: generate-facts
       artifacts: true
 
 GET:Geo:
-  stage: trigger-qa
+  stage: qa
   variables:
     ENVIRONMENT_ACTION: 'tmp-env'
     QA_IMAGE: ${QA_IMAGE}
@@ -702,7 +598,7 @@ GET:Geo:
       when: manual
       allow_failure: true
   needs:
-    - job: Trigger:package
+    - job: Ubuntu-22.04-branch
       artifacts: false
     - job: generate-facts
       artifacts: true
@@ -783,13 +679,13 @@ pages:
 
 .build-package-on-all-os-vars:
   extends: .base-trigger-job-variables
-  SKIP_JOB_REGEX: '/Ubuntu-22.04|Docker|QA/'
+  SKIP_JOB_REGEX: '/Ubuntu-22.04|Ubuntu-20.04-fips|Docker|QA/'
   PIPELINE_TYPE: "${EDITION}_BRANCH_BUILD_PIPELINE"
   CACHE_EDITION: ${EDITION}
   ee: ${ee}
 
 build-package-on-all-os:
-  stage: trigger-package
+  stage: package
   needs:
     - job: generate-facts
       artifacts: true

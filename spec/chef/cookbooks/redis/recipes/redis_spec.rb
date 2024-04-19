@@ -12,7 +12,7 @@ RSpec.describe 'redis' do
     let(:gitlab_redis_cli_rc) do
       <<-EOF
 redis_dir='/var/opt/gitlab/redis'
-redis_host='127.0.0.1'
+redis_host=''
 redis_port='0'
 redis_tls_port=''
 redis_tls_auth_clients='optional'
@@ -74,8 +74,8 @@ redis_socket='/var/opt/gitlab/redis/redis.socket'
     describe 'pending restart check' do
       context 'when running version is same as installed version' do
         before do
-          allow_any_instance_of(RedisHelper).to receive(:running_version).and_return('3.2.12')
-          allow_any_instance_of(RedisHelper).to receive(:installed_version).and_return('3.2.12')
+          allow_any_instance_of(NewRedisHelper::Server).to receive(:running_version).and_return('3.2.12')
+          allow_any_instance_of(NewRedisHelper::Server).to receive(:installed_version).and_return('3.2.12')
         end
 
         it 'does not raise a warning' do
@@ -85,8 +85,8 @@ redis_socket='/var/opt/gitlab/redis/redis.socket'
 
       context 'when running version is different than installed version' do
         before do
-          allow_any_instance_of(RedisHelper).to receive(:running_version).and_return('3.2.12')
-          allow_any_instance_of(RedisHelper).to receive(:installed_version).and_return('5.0.9')
+          allow_any_instance_of(NewRedisHelper::Server).to receive(:running_version).and_return('3.2.12')
+          allow_any_instance_of(NewRedisHelper::Server).to receive(:installed_version).and_return('5.0.9')
         end
 
         it 'raises a warning' do
@@ -198,6 +198,46 @@ redis_socket='/var/opt/gitlab/redis/redis.socket'
     it 'creates redis config without save setting' do
       expect(chef_run).to render_file('/var/opt/gitlab/redis/redis.conf')
         .with_content(/^save ""/)
+    end
+  end
+
+  context 'with multiple bind addresses' do
+    let(:redis_host) { '1.2.3.4 5.6.7.8' }
+    let(:redis_port) { 6370 }
+    let(:master_ip) { '10.0.0.0' }
+    let(:master_port) { 6371 }
+
+    let(:gitlab_redis_cli_rc) do
+      <<-EOF
+redis_dir='/var/opt/gitlab/redis'
+redis_host='1.2.3.4'
+redis_port='6370'
+redis_tls_port=''
+redis_tls_auth_clients='optional'
+redis_tls_cacert_file='/opt/gitlab/embedded/ssl/certs/cacert.pem'
+redis_tls_cacert_dir='/opt/gitlab/embedded/ssl/certs/'
+redis_tls_cert_file=''
+redis_tls_key_file=''
+redis_socket=''
+      EOF
+    end
+
+    before do
+      stub_gitlab_rb(
+        redis: {
+          bind: redis_host,
+          port: redis_port,
+          master_ip: master_ip,
+          master_port: master_port,
+          master_password: 'password',
+          master: false
+        }
+      )
+    end
+
+    it 'creates gitlab-redis-cli-rc' do
+      expect(chef_run).to render_file('/opt/gitlab/etc/gitlab-redis-cli-rc')
+        .with_content(gitlab_redis_cli_rc)
     end
   end
 
