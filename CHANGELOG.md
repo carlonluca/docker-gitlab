@@ -14,6 +14,18 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 16.11.2 (2024-05-07)
+
+### Fixed (1 change)
+
+- [Fix reconfigure failure if Redis node has Rails Sentinel config](gitlab-org/security/omnibus-gitlab@c097bfaf41a5081a4d22d99247c5dda5a8f7924e)
+
+## 16.11.1 (2024-04-24)
+
+### Fixed (1 change)
+
+- [Fix missing arguments when PostgreSQL upgrade times out](gitlab-org/security/omnibus-gitlab@cb3aa3360928fab97f3b58869d5e71623095c5ca)
+
 ## 16.11.0 (2024-04-17)
 
 ### Added (5 changes)
