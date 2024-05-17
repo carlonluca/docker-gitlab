@@ -22,11 +22,11 @@ With some adjustments, GitLab can run comfortably on much lower specifications t
 [minimum requirements](https://docs.gitlab.com/ee/install/requirements.html) or the
 [reference architectures](https://docs.gitlab.com/ee/administration/reference_architectures/).
 
-The following sections contain advice that will allow GitLab to run in environments
+The following sections contain advice that allows GitLab to run in environments
 that do not meet the minimum requirements. While most GitLab parts should be
 functional with these settings in place, you may experience unexpected degradation
 of both product functionality and performance. You should be able to run GitLab
-with up to 5 developers with individual Git projects no larger than 100MB.
+with up to 5 developers with individual Git projects no larger than 100 MB.
 
 ## Minimum requirements for constrained environments
 
@@ -34,8 +34,8 @@ The minimum expected specs with which GitLab can be run are:
 
 - Linux-based system (ideally Debian-based or RedHat-based)
 - 4 CPU cores of ARM7/ARM64 or 1 CPU core of AMD64 architecture
-- Minimum 2GB of RAM + 1GB of SWAP, optimally 2.5GB of RAM + 1GB of SWAP
-- 20GB of available storage
+- Minimum 2 GB of RAM + 1 GB of SWAP, optimally 2.5 GB of RAM + 1 GB of swap
+- 20 GB of available storage
 - A storage with a good random I/O performance with an order of preference:
   - [SSD](https://en.wikipedia.org/wiki/Solid-state_drive)
   - [eMMC](https://magazine.odroid.com/article/emmc-memory-modules-a-simple-guide/)
@@ -145,14 +145,14 @@ We observed 100-400MB of memory usage reduction configuring Puma this way.
 ## Optimize Sidekiq
 
 Sidekiq is a background processing daemon. When configured with GitLab by default
-it runs with a high concurrency mode of `50`. This does impact how much memory it can
+it runs with a concurrency mode of `20`. This does impact how much memory it can
 allocate at a given time. It is advised to configure it to use a significantly
 smaller value of `5` or `10` (preferred).
 
 In `/etc/gitlab/gitlab.rb`:
 
 ```ruby
-sidekiq['max_concurrency'] = 10
+sidekiq['concurrency'] = 10
 ```
 
 ## Optimize Gitaly
@@ -249,7 +249,7 @@ and disable the Prometheus Metrics feature:
    ```ruby
    puma['worker_processes'] = 0
 
-   sidekiq['max_concurrency'] = 10
+   sidekiq['concurrency'] = 10
 
    prometheus_monitoring['enable'] = false
 

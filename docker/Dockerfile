@@ -10,6 +10,8 @@ ENV LANG=C.UTF-8
 COPY locale.gen /etc/locale.gen
 
 # Install required packages
+# Note: libatomic1 is only required for arm64, but it is small enough to not
+# bother about the conditional inclusion logic
 RUN apt-get update -q \
     && DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
       busybox \
@@ -46,6 +48,8 @@ RUN ln -fs /dev/null /run/motd.dynamic
 
 # Legacy code to be removed on 17.0.  See: https://gitlab.com/gitlab-org/omnibus-gitlab/-/merge_requests/7035
 ENV GITLAB_ALLOW_SHA1_RSA=false
+
+ARG TARGETARCH
 
 # Copy assets
 COPY RELEASE /

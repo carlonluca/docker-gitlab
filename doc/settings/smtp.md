@@ -46,8 +46,6 @@ gitlab_rails['smtp_ca_file'] = '/path/to/your/cacert.pem'
 
 ## SMTP connection pooling
 
-> - [Introduced](https://gitlab.com/gitlab-org/gitlab/-/issues/230717) in GitLab 13.5.
-
 You can enable SMTP connection pooling with the following setting:
 
 ```ruby
@@ -57,8 +55,6 @@ gitlab_rails['smtp_pool'] = true
 This allows Sidekiq workers to reuse SMTP connections for multiple jobs. The maximum number of connections in the pool follows the [maximum concurrency configuration for Sidekiq](https://docs.gitlab.com/ee/administration/sidekiq/extra_sidekiq_processes.html#concurrency).
 
 ## Using encrypted credentials
-
-> - [Introduced](https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/6276) in GitLab 14.3.
 
 Instead of storing the SMTP credentials in the configuration files as plain text, you can optionally
 use an encrypted file for the SMTP credentials. To use this feature, you first need to enable
@@ -146,7 +142,7 @@ gitlab_rails['smtp_force_ssl'] = false
 NOTE:
 Gmail has [strict sending limits](https://support.google.com/a/answer/166852)
 that can impair functionality as your organization grows. We strongly recommend using a
-transactional service like [SendGrid](https://sendgrid.com/) or [Mailgun](https://www.mailgun.com/)
+transactional service like [SendGrid](https://sendgrid.com/en-us) or [Mailgun](https://www.mailgun.com/)
 for teams using SMTP configuration.
 
 ```ruby
@@ -1220,7 +1216,7 @@ gitlab_rails['gitlab_email_from'] = 'username@example.com'
 gitlab_rails['gitlab_email_reply_to'] = 'username@example.com'
 ```
 
-Check the SMTP user name and SMTP user password from the ESS [dashboard](https://pfs.nifcloud.com/help/ess/dashboard.htm).
+Check the SMTP user name and SMTP user password from the ESS [dashboard](https://docs.nifcloud.com/ess/help/dashboard.htm).
 `gitlab_email_from` and `gitlab_email_reply_to` must be ESS authenticated sender email addresses.
 
 ### Sina mail

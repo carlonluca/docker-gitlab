@@ -612,7 +612,7 @@ def analyze_cluster
   rescue Mixlib::ShellOut::CommandTimeout
     $stderr.puts "Time out while running the analyze stage.".color(:yellow)
     $stderr.puts "Please re-run the command manually as the #{pg_username} user".color(:yellow)
-    $stderr.puts analyze_command.color(:yellow)
+    $stderr.puts analyze_cmd.color(:yellow)
   end
 end
 
@@ -747,7 +747,7 @@ def old_version
 end
 
 def default_version
-  PGVersion.parse(version_from_manifest('postgresql_new')) || PGVersion.parse(version_from_manifest('postgresql'))
+  PGVersion.parse(version_from_manifest('postgresql'))
 end
 
 def new_version

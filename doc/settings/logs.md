@@ -77,7 +77,7 @@ The [runit-managed](../architecture/index.md#runit) services in Linux package in
   GitLab last wrote to that file.
 - `zmore` and `zgrep` allow viewing and searching through both compressed or uncompressed logs.
 
-Read the [svlogd documentation](https://smarden.org/runit/svlogd.8.html) for more information
+Read the [svlogd documentation](https://smarden.org/runit/svlogd.8) for more information
 about the files it generates.
 
 You can modify svlogd settings via `/etc/gitlab/gitlab.rb` with the following settings:
@@ -144,8 +144,7 @@ logrotate['enable'] = false
 
 ### Logrotate `notifempty` setting
 
-Since [GitLab 13.6](https://gitlab.com/gitlab-org/omnibus-gitlab/-/merge_requests/3820),
-the logrotate service runs with a non-configurable default of `notifempty`, resolving
+The logrotate service runs with a non-configurable default of `notifempty`, resolving
 the following issues:
 
 - Empty logs being rotated unnecessarily, and often many empty logs being stored.
@@ -295,12 +294,15 @@ in a Linux package installation, run as root:
 
 ## Configuring log level/verbosity
 
-You can configure the minimum log levels (verbosity) for the Container
-Registry, GitLab Shell and Gitaly:
+You can configure the minimum log levels (verbosity) for GitLab Rails,
+Container Registry, GitLab Shell and Gitaly:
 
 1. Edit `/etc/gitlab/gitlab.rb` and set the log levels:
 
    ```ruby
+   gitlab_rails['env'] = {
+     "GITLAB_LOG_LEVEL" => "WARN",
+   }
    registry['log_level'] = 'info'
    gitlab_shell['log_level'] = 'INFO'
    gitaly['configuration'] = {
@@ -318,8 +320,9 @@ Registry, GitLab Shell and Gitaly:
 
 NOTE:
 You [cannot edit](https://gitlab.com/groups/gitlab-org/-/epics/6034)
-the `log_level` for other GitLab logs, for example
-`production_json.log`, `sidekiq.log`, and so on.
+the `log_level` for certain GitLab logs, for example
+`production_json.log`, `graphql_json.log`, and so on.
+See also [Override default log level](https://docs.gitlab.com/ee/administration/logs/#override-default-log-level).
 
 ## Setting a custom log group
 

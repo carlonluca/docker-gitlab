@@ -270,10 +270,6 @@
 # fetch-assets job from .gitlab-ci.yml file runs here
 # generate-assets job from .gitlab-ci.yml file runs here
 
-Ubuntu-18.04-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_18.04:${BUILDER_IMAGE_REVISION}"
-  extends: .branch_template
-
 Ubuntu-20.04-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
@@ -315,6 +311,8 @@ Ubuntu-22.04-arm64-branch:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE =~ /_(NIGHTLY|BRANCH)_BUILD_PIPELINE$/'
     - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/'
+      # TODO: When multi-arch images are built by default, make this an
+      # automatic job
       when: manual
       allow_failure: true
 CentOS-7-branch:
@@ -371,9 +369,6 @@ AmazonLinux-2-fips-branch:
   extends: .fips_branch_template
 AlmaLinux-8-fips-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8_fips:${BUILDER_IMAGE_REVISION}"
-  extends: .fips_branch_template
-Ubuntu-18.04-fips-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_18.04_fips:${BUILDER_IMAGE_REVISION}"
   extends: .fips_branch_template
 Ubuntu-20.04-fips-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04_fips:${BUILDER_IMAGE_REVISION}"
@@ -460,15 +455,6 @@ Raspberry-Pi-2-Bookworm-branch:
 
 # fetch-assets job from .gitlab-ci.yml file runs here
 
-Ubuntu-18.04:
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_18.04:${BUILDER_IMAGE_REVISION}"
-  stage: package
-  extends: .tag_template
-  rules:
-    - !reference [.default_rules, rules]
-  # Also build for auto-deploy tags
-    - if: '$PIPELINE_TYPE =~ /(_RC|_TAG|AUTO_DEPLOY)_BUILD_PIPELINE$/'
-
 Ubuntu-20.04:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04:${BUILDER_IMAGE_REVISION}"
   stage: package
@@ -519,20 +505,6 @@ Docker-QA:
 ##   $PATCH_DEPLOY_ENVIRONMENT, set in CI vars
 ##
 ##  Ubuntu 22.04: used for all omnibus installation
-##  Ubuntu 18.04: used on some non-omnibus infrastructure, we
-##                will eventually need to trigger deployments
-##                after this package is built
-
-Ubuntu-18.04-staging:
-  extends: .staging_upload_with_deployment_template
-  needs:
-    - job: Ubuntu-18.04
-      optional: true
-    - job: Ubuntu-18.04-branch
-      optional: true
-  rules:
-    - !reference [.default_rules, rules]
-    - if: '$PIPELINE_TYPE =~ /(_RC|_TAG|AUTO_DEPLOY|NIGHTLY)_BUILD_PIPELINE$/'
 
 Ubuntu-20.04-staging:
   extends: .staging_upload_with_deployment_template
@@ -642,9 +614,6 @@ AmazonLinux-2-fips:
   extends: .fips_tag_template
 AlmaLinux-8-fips:
   image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8_fips:${BUILDER_IMAGE_REVISION}"
-  extends: .fips_tag_template
-Ubuntu-18.04-fips:
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_18.04_fips:${BUILDER_IMAGE_REVISION}"
   extends: .fips_tag_template
 Ubuntu-20.04-fips:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04_fips:${BUILDER_IMAGE_REVISION}"
@@ -830,13 +799,6 @@ AlmaLinux-8-fips-staging:
       optional: true
     - job: AlmaLinux-8-fips-branch
       optional: true
-Ubuntu-18.04-fips-staging:
-  extends: .fips_staging_upload_template
-  needs:
-    - job: Ubuntu-18.04-fips
-      optional: true
-    - job: Ubuntu-18.04-fips-branch
-      optional: true
 Ubuntu-20.04-fips-staging:
   extends: .fips_staging_upload_template
   needs:
@@ -846,10 +808,6 @@ Ubuntu-20.04-fips-staging:
       optional: true
 
 ### Package releases
-Ubuntu-18.04-release:
-  extends: .production_release_template
-  needs:
-    - Ubuntu-18.04
 Ubuntu-20.04-release:
   extends: .production_release_template
   needs:
@@ -960,10 +918,6 @@ AlmaLinux-8-fips-release:
   extends: .fips_release_template
   needs:
     - AlmaLinux-8-fips
-Ubuntu-18.04-fips-release:
-  extends: .fips_release_template
-  needs:
-    - Ubuntu-18.04-fips
 Ubuntu-20.04-fips-release:
   extends: .fips_release_template
   needs:
@@ -1046,13 +1000,14 @@ QA-Tag:
 
 license-upload:
   stage: metrics
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_18.04:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_22.04:${BUILDER_IMAGE_REVISION}"
   script:
     - bundle exec rake license:upload
   tags: !reference [.distribution-amd64-tags]
   cache: !reference [.tag-cache]
   needs:
-    - Ubuntu-18.04
+    - Ubuntu-22.04
+  allow_failure: true
   rules:
     - !reference [.default_rules, rules]
     - !reference [.skip_release_jobs, rules]
@@ -1061,13 +1016,13 @@ license-upload:
 
 manifest-upload:
   stage: metrics
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_18.04:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_22.04:${BUILDER_IMAGE_REVISION}"
   script:
     - bundle exec rake manifest:upload
   tags: !reference [.distribution-amd64-tags]
   cache: !reference [.tag-cache]
   needs:
-    - Ubuntu-18.04
+    - Ubuntu-22.04
   allow_failure: true
   rules:
     - !reference [.default_rules, rules]

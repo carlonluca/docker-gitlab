@@ -808,6 +808,89 @@ RSpec.describe 'gitaly' do
               .with_content(%r{\[\[storage\]\]\s+name = "nfs1"\s+path = "/mnt/nfs1/repositories"})
           end
         end
+
+        context 'with multiple storages using the same path' do
+          let(:real_path) { Dir.mktmpdir }
+          let(:other_dir) { Dir.mktmpdir }
+          let(:symlink_path) { File.join(other_dir, 'symlink') }
+
+          context 'when Gitaly is not enabled' do
+            before do
+              File.symlink(real_path, symlink_path)
+              stub_gitlab_rb(
+                gitaly: {
+                  enable: false,
+                  configuration: {
+                    storage: [
+                      {
+                        'name' => 'default',
+                        'path' => '/var/opt/gitlab/git-data/repositories'
+                      },
+                      {
+                        'name' => 'other',
+                        'path' => '/var/opt/gitlab/git-data/repositories'
+                      },
+                      {
+                        'name' => 'realpath',
+                        'path' => real_path
+                      },
+                      {
+                        'name' => 'symlinked',
+                        'path' => symlink_path,
+                      }
+                    ]
+                  }
+                }
+              )
+            end
+
+            after do
+              FileUtils.rm_rf([real_path, other_dir])
+            end
+
+            it 'does not raise an error' do
+              expect { chef_run }.not_to raise_error
+            end
+          end
+
+          context 'when Gitaly is enabled' do
+            before do
+              File.symlink(real_path, symlink_path)
+              stub_gitlab_rb(
+                gitaly: {
+                  configuration: {
+                    storage: [
+                      {
+                        'name' => 'default',
+                        'path' => '/var/opt/gitlab/git-data/repositories'
+                      },
+                      {
+                        'name' => 'other',
+                        'path' => '/var/opt/gitlab/git-data/repositories'
+                      },
+                      {
+                        'name' => 'realpath',
+                        'path' => real_path
+                      },
+                      {
+                        'name' => 'symlinked',
+                        'path' => symlink_path,
+                      }
+                    ]
+                  }
+                }
+              )
+            end
+
+            after do
+              FileUtils.rm_rf([real_path, other_dir])
+            end
+
+            it 'raises an error' do
+              expect { chef_run }.to raise_error(/One or more Gitaly storages are accessible by multiple filesystem paths:.*: default.*: realpath/m)
+            end
+          end
+        end
       end
     end
   end

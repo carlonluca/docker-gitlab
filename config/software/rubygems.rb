@@ -15,7 +15,7 @@
 #
 
 name 'rubygems'
-default_version '3.5.7'
+default_version '3.5.9'
 
 license 'MIT'
 license_file 'LICENSE.txt'
@@ -23,7 +23,6 @@ license_file 'LICENSE.txt'
 skip_transitive_dependency_licensing true
 
 dependency 'ruby'
-dependency 'faraday-cage'
 
 build do
   patch source: "license/add-license-file.patch"
