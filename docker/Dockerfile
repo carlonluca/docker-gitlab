@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 MAINTAINER GitLab Inc. <support@gitlab.com>
 
 SHELL ["/bin/sh", "-c"]
@@ -24,7 +24,7 @@ RUN apt-get update -q \
       nano \
       less \
       perl \
-      libperl5.34 \
+      libperl5.38t64 \
       libatomic1 \
     && locale-gen \
     && cp -a /usr/lib/locale/locale-archive /tmp/locale-archive \
