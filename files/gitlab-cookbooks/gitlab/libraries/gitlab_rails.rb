@@ -17,7 +17,7 @@
 require_relative 'nginx.rb'
 require_relative '../../gitaly/libraries/gitaly.rb'
 require_relative '../../package/libraries/settings_dsl.rb'
-require_relative 'redis_helper'
+require_relative '../../package/libraries/helpers/new_redis_helper/gitlab_rails'
 
 module GitlabRails
   ALLOWED_DATABASES = %w[main ci geo embedding].freeze
@@ -35,6 +35,7 @@ module GitlabRails
       parse_incoming_email_logfile
       parse_service_desk_email_logfile
       parse_maximum_request_duration
+      parse_redis_settings
       parse_redis_extra_config_command
       validate_smtp_settings!
       validate_ssh_settings!
@@ -328,7 +329,7 @@ module GitlabRails
       # This requires the parse_shared_dir to be executed before
       encrypted_settings_path = Gitlab['gitlab_rails']['encrypted_settings_path'] ||= File.join(Gitlab['gitlab_rails']['shared_path'], 'encrypted_settings')
 
-      RedisHelper::REDIS_INSTANCES.each do |instance|
+      NewRedisHelper::GitlabRails::REDIS_INSTANCES.each do |instance|
         Gitlab['gitlab_rails']["redis_#{instance}_encrypted_settings_file"] ||= Gitlab['gitlab_rails']['redis_encrypted_settings_file'] || File.join(encrypted_settings_path, "redis.#{instance}.yml.enc")
       end
 
@@ -338,8 +339,15 @@ module GitlabRails
       Gitlab['gitlab_rails']['redis_encrypted_settings_file'] ||= File.join(encrypted_settings_path, 'redis.yml.enc')
     end
 
+    def parse_redis_settings
+      Gitlab['gitlab_rails']['redis_sentinel_master'] ||= Gitlab['redis']['master_name'] || Gitlab[:node]['redis']['master_name']
+      Gitlab['gitlab_rails']['redis_sentinel_master_ip'] ||= Gitlab['redis']['master_ip'] || Gitlab[:node]['redis']['master_ip']
+      Gitlab['gitlab_rails']['redis_sentinel_master_port'] ||= Gitlab['redis']['master_port'] || Gitlab[:node]['redis']['master_port']
+      Gitlab['gitlab_rails']['redis_password'] ||= Gitlab['redis']['master_password'] || Gitlab[:node]['redis']['master_password']
+    end
+
     def parse_redis_extra_config_command
-      RedisHelper::REDIS_INSTANCES.each do |instance|
+      NewRedisHelper::GitlabRails::REDIS_INSTANCES.each do |instance|
         Gitlab['gitlab_rails']["redis_#{instance}_extra_config_command"] ||= Gitlab['gitlab_rails']['redis_extra_config_command']
       end
     end

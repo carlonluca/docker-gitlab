@@ -90,6 +90,7 @@ default['gitlab']['gitlab_rails']['gitlab_email_smime_cert_file'] = '/etc/gitlab
 default['gitlab']['gitlab_rails']['gitlab_email_smime_ca_certs_file'] = nil
 default['gitlab']['gitlab_rails']['gitlab_username_changing_enabled'] = nil
 default['gitlab']['gitlab_rails']['gitlab_default_theme'] = nil
+default['gitlab']['gitlab_rails']['custom_html_header_tags'] = nil
 default['gitlab']['gitlab_rails']['gitlab_default_projects_features_issues'] = nil
 default['gitlab']['gitlab_rails']['gitlab_default_projects_features_merge_requests'] = nil
 default['gitlab']['gitlab_rails']['gitlab_default_projects_features_wiki'] = nil
@@ -456,6 +457,9 @@ default['gitlab']['gitlab_rails']['redis_socket'] = "/var/opt/gitlab/redis/redis
 default['gitlab']['gitlab_rails']['redis_enable_client'] = true
 default['gitlab']['gitlab_rails']['redis_sentinels'] = []
 default['gitlab']['gitlab_rails']['redis_sentinels_password'] = nil
+default['gitlab']['gitlab_rails']['redis_sentinel_master'] = nil
+default['gitlab']['gitlab_rails']['redis_sentinel_master_ip'] = nil
+default['gitlab']['gitlab_rails']['redis_sentinel_master_port'] = nil
 default['gitlab']['gitlab_rails']['redis_cache_instance'] = nil
 default['gitlab']['gitlab_rails']['redis_cache_sentinels'] = []
 default['gitlab']['gitlab_rails']['redis_cache_sentinels_password'] = nil
@@ -588,6 +592,8 @@ default['gitlab']['gitlab_rails']['redis_workhorse_tls_client_key_file'] = nil
 
 # used by workhorse to connect to a separate external redis instead of the omnibus-gitlab redis
 default['gitlab']['gitlab_rails']['redis_workhorse_sentinel_master'] = nil
+
+default['gitlab']['gitlab_rails']['session_store_session_cookie_token_prefix'] = ''
 
 default['gitlab']['gitlab_rails']['redis_yml_override'] = nil
 

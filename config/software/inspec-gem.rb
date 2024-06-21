@@ -16,37 +16,28 @@
 #
 require 'mixlib/shellout'
 
-name 'chef-gem'
+name 'inspec-gem'
 # The version here should be in agreement with the chef-bin/cinc version and
 # /Gemfile.lock so that our rspec testing stays consistent with the package
 # contents.
-default_version '18.3.0'
+default_version '6.6.0'
 
-license 'Apache-2.0'
+license 'MIT'
 license_file 'LICENSE'
-license_file 'NOTICE'
 
 skip_transitive_dependency_licensing true
 
-dependency 'ruby'
-dependency 'rubygems'
-dependency 'libffi'
-dependency 'rb-readline'
 dependency 'omnibus-gitlab-gems'
 
 build do
-  patch source: "license/add-license-file.patch"
-  patch source: "license/add-notice-file.patch"
   env = with_standard_compiler_flags(with_embedded_path)
 
-  block 'patch Chef files' do
+  block 'patch inspec files' do
     prefix_path = "#{install_dir}/embedded"
     gem_path = shellout!("#{embedded_bin('ruby')} -e \"puts Gem.path.find { |path| path.start_with?(\'#{prefix_path}\') }\"", env: env).stdout.chomp
 
-    patch source: "drop-eol-warning.patch",
-          target: "#{gem_path}/gems/chef-#{version}/lib/chef/client.rb"
-
-    patch source: "utf8-locale-support.patch",
-          target: "#{gem_path}/gems/chef-config-#{version}/lib/chef-config/config.rb"
+    # This can be dropped when inspec is updated with https://github.com/inspec/inspec/issues/7030
+    patch source: "fix-uninitialized-constant-parser-mixin.patch",
+          target: "#{gem_path}/gems/inspec-core-#{version}/lib/inspec/utils/profile_ast_helpers.rb"
   end
 end

@@ -341,7 +341,7 @@ module Gitlab
           {
             config_keys: %w(postgres_exporter per_table_stats),
             deprecation: '16.4', # Remove message issue: https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/8170
-            removal: '17.0', # Removal issue: https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/8169
+            removal: '17.1', # Removed in https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/8169. This deprecation entry can be removed after the next upgrade stop.
             note: "Starting with GitLab 17.0, this directive will be controlled by `postgres_exporter['flags'] = { 'collector.stat_user_tables' => bool }`."
           },
           {
@@ -361,6 +361,12 @@ module Gitlab
             deprecation: '16.10',
             removal: '17.0',
             note: "`omnibus_gitconfig` will be removed in GitLab 17.0. For details and migration instructions, please see: https://docs.gitlab.com/ee/update/versions/gitlab_16_changes.html#gitlabomnibus_gitconfig-deprecation"
+          },
+          {
+            config_keys: %w(registry default_notifications_threshold),
+            deprecation: '17.1',
+            removal: '18.0',
+            note: "`registry['default_notifications_threshold'] will be removed in 18.0. Please use `default_notifications_maxretries` instead https://gitlab.com/gitlab-org/container-registry/-/issues/1243."
           }
         ]
 
@@ -606,6 +612,8 @@ module Gitlab
         EOS
         messages += deprecate_only_if_value(incoming_version, existing_config, type, ['monitoring', 'grafana'], 'enable', true, '16.0', '16.3', note: grafana_note)
 
+        messages += deprecate_registry_notifications(incoming_version, existing_config, type, ['registry', 'notifications'], 'threshold', 17.1, 18.0)
+
         messages
       end
 
@@ -632,6 +640,40 @@ module Gitlab
           message =  "* #{config_keys[0]}[#{key}] has been deprecated since #{deprecated_version} and will be removed in #{removed_version}."
           message += " #{note}" if note
           messages << message
+        end
+
+        messages
+      end
+
+      def deprecate_registry_notifications(incoming_version, existing_config, type, config_keys, key, deprecated_version, removed_version)
+        settings = existing_config.dig(*config_keys) || []
+
+        return [] if settings.empty?
+
+        notifications_note =
+          case key
+          when "threshold"
+            <<~EOS
+              Starting with GitLab 18.0, `registry['notifications'][{'threshold'=> value}] will be removed.
+              Please use `maxretries` instead https://gitlab.com/gitlab-org/container-registry/-/issues/1243.
+            EOS
+          else
+            ""
+          end
+
+        messages = []
+        settings.to_a.each do |setting|
+          next unless setting.key?(key)
+
+          if Gem::Version.new(incoming_version) >= Gem::Version.new(removed_version) && type == :removal
+            message = "* #{config_keys[0]}['#{config_keys[1]}'][{#{key} => value}] has been deprecated since #{deprecated_version} and was removed in #{removed_version}."
+            message += " #{notifications_note}"
+            messages << message
+          elsif Gem::Version.new(incoming_version) >= Gem::Version.new(deprecated_version) && type == :deprecation
+            message =  "*#{config_keys[0]}['#{config_keys[1]}'][{#{key} => value}] has been deprecated since #{deprecated_version} and will be removed in #{removed_version}."
+            message += " #{notifications_note}"
+            messages << message
+          end
         end
 
         messages

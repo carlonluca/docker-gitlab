@@ -140,9 +140,9 @@ After you have these files, enable SSL:
 
 1. Add the following to `/etc/gitlab/gitlab.rb`:
 
-    ```ruby
-    gitlab_rails['db_sslmode'] = 'require'
-    ```
+   ```ruby
+   gitlab_rails['db_sslmode'] = 'require'
+   ```
 
 1. [Reconfigure GitLab](https://docs.gitlab.com/ee/administration/restart_gitlab.html#omnibus-gitlab-reconfigure) to apply the configuration changes.
 
@@ -306,8 +306,7 @@ The following settings are affected in the `postgresql` block:
 - `sql_user`: Controls the expected username for MD5 authentication. This
   defaults to `gitlab`, and isn't a required setting.
 - `sql_user_password`: Sets the password that PostgreSQL will accept for MD5
-  authentication. Replace `securesqlpassword` in the following example with an
-  acceptable password.
+  authentication.
 
 1. Edit `/etc/gitlab/gitlab.rb`:
 
@@ -320,6 +319,7 @@ The following settings are affected in the `postgresql` block:
 
    ##! SQL_USER_PASSWORD_HASH can be generated using the command `gitlab-ctl pg-password-md5 'gitlab'`,
    ##! where 'gitlab' (single-quoted to avoid shell interpolation) is the name of the SQL user that connects to GitLab.
+   ##! You will be prompted for a password which other clients will use to authenticate with database, such as `securesqlpassword` in the below section.
    postgresql['sql_user_password'] = "SQL_USER_PASSWORD_HASH"
 
    # force ssl on all connections defined in trust_auth_cidr_addresses and md5_auth_cidr_addresses
@@ -380,6 +380,12 @@ directly restarting the service with `gitlab-ctl restart postgresql`.
 Some included scripts of the Linux package (such as `gitlab-psql`) expect the
 connections to PostgreSQL to be handled over the UNIX socket, and may not function
 properly. You can enable TCP/IP without disabling UNIX sockets.
+
+To test access from other clients, you can run:
+
+```shell
+sudo gitlab-rails dbconsole --database main
+```
 
 ### Enabling PostgreSQL WAL (Write Ahead Log) Archiving
 
@@ -791,9 +797,9 @@ The following example demonstrates upgrading from a database host running Postgr
    used on the GitLab Rails instance. To amend GitLab configuration, edit
    `/etc/gitlab/gitlab.rb` and specify the value of `postgresql['version']`:
 
-    ```ruby
-    postgresql['version'] = 14
-    ```
+   ```ruby
+   postgresql['version'] = 14
+   ```
 
 1. Reconfigure GitLab:
 
@@ -1046,10 +1052,10 @@ Follow the steps below to upgrade the database nodes:
 1. Secondary nodes must be upgraded before the primary node.
    1. On the secondary nodes, edit `/etc/gitlab/gitlab.rb` to include the following:
 
-   ```shell
-   # Replace X with the number of DB nodes + 1
-   postgresql['max_replication_slots'] = X
-    ```
+      ```shell
+      # Replace X with the number of DB nodes + 1
+      postgresql['max_replication_slots'] = X
+      ```
 
    1. Run `gitlab-ctl reconfigure` to update the configuration.
    1. Run `sudo gitlab-ctl restart postgresql` to get PostgreSQL restarted with the new configuration.
@@ -1064,10 +1070,10 @@ Follow the steps below to upgrade the database nodes:
 1. Once all secondary nodes are upgraded, run `pg-upgrade` on the primary node.
    1. On the primary node, edit `/etc/gitlab/gitlab.rb` to include the following:
 
-   ```shell
-   # Replace X with the number of DB nodes + 1
-   postgresql['max_replication_slots'] = X
-    ```
+      ```shell
+      # Replace X with the number of DB nodes + 1
+      postgresql['max_replication_slots'] = X
+      ```
 
    1. Run `gitlab-ctl reconfigure` to update the configuration.
    1. Run `sudo gitlab-ctl restart postgresql` to get PostgreSQL restarted with the new configuration.
@@ -1096,7 +1102,6 @@ If you encounter the following error when recreating the secondary nodes with `g
 ```shell
 pg_basebackup: could not create temporary replication slot "pg_basebackup_12345": ERROR:  all replication slots are in use
 HINT:  Free one or increase max_replication_slots.
-
 ```
 
 ### Upgrading a Geo instance
@@ -1238,3 +1243,13 @@ version changed. To fix this error:
    ```shell
    sudo gitlab-ctl reconfigure
    ```
+
+### Database CPU load very high
+
+If the database CPU load is very high, it could be caused by the [auto cancel redundant pipelines setting](https://docs.gitlab.com/ee/ci/pipelines/settings.html#auto-cancel-redundant-pipelines). For more details, see [issue 435250](https://gitlab.com/gitlab-org/gitlab/-/issues/435250).
+
+To work around this issue:
+
+- You can allocate more CPU resources to the database server.
+- If Sidekiq is overloaded, you might need to [add more Sidekiq processes](https://gitlab.com/gitlab-org/gitlab/-/administration/sidekiq/extra_sidekiq_processes.md#start-multiple-processes) for the `ci_cancel_redundant_pipelines` queue if your projects have a very large number of pipelines.
+- You can enable the `disable_cancel_redundant_pipelines_service` feature flag to disable this setting instance-wide and see if the CPU load goes down. This disables the feature for all projects, and can lead to increased resource use by pipelines that are no longer being cancelled automatically.

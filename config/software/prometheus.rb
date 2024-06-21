@@ -20,7 +20,7 @@ require "#{Omnibus::Config.project_root}/lib/gitlab/version"
 require "#{Omnibus::Config.project_root}/lib/gitlab/prometheus_helper"
 
 name 'prometheus'
-version = Gitlab::Version.new('prometheus', '2.51.2')
+version = Gitlab::Version.new('prometheus', '2.52.1')
 default_version version.print
 
 license 'APACHE-2.0'
@@ -43,6 +43,8 @@ build do
   }
 
   prom_version = Prometheus::VersionFlags.new(version)
+
+  patch source: 'rpi-correct-platform.patch' if OhaiHelper.raspberry_pi?
 
   make 'build', env: env, cwd: cwd
   command "go build -tags netgo,builtinassets,stringlabels -ldflags '#{prom_version.print_ldflags}' ./cmd/prometheus", env: env, cwd: cwd

@@ -267,7 +267,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
             redis_host: 'redis.example.com',
             redis_port: 8888,
             redis_database: 2,
-            redis_password: 'mypass',
+            redis_password: 'my pass',
             redis_enable_client: false
           }
         )
@@ -276,14 +276,14 @@ RSpec.describe 'gitlab::gitlab-rails' do
       it 'creates the config file with custom host, port, password and database' do
         expect(chef_run).to create_templatesymlink('Create a resque.yml and create a symlink to Rails root').with_variables(
           hash_including(
-            redis_url: URI('redis://:mypass@redis.example.com:8888/2'),
+            redis_url: URI('redis://:my%20pass@redis.example.com:8888/2'),
             redis_sentinels: [],
             redis_enable_client: false
           )
         )
 
         expect(chef_run).to render_file(config_file).with_content { |content|
-          expect(content).to match(%r(url: redis://:mypass@redis.example.com:8888/2))
+          expect(content).to match(%r(url: redis://:my%20pass@redis.example.com:8888/2))
           expect(content).to match(/id:$/)
         }
       end
@@ -291,16 +291,78 @@ RSpec.describe 'gitlab::gitlab-rails' do
       it 'creates cable.yml with custom host, port, password and database' do
         expect(chef_run).to create_templatesymlink('Create a cable.yml and create a symlink to Rails root').with_variables(
           hash_including(
-            redis_url: URI('redis://:mypass@redis.example.com:8888/2'),
+            redis_url: URI('redis://:my%20pass@redis.example.com:8888/2'),
             redis_sentinels: [],
             redis_enable_client: false
           )
         )
 
         expect(chef_run).to render_file(config_file).with_content { |content|
-          expect(content).to match(%r(url: redis://:mypass@redis.example.com:8888/2))
+          expect(content).to match(%r(url: redis://:my%20pass@redis.example.com:8888/2))
           expect(content).to match(/id:$/)
         }
+      end
+
+      context 'with Redis sentinels configured' do
+        let(:expected_output) do
+          {
+            production: {
+              url: 'redis://:toomanysecrets@gitlab-redis/',
+              sentinels: [
+                { host: '10.0.0.2', port: 26379 },
+                { host: '10.0.0.3', port: 26379 },
+                { host: '10.0.0.4', port: 26379 },
+              ],
+              secret_file: '/var/opt/gitlab/gitlab-rails/shared/encrypted_settings/redis.yml.enc',
+            }
+          }
+        end
+
+        context 'with Redis master details specified through redis subkey' do
+          before do
+            stub_gitlab_rb(
+              redis: {
+                enable: false,
+                master_name: 'gitlab-redis',
+                master_password: 'toomanysecrets'
+              },
+              gitlab_rails: {
+                redis_sentinels: [
+                  { host: '10.0.0.2', port: 26379 },
+                  { host: '10.0.0.3', port: 26379 },
+                  { host: '10.0.0.4', port: 26379 },
+                ]
+              }
+            )
+          end
+
+          it 'populates resque.yml with expected values' do
+            expect(resque_yml).to eq(expected_output)
+          end
+        end
+
+        context 'with Redis master details specified through gitlab_rails subkey' do
+          before do
+            stub_gitlab_rb(
+              redis: {
+                enable: false,
+              },
+              gitlab_rails: {
+                redis_sentinel_master: 'gitlab-redis',
+                redis_password: 'toomanysecrets',
+                redis_sentinels: [
+                  { host: '10.0.0.2', port: 26379 },
+                  { host: '10.0.0.3', port: 26379 },
+                  { host: '10.0.0.4', port: 26379 },
+                ]
+              }
+            )
+          end
+
+          it 'populates resque.yml with expected values' do
+            expect(resque_yml).to eq(expected_output)
+          end
+        end
       end
     end
 
@@ -633,6 +695,13 @@ RSpec.describe 'gitlab::gitlab-rails' do
               expect(generated_yml.dig('production', 'config_command')).to eq(global_command)
             }
           end
+
+          it 'populates cable.yml with specified config command' do
+            expect(chef_run).to render_file("/var/opt/gitlab/gitlab-rails/etc/cable.yml").with_content { |content|
+              generated_yml = YAML.safe_load(content)
+              expect(generated_yml.dig('production', 'config_command')).to eq(global_command)
+            }
+          end
         end
 
         context 'with separate command for an instance' do
@@ -773,6 +842,26 @@ RSpec.describe 'gitlab::gitlab-rails' do
 
           it 'raises an exception' do
             expect { chef_run }.to raise_error(RuntimeError, /If you wish to use a custom SSH port/)
+          end
+        end
+
+        context 'with custom html header tags' do
+          before do
+            stub_gitlab_rb(
+              gitlab_rails: {
+                custom_html_header_tags: '<script src="https://example.com/cookie-consent.js"></script><link rel="stylesheet" href="https://example.com/cookie-consent.css"/>'
+              }
+            )
+          end
+
+          it 'renders the custom_html_header_tags' do
+            expect(parsed_gitlab_yml[:production][:gitlab][:custom_html_header_tags]).to eq('<script src="https://example.com/cookie-consent.js"></script><link rel="stylesheet" href="https://example.com/cookie-consent.css"/>')
+          end
+        end
+
+        context 'without custom html header tags' do
+          it 'does not render the custom_html_header_tags' do
+            expect(parsed_gitlab_yml[:production][:gitlab][:custom_html_header_tags]).to be_nil
           end
         end
       end
