@@ -152,6 +152,8 @@ default['gitlab']['gitlab_rails']['incoming_email_delivery_method'] = "webhook"
 default['gitlab']['gitlab_rails']['incoming_email_auth_token'] = nil
 default['gitlab']['gitlab_rails']['click_house_ci_finished_builds_sync_worker_cron'] = nil
 default['gitlab']['gitlab_rails']['click_house_ci_finished_builds_sync_worker_args'] = nil
+default['gitlab']['gitlab_rails']['ci_click_house_finished_pipelines_sync_worker_cron'] = nil
+default['gitlab']['gitlab_rails']['ci_click_house_finished_pipelines_sync_worker_args'] = nil
 
 default['gitlab']['gitlab_rails']['service_desk_email_enabled'] = false
 default['gitlab']['gitlab_rails']['service_desk_email_address'] = nil
@@ -446,6 +448,9 @@ default['gitlab']['gitlab_rails']['database_reindexing']['day_of_week'] = '0,6'
 default['gitlab']['gitlab_rails']['redis_host'] = "127.0.0.1"
 default['gitlab']['gitlab_rails']['redis_port'] = nil
 default['gitlab']['gitlab_rails']['redis_ssl'] = false
+default['gitlab']['gitlab_rails']['redis_connect_timeout'] = nil
+default['gitlab']['gitlab_rails']['redis_read_timeout'] = nil
+default['gitlab']['gitlab_rails']['redis_write_timeout'] = nil
 default['gitlab']['gitlab_rails']['redis_tls_ca_cert_dir'] = "#{node['package']['install-dir']}/embedded/ssl/certs/"
 default['gitlab']['gitlab_rails']['redis_tls_ca_cert_file'] = "#{node['package']['install-dir']}/embedded/ssl/certs/cacert.pem"
 default['gitlab']['gitlab_rails']['redis_tls_client_cert_file'] = nil
@@ -752,6 +757,7 @@ default['gitlab']['gitlab_shell']['auth_file'] = nil
 default['gitlab']['gitlab_shell']['git_trace_log_file'] = nil
 default['gitlab']['gitlab_shell']['migration'] = { enabled: true, features: [] }
 default['gitlab']['gitlab_shell']['ssl_cert_dir'] = "#{node['package']['install-dir']}/embedded/ssl/certs/"
+default['gitlab']['gitlab_shell']['lfs_pure_ssh_protocol'] = false
 # DEPRECATED! Not used by gitlab-shell
 default['gitlab']['gitlab_shell']['git_data_directories'] = {
   "default" => { "path" => "/var/opt/gitlab/git-data" }
@@ -778,6 +784,7 @@ default['gitlab']['gitlab_sshd']['client_alive_interval'] = nil
 default['gitlab']['gitlab_sshd']['ciphers'] = nil
 default['gitlab']['gitlab_sshd']['kex_algorithms'] = nil
 default['gitlab']['gitlab_sshd']['macs'] = nil
+default['gitlab']['gitlab_sshd']['public_key_algorithms'] = nil
 default['gitlab']['gitlab_sshd']['login_grace_time'] = 60
 default['gitlab']['gitlab_sshd']['host_keys_dir'] = '/var/opt/gitlab/gitlab-sshd'
 default['gitlab']['gitlab_sshd']['host_keys_glob'] = 'ssh_host_*_key'
@@ -890,7 +897,7 @@ default['gitlab']['nginx']['cache_max_size'] = '5000m'
 default['gitlab']['nginx']['redirect_http_to_https'] = false
 default['gitlab']['nginx']['redirect_http_to_https_port'] = 80
 # The following matched paths will set proxy_request_buffering to off
-default['gitlab']['nginx']['request_buffering_off_path_regex'] = "/api/v\\d/jobs/\\d+/artifacts$|/import/gitlab_project$|\\.git/git-receive-pack$|\\.git/gitlab-lfs/objects|\\.git/info/lfs/objects/batch$"
+default['gitlab']['nginx']['request_buffering_off_path_regex'] = "/api/v\\d/jobs/\\d+/artifacts$|/import/gitlab_project$|\\.git/git-receive-pack$|\\.git/ssh-receive-pack$|\\.git/ssh-upload-pack$|\\.git/gitlab-lfs/objects|\\.git/info/lfs/objects/batch$"
 default['gitlab']['nginx']['ssl_client_certificate'] = nil # Most root CA's will be included by default
 default['gitlab']['nginx']['ssl_verify_client'] = nil # do not enable 2-way SSL client authentication
 default['gitlab']['nginx']['ssl_verify_depth'] = "1" # n/a if ssl_verify_client off
@@ -1095,3 +1102,12 @@ default['gitlab']['omnibus-gitconfig'] = Gitlab::Deprecations::NodeAttribute.new
 default['gitlab']['runtime-dir'] = Gitlab::Deprecations::NodeAttribute.new(proc { node['gitlab']['runtime_dir'] }, "node['gitlab']['runtime-dir']", "node['gitlab']['runtime_dir']")
 default['gitlab']['storage-check'] = Gitlab::Deprecations::NodeAttribute.new(proc { node['gitlab']['storage_check'].to_h }, "node['gitlab']['storage-check']", "node['gitlab']['storage_check']")
 default['gitlab']['web-server'] = Gitlab::Deprecations::NodeAttribute.new(proc { node['gitlab']['web_server'].to_h }, "node['gitlab']['web-server']", "node['gitlab']['web_server']")
+
+####
+# gitlab-backup-cli settings
+####
+default['gitlab']['gitlab_backup_cli']['enable'] = false
+default['gitlab']['gitlab_backup_cli']['user'] = 'gitlab-backup'
+default['gitlab']['gitlab_backup_cli']['group'] = 'gitlab-backup'
+default['gitlab']['gitlab_backup_cli']['dir'] = '/var/opt/gitlab/backups'
+default['gitlab']['gitlab_backup_cli']['additional_groups'] = %w[git gitlab-psql registry]

@@ -24,3 +24,21 @@ template gitlab_backup_cli_config_file do
   source 'gitlab-backup-cli-config.yml.erb'
   sensitive true
 end
+
+account "GitLab Backup User" do
+  username node['gitlab']['gitlab_backup_cli']['user']
+  uid node['gitlab']['gitlab_backup_cli']['uid']
+  ugid node['gitlab']['gitlab_backup_cli']['group']
+  groupname node['gitlab']['gitlab_backup_cli']['group']
+  gid node['gitlab']['gitlab_backup_cli']['gid']
+  home node['gitlab']['gitlab_backup_cli']['dir']
+  manage node['gitlab']['manage_accounts']['enable']
+end
+
+node['gitlab']['gitlab_backup_cli']['additional_groups'].each do |group_name|
+  group group_name do
+    append true
+    members node['gitlab']['gitlab_backup_cli']['user']
+    action :manage
+  end
+end

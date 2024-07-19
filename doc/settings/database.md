@@ -865,7 +865,7 @@ when your installation is using PgBouncer.
    If the upgrade used `pg_dump` and `pg_restore`, run the following query on the PostgreSQL database console:
 
    ```SQL
-   SET statement_timeout = 0; VACUUM ANALYZE VERBOSE;
+   SET statement_timeout = 0; VACUUM VERBOSE ANALYZE;
    ```
 
 ### Seed the database (fresh installs only)
@@ -1139,6 +1139,8 @@ replication user's password.
 
    If you can't find your `slot_name` here, or there is no output returned, your Geo secondaries may not be healthy. In that case, make sure the [secondaries are healthy and replication is working](https://docs.gitlab.com/ee/administration/geo/replication/troubleshooting.html#check-the-health-of-the-secondary-node).
 
+   Even if the query is empty, you can try to reinitialize the secondary database with the `slot_name` found on the [Geo sites admin area](https://docs.gitlab.com/ee/administration/geo_sites.html).
+
 1. Gather the replication user's password. It was set while setting up Geo in
    [Step 1. Configure the primary site](https://docs.gitlab.com/ee/administration/geo/setup/database.html#step-1-configure-the-primary-site).
 
@@ -1251,5 +1253,5 @@ If the database CPU load is very high, it could be caused by the [auto cancel re
 To work around this issue:
 
 - You can allocate more CPU resources to the database server.
-- If Sidekiq is overloaded, you might need to [add more Sidekiq processes](https://gitlab.com/gitlab-org/gitlab/-/administration/sidekiq/extra_sidekiq_processes.md#start-multiple-processes) for the `ci_cancel_redundant_pipelines` queue if your projects have a very large number of pipelines.
+- If Sidekiq is overloaded, you might need to [add more Sidekiq processes](https://docs.gitlab.com/ee/administration/sidekiq/extra_sidekiq_processes.html#start-multiple-processes) for the `ci_cancel_redundant_pipelines` queue if your projects have a very large number of pipelines.
 - You can enable the `disable_cancel_redundant_pipelines_service` feature flag to disable this setting instance-wide and see if the CPU load goes down. This disables the feature for all projects, and can lead to increased resource use by pipelines that are no longer being cancelled automatically.

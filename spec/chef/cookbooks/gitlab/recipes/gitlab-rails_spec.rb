@@ -4,7 +4,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
   using RSpec::Parameterized::TableSyntax
 
   let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(templatesymlink runit_service)).converge('gitlab::default') }
-  let(:redis_instances) { RedisHelper::REDIS_INSTANCES }
+  let(:redis_instances) { RedisHelper::GitlabRails::REDIS_INSTANCES }
   let(:redis_cluster_instances) { %w(cache rate_limiting cluster_rate_limiting) }
   let(:config_dir) { '/var/opt/gitlab/gitlab-rails/etc/' }
   let(:default_vars) do
@@ -229,6 +229,9 @@ RSpec.describe 'gitlab::gitlab-rails' do
         expect(chef_run).to render_file(config_file).with_content { |content|
           expect(content).to match(%r(url: unix:///var/opt/gitlab/redis/redis.socket$))
           expect(content).not_to match(/id:/)
+          expect(content).not_to match(/connect_timeout:/)
+          expect(content).not_to match(/read_timeout:/)
+          expect(content).not_to match(/write_timeout:/)
         }
       end
 
@@ -243,6 +246,9 @@ RSpec.describe 'gitlab::gitlab-rails' do
 
         expect(chef_run).to render_file('/var/opt/gitlab/gitlab-rails/etc/cable.yml').with_content { |content|
           expect(content).to match(%r(url: unix:///var/opt/gitlab/redis/redis.socket$))
+          expect(content).not_to match(/connect_timeout:/)
+          expect(content).not_to match(/read_timeout:/)
+          expect(content).not_to match(/write_timeout:/)
         }
       end
 
@@ -268,23 +274,32 @@ RSpec.describe 'gitlab::gitlab-rails' do
             redis_port: 8888,
             redis_database: 2,
             redis_password: 'my pass',
-            redis_enable_client: false
+            redis_enable_client: false,
+            redis_connect_timeout: 3,
+            redis_read_timeout: 4,
+            redis_write_timeout: 5
           }
         )
       end
 
-      it 'creates the config file with custom host, port, password and database' do
+      it 'creates the config file with custom host, port, password, database, and timeouts' do
         expect(chef_run).to create_templatesymlink('Create a resque.yml and create a symlink to Rails root').with_variables(
           hash_including(
             redis_url: URI('redis://:my%20pass@redis.example.com:8888/2'),
             redis_sentinels: [],
-            redis_enable_client: false
+            redis_enable_client: false,
+            redis_connect_timeout: 3,
+            redis_read_timeout: 4,
+            redis_write_timeout: 5
           )
         )
 
         expect(chef_run).to render_file(config_file).with_content { |content|
           expect(content).to match(%r(url: redis://:my%20pass@redis.example.com:8888/2))
           expect(content).to match(/id:$/)
+          expect(content).to match(/connect_timeout: 3/)
+          expect(content).to match(/read_timeout: 4/)
+          expect(content).to match(/write_timeout: 5/)
         }
       end
 
@@ -420,7 +435,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
       context 'with allowed instances' do
         before do
           stub_gitlab_rb(
-            gitlab_rails: RedisHelper::ALLOWED_REDIS_CLUSTER_INSTANCE.to_h do |inst|
+            gitlab_rails: RedisHelper::GitlabRails::ALLOWED_REDIS_CLUSTER_INSTANCE.to_h do |inst|
               ["redis_#{inst}_cluster_nodes", { 'host' => 'cluster1.example.com', 'port' => '12345' }]
             end
           )

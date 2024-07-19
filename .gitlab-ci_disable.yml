@@ -58,9 +58,6 @@ variables:
   CACHE_POLICY: 'pull-push'
   ISSUE_BOT_LABELS_EXTRA: "group::distribution"
   BUNDLER_VERSION: "2.5.9"
-  # NOTE: When `NEXT_RUBY_VERSION` is updated, flip
-  # `USE_NEXT_RUBY_VERSION_IN_*` variables to false to avoid surprises.
-  NEXT_RUBY_VERSION: "3.1.4"
   GET_GEO_TAG: "0.7.4"
   CANONICAL_PROJECT_PATH: 'gitlab-org/omnibus-gitlab'
   SECURITY_PROJECT_PATH: 'gitlab-org/security/omnibus-gitlab'
@@ -70,6 +67,8 @@ variables:
   PACKAGE_PROMOTION_RUNNER_TAG: 'promotion'
   NIGHTLY_REPO: 'nightly-builds'
   NIGHTLY_FIPS_REPO: 'nightly-fips-builds'
+  QA_TESTS_UPSTREAM_PROJECT: 'gitlab-org/gitlab'
+  QA_TESTS_REF: 'master'
 
 .distribution-amd64-tags:
   - distribution-runner

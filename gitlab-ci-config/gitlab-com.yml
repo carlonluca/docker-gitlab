@@ -178,8 +178,8 @@
       yaml_variables: true
       pipeline_variables: true
     include:
-      - project: gitlab-org/gitlab
-        ref: 17-1-stable-ee
+      - project: ${QA_TESTS_UPSTREAM_PROJECT}
+        ref: ${QA_TESTS_REF}
         file: .gitlab/ci/package-and-test/main.gitlab-ci.yml
 
 #####################
@@ -328,12 +328,11 @@ review-docs-cleanup:
     - ./trigger-build.rb docs cleanup
 
 include:
-  - project: 'gitlab-org/quality/pipeline-common'
-    file:
-      - '/ci/danger-review.yml'
+  - component: ${CI_SERVER_FQDN}/gitlab-org/components/danger-review/danger-review@1.4.0
+    inputs:
+      job_stage: "check"
 
 danger-review:
-  stage: check
   variables:
     BUNDLE_WITH: "danger"
   rules:
@@ -608,14 +607,14 @@ GET:Geo:
       artifacts: true
 
 dependency_scanning:
-  image: "registry.gitlab.com/gitlab-org/security-products/gitlab-depscan:2.4"
+  image: "registry.gitlab.com/gitlab-org/security-products/gitlab-depscan:3.0.0"
   stage: validate
   variables:
     REPORT_PATH: ./
-    NVD_DB_UPDATE: "true"
   before_script: []
   script:
-    - /gitlab-depscan.sh build_facts/version-manifest.json
+    - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/gitlab-org/secure/vulnerability-research/advisories/nvd-mirror-json-data-v2.git /opt/nvd-mirror-json-data-v2
+    - /gitlab-depscan.sh build_facts/version-manifest.json "" /opt/nvd-mirror-json-data-v2
   rules:
     - if: '$PIPELINE_TYPE == "DEPENDENCY_SCANNING_PIPELINE"'
     - if: '$PIPELINE_TYPE == "GITLAB_MR_PIPELINE"'
@@ -639,6 +638,22 @@ dependency_update:
     - $HOME/bin/deps ci
   rules:
     - if: '$PIPELINE_TYPE == "DEPS_IO_VERSION_CHECK_PIPELINE"'
+
+validate_renovate_checksum:
+  image: docker.io/bash:5.2-alpine3.20
+  stage: prepare
+  before_script:
+    - apk add git
+  script:
+    - ./scripts/renovate/checksums/update_all.sh
+    - mismatches="$(git status --porcelain)"
+    - if [ -n "$mismatches" ]; then
+        echo "Checksum mismatch detected"; 
+        echo "$mismatches"; 
+        exit 1; 
+      fi
+  rules:
+    - if: '$PIPELINE_TYPE == "GITLAB_MR_PIPELINE"'
 
 validate_packer_changes:
   before_script: []

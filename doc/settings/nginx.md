@@ -291,7 +291,7 @@ Request buffering can be disabled selectively on specific locations by changing 
 1. Edit `/etc/gitlab/gitlab.rb`:
 
    ```ruby
-   nginx['request_buffering_off_path_regex'] = "/api/v\\d/jobs/\\d+/artifacts$|/import/gitlab_project$|\\.git/git-receive-pack$|\\.git/gitlab-lfs/objects|\\.git/info/lfs/objects/batch$"
+   nginx['request_buffering_off_path_regex'] = "/api/v\\d/jobs/\\d+/artifacts$|/import/gitlab_project$|\\.git/git-receive-pack$|\\.git/ssh-receive-pack$|\\.git/ssh-upload-pack$|\\.git/gitlab-lfs/objects|\\.git/info/lfs/objects/batch$"
    ```
 
 1. Reconfigure GitLab, and [HUP](https://nginx.org/en/docs/control.html)
@@ -421,7 +421,7 @@ Mattermost unless you manually add them in `nginx.conf`.
 
 ### Configuration
 
-First, you'll need to setup your `/etc/gitlab/gitlab.rb` to disable the built-in
+First, you'll need to set up your `/etc/gitlab/gitlab.rb` to disable the built-in
 NGINX and Puma:
 
 ```ruby
@@ -647,7 +647,7 @@ sudo usermod -aG gitlab-www www-data
 Other than the Passenger configuration in place of Puma and the lack of HTTPS
 (although this could be enabled) these files are mostly identical to:
 
-- [Bundled GitLab NGINX configuration](https://gitlab.com/gitlab-org/omnibus-gitlab/tree/master/files/gitlab-cookbooks/gitlab/templates/default/nginx-gitlab-http.conf.erb)
+- [Bundled GitLab NGINX configuration](https://gitlab.com/gitlab-org/omnibus-gitlab/-/blob/master/files/gitlab-cookbooks/gitlab/templates/default/nginx-gitlab-http.conf.erb)
 
 Don't forget to restart NGINX to load the new configuration (on Debian-based
 systems `sudo service nginx restart`).
