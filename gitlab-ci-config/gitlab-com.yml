@@ -17,7 +17,7 @@
       - knapsack/
   artifacts: !reference [.knapsack-artifacts]
 
-.knapsack: &prepare_knapsack
+.knapsack:
   extends: .knapsack-state
   stage: prepare
   before_script: []
@@ -34,7 +34,7 @@
   needs:
     - rubocop
 
-.install-gems: &install-gems
+.install-gems:
   - gem install bundler:${BUNDLER_VERSION}
   - bundle config build.ffi --disable-system-libffi
   - bundle config set --local path 'gems'
@@ -42,7 +42,7 @@
   - bundle install -j $(nproc)
   - bundle binstubs --all
 
-.spec_template: &spec_template
+.spec_template:
   extends: .gems-cache-os-dependent
   stage: tests
   before_script:
@@ -171,7 +171,9 @@
     GITLAB_AUTH_TOKEN: $DANGER_GITLAB_API_TOKEN
     ALLURE_MERGE_REQUEST_IID: $CI_MERGE_REQUEST_IID
   inherit:
-   variables: false
+   variables:
+     - QA_TESTS_UPSTREAM_PROJECT
+     - QA_TESTS_REF
   trigger:
     strategy: depend
     forward:
@@ -237,7 +239,7 @@ rubocop:
 
 # Perform content linting on documentation Markdown files
 docs-lint content:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.20-vale-3.4.2-markdownlint2-0.13.0-lychee-0.15.1
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.20-vale-3.6.1-markdownlint2-0.13.0-lychee-0.15.1
   stage: check
   cache: {}
   needs: []
@@ -252,7 +254,7 @@ docs-lint content:
 
 # Perform linting on documentation Markdown files
 docs-lint markdown:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.20-vale-3.4.2-markdownlint2-0.13.0-lychee-0.15.1
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.20-vale-3.6.1-markdownlint2-0.13.0-lychee-0.15.1
   stage: check
   cache: {}
   needs: []
@@ -267,7 +269,7 @@ docs-lint markdown:
 
 # Perform link checking on documentation Markdown files
 docs-lint links:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.20-vale-3.4.2-markdownlint2-0.13.0-lychee-0.15.1
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.20-vale-3.6.1-markdownlint2-0.13.0-lychee-0.15.1
   stage: check
   cache: {}
   needs: []
@@ -648,9 +650,9 @@ validate_renovate_checksum:
     - ./scripts/renovate/checksums/update_all.sh
     - mismatches="$(git status --porcelain)"
     - if [ -n "$mismatches" ]; then
-        echo "Checksum mismatch detected"; 
-        echo "$mismatches"; 
-        exit 1; 
+        echo "Checksum mismatch detected";
+        echo "$mismatches";
+        exit 1;
       fi
   rules:
     - if: '$PIPELINE_TYPE == "GITLAB_MR_PIPELINE"'

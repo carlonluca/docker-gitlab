@@ -31,6 +31,13 @@ dependency 'ruby'
 dependency 'libicu'
 dependency 'omnibus-gitlab-gems'
 
+# Dependencies for building Git as part of Gitaly
+dependency 'zlib'
+dependency 'openssl' unless Build::Check.use_system_ssl?
+dependency 'curl'
+dependency 'pcre2'
+dependency 'libiconv'
+
 # Technically, gitaly depends on git also. But because of how omnibus arranges
 # components to be built, this causes git to be built early in the process. But
 # in our case, git is built from gitaly source code. This results in git
@@ -47,10 +54,44 @@ source git: version.remote
 build do
   env = with_standard_compiler_flags(with_embedded_path)
 
+  git_cflags = '-fno-omit-frame-pointer'
+
+  # CentOS 7 uses gcc v4.8.5, which uses C90 (`-std=gnu90`) by default.
+  # C11 is a newer standard than C90, and gcc v5.1.0 switched the default
+  # from `std=gnu90` to `std=gnu11`.
+  # Git v2.35 added a balloon test that will fail the build if
+  # C99 is not supported. On other platforms, C11 may be required
+  # (https://gitlab.com/gitlab-org/gitlab-git/-/commit/7bc341e21b5).
+  # Similar is the case for SLES OSs also.
+  git_cflags += ' -std=gnu99' if OhaiHelper.get_centos_version.to_i == 7 || OhaiHelper.os_platform == 'sles'
+
+  git_append_build_options = [
+    "# Added by Omnibus git software definition gitaly.rb",
+    "GIT_APPEND_BUILD_OPTIONS += CURLDIR=#{install_dir}/embedded",
+    "GIT_APPEND_BUILD_OPTIONS += ICONVDIR=#{install_dir}/embedded",
+    "GIT_APPEND_BUILD_OPTIONS += ZLIB_PATH=#{install_dir}/embedded",
+    "GIT_APPEND_BUILD_OPTIONS += NEEDS_LIBICONV=YesPlease",
+    "GIT_APPEND_BUILD_OPTIONS += NO_R_TO_GCC_LINKER=YesPlease",
+    "GIT_APPEND_BUILD_OPTIONS += INSTALL_SYMLINKS=YesPlease",
+    # The 'single quotes' around the CFLAGS value is important, as Make doesn't
+    # seem to parse this correctly with "double quotes".
+    "GIT_APPEND_BUILD_OPTIONS += CFLAGS=\'#{git_cflags}\'"
+  ]
+
   if Build::Check.use_system_ssl?
     env['CMAKE_FLAGS'] = OpenSSLHelper.cmake_flags
     env['PKG_CONFIG_PATH'] = OpenSSLHelper.pkg_config_dirs
     env['FIPS_MODE'] = '1'
+  else
+    git_append_build_options << "GIT_APPEND_BUILD_OPTIONS += OPENSSLDIR=#{install_dir}/embedded"
+  end
+
+  # Gitaly's Makefile will include config.mak, which expands GITALY_APPEND_BUILD_OPTIONS
+  # and passes the options to Git's Makefile when Git is compiled.
+  block do
+    File.open(File.join(project_dir, 'config.mak'), 'a') do |file|
+      file.print git_append_build_options.join("\n")
+    end
   end
 
   make "install PREFIX=#{install_dir}/embedded", env: env

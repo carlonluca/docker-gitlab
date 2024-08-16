@@ -7,12 +7,19 @@ variables:
   # hardcoding the dev registry for SLES jobs.
   DEV_BUILDER_IMAGE_REGISTRY: 'dev.gitlab.org:5005/cookbooks/gitlab-omnibus-builder'
 
-.ee-tag-only: &ee-tag-only
+.ee-tag-only:
   rules:
+    # SLES job might not have connection to RMT server to install additional packages
+    # FIPS packages won't necessarily work in a non-fips environment
+    - if: '$deploy_instance == "true"'
+      when: never
     - if: '$CI_COMMIT_TAG =~ /^.*ee\.\d.*$/'
 
-.ce-tag-only: &ce-tag-only
+.ce-tag-only:
   rules:
+    # RPi packages are not uploaded to pre-release repo.
+    - if: '$deploy_instance == "true"'
+      when: never
     - if: '$CI_COMMIT_TAG =~ /^.*ce\.\d.*$/'
 
 .distribution-amd64-tags:
@@ -30,105 +37,83 @@ variables:
 before_script:
   - bash scripts/ci/prepare_bundle.sh
 
-.common_install_scripts: &common_install_scripts
-  script:
-    - export package_name_version_dist=$(bundle exec rake build:package:name_version 2>&1 | tail -n1)
-    - export package_name=$(bundle exec rake build:package:name)
-    - if [ -z "${package_repository}" ]; then
-        export package_repository=${package_name};
-      fi
-    - if [ -z "${package_name}" ]; then
-      echo "Unable to detect GitLab edition. Exiting.";
-      exit 1;
-      fi
-    - if [ -z "${package_type}" ]; then
-      echo "Package manager (apt/yum/zypper) not specified. Exiting.";
-      exit 1;
-      fi
-    - echo "Installing ${package_name} using https://packages.gitlab.com/install/repositories/gitlab/${package_repository}/script.${package_type}.sh"
-    - curl https://packages.gitlab.com/install/repositories/gitlab/${package_repository}/script.${package_type}.sh | bash
-
-.apt-install: &apt-install
+.job_base:
   stage: package
+  script:
+    - bash scripts/ci/install_package.sh
+    - bash scripts/ci/deploy_package.sh
+  tags: !reference [.distribution-amd64-tags]
+  retry: 2
+
+.apt-install:
+  extends: .job_base
   variables:
     package_type: deb
-  script:
-    - !reference [.common_install_scripts, script]
-    - apt install -y ${package_name_version_dist} || (echo "Failed to install ${package_name_version_dist}" && exit 1)
-  tags: !reference [.distribution-amd64-tags]
-  retry: 2
+    package_manager: apt
 
-.yum-install: &yum-install
-  stage: package
+.yum-install:
+  extends: .job_base
   variables:
     package_type: rpm
-  script:
-    - !reference [.common_install_scripts, script]
-    - yum install -y ${package_name_version_dist} || (echo "Failed to install ${package_name_version_dist}" && exit 1)
-  tags: !reference [.distribution-amd64-tags]
-  retry: 2
+    package_manager: yum
 
-.zypper-install: &zypper-install
-  stage: package
+.zypper-install:
+  extends: .job_base
   variables:
     package_type: rpm
-  script:
-    - !reference [.common_install_scripts, script]
-    - zypper install -y ${package_name_version_dist} || (echo "Failed to install ${package_name_version_dist}" && exit 1)
-  tags: !reference [.distribution-amd64-tags]
-  retry: 2
+    package_manager: zypper
 
-.apt-arm-install: &apt-arm-install
+.apt-arm-install:
   extends: .apt-install
   tags: !reference [.distribution-arm64-tags]
 
-.yum-arm-install: &yum-arm-install
+.yum-arm-install:
   extends: .yum-install
   tags: !reference [.distribution-arm64-tags]
 
-.zypper-arm-install: &zypper-arm-install
+.zypper-arm-install:
   extends: .zypper-install
   tags: !reference [.distribution-arm64-tags]
 
 # apt based
 Ubuntu-20.04-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04:latest"
   extends: .apt-install
 Ubuntu-20.04-arm64-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04_arm64:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04_arm64:latest"
   extends: .apt-arm-install
 Ubuntu-22.04-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_22.04:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_22.04:latest"
   extends: .apt-install
 Ubuntu-22.04-arm64-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_22.04_arm64:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_22.04_arm64:latest"
   extends: .apt-arm-install
 Ubuntu-24.04-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_24.04:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_24.04:latest"
   extends: .apt-install
 Ubuntu-24.04-arm64-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_24.04_arm64:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_24.04_arm64:latest"
   extends: .apt-arm-install
 Debian-10-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/debian_10:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/debian_10:latest"
   extends: .apt-install
 Debian-10-arm64-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/debian_10_arm64:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/debian_10_arm64:latest"
   extends: .apt-arm-install
 Debian-11-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/debian_11:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/debian_11:latest"
   extends: .apt-install
 Debian-11-arm64-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/debian_11_arm64:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/debian_11_arm64:latest"
   extends: .apt-arm-install
 Debian-12-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/debian_12:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/debian_12:latest"
   extends: .apt-install
 Debian-12-arm64-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/debian_12_arm64:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/debian_12_arm64:latest"
   extends: .apt-arm-install
 Raspberry-Pi-2-Buster-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/rpi_10:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/rpi_10:latest"
   extends:
     - .apt-install
     - .ce-tag-only
@@ -136,7 +121,15 @@ Raspberry-Pi-2-Buster-check:
     package_repository: 'raspberry-pi2'
   tags: !reference [.distribution-armhf-tags]
 Raspberry-Pi-2-Bullseye-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/rpi_11:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/rpi_11:latest"
+  extends:
+    - .apt-install
+    - .ce-tag-only
+  variables:
+    package_repository: 'raspberry-pi2'
+  tags: !reference [.distribution-armhf-tags]
+Raspberry-Pi-2-Bookworm-check:
+  image: "${BUILDER_IMAGE_REGISTRY}/rpi_12:latest"
   extends:
     - .apt-install
     - .ce-tag-only
@@ -144,7 +137,7 @@ Raspberry-Pi-2-Bullseye-check:
     package_repository: 'raspberry-pi2'
   tags: !reference [.distribution-armhf-tags]
 Ubuntu-20.04-fips-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04_fips:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04_fips:latest"
   extends:
     - .apt-install
     - .ee-tag-only
@@ -153,41 +146,41 @@ Ubuntu-20.04-fips-check:
 
 # yum based
 CentOS-7-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/centos_7:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/centos_7:latest"
   extends: .yum-install
 AlmaLinux-8-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8:latest"
   extends: .yum-install
 AlmaLinux-8-arm64-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8_arm64:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8_arm64:latest"
   extends: .yum-arm-install
 AlmaLinux-9-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_9:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_9:latest"
   extends: .yum-install
 AlmaLinux-9-arm64-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_9_arm64:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_9_arm64:latest"
   extends: .yum-arm-install
 AmazonLinux-2-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2:latest"
   extends: .yum-install
 AmazonLinux-2-arm64-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2_arm64:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2_arm64:latest"
   extends: .yum-arm-install
 AmazonLinux-2023-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2023:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2023:latest"
   extends: .yum-install
 AmazonLinux-2023-arm64-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2023_arm64:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2023_arm64:latest"
   extends: .yum-arm-install
 AlmaLinux-8-fips-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8_fips:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8_fips:latest"
   extends:
     - .yum-install
     - .ee-tag-only
   variables:
     USE_SYSTEM_SSL: "true"
 AmazonLinux-2-fips-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2_fips:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2_fips:latest"
   extends:
     - .yum-install
     - .ee-tag-only
@@ -196,18 +189,18 @@ AmazonLinux-2-fips-check:
 
 # zypper based
 OpenSUSE-15.5-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.5:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.5:latest"
   extends: .zypper-install
 OpenSUSE-15.5-arm64-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.5_arm64:${BUILDER_IMAGE_REVISION}"
+  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.5_arm64:latest"
   extends: .zypper-arm-install
 SLES-12.5-check:
-  image: "${DEV_BUILDER_IMAGE_REGISTRY}/sles_12sp5:${BUILDER_IMAGE_REVISION}"
+  image: "${DEV_BUILDER_IMAGE_REGISTRY}/sles_12sp5:latest"
   extends:
     - .zypper-install
     - .ee-tag-only
 SLES-15.2-check:
-  image: "${DEV_BUILDER_IMAGE_REGISTRY}/sles_15sp2:${BUILDER_IMAGE_REVISION}"
+  image: "${DEV_BUILDER_IMAGE_REGISTRY}/sles_15sp2:latest"
   extends:
     - .zypper-install
     - .ee-tag-only

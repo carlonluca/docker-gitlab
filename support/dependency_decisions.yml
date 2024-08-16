@@ -245,9 +245,9 @@
   - "nhooyr.io/websocket"
   - ISC
   - :who: Mikhail Mazurskiy
-    :why: https://github.com/nhooyr/websocket/blob/v1.8.10/LICENSE.txt
-    :versions: [ v1.8.10 ]
-    :when: 2023-11-05 02:20:00.000000000 Z
+    :why: https://github.com/nhooyr/websocket/blob/v1.8.11/LICENSE.txt
+    :versions: [ v1.8.11 ]
+    :when: 2024-07-12 13:20:00.000000000 Z
 - - :license
   - "./api"
   - MPL2
@@ -297,3 +297,10 @@
     :why: https://github.com/hashicorp/go-immutable-radix/blob/v2.1.0/LICENSE
     :versions: [ v2.1.0 ]
     :when: 2024-06-05 11:30:00.000000000 Z
+- - :license
+  - "github.com/antlr4-go/antlr/v4"
+  - BSD-3-Clause
+  - :who: Timo Furrer
+    :why: https://github.com/antlr4-go/antlr/blob/main/LICENSE
+    :versions: []
+    :when: 2024-07-29 11:00:00.000000000 Z
