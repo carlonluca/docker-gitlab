@@ -13,6 +13,7 @@ COPY locale.gen /etc/locale.gen
 # Note: libatomic1 is only required for arm64, but it is small enough to not
 # bother about the conditional inclusion logic
 RUN apt-get update -q \
+    && apt-get upgrade -y \
     && DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
       busybox \
       ca-certificates \
