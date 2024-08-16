@@ -1,5 +1,5 @@
 FROM ubuntu:24.04
-MAINTAINER GitLab Inc. <support@gitlab.com>
+LABEL maintainer="Luca Carlon <carlon.luca@gmail.com>"
 
 SHELL ["/bin/sh", "-c"]
 
