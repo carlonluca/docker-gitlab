@@ -14,6 +14,20 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 17.3.1 (2024-08-20)
+
+### Fixed (1 change)
+
+- [Raise default PostgreSQL shared buffers minimum to 256 MB](gitlab-org/security/omnibus-gitlab@b84f187f1de7d7329a7f028df4a3adaf18ace742)
+
+### Deprecated (1 change)
+
+- [Add debian 10 (Buster) os deprecated OS list](gitlab-org/security/omnibus-gitlab@bab929ec49f87c3d2690f9d46ad1281284a4124f)
+
+### Security (1 change)
+
+- [Mattermost 2024-07 Security Update](gitlab-org/security/omnibus-gitlab@01514b0807e290d792b19264a7d1f95b7d3392e7) ([merge request](gitlab-org/security/omnibus-gitlab!447))
+
 ## 17.3.0 (2024-08-14)
 
 ### Added (1 change)
