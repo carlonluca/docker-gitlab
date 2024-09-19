@@ -531,6 +531,18 @@ You can run `ANALYZE` manually if the query above returned any rows:
 sudo gitlab-psql -c 'SET statement_timeout = 0; ANALYZE VERBOSE;'
 ```
 
+The execution time of the `ANALYZE` command can vary significantly depending on your database size. To monitor the progress of this operation,
+you can periodically run the following query in another console session. The `tables_remaining` column should gradually reach `0`:
+
+```shell
+sudo gitlab-psql -c "
+SELECT
+    COUNT(*) AS total_tables,
+    SUM(CASE WHEN last_analyze IS NULL OR last_analyze < (NOW() - INTERVAL '2 hours') THEN 1 ELSE 0 END) AS tables_remaining
+FROM pg_stat_user_tables;
+"
+```
+
 _After you have verified that your GitLab instance is running correctly_, you
 can clean up the old database files:
 
@@ -862,6 +874,16 @@ when your installation is using PgBouncer.
    SET statement_timeout = 0; ANALYZE VERBOSE;
    ```
 
+   The execution time of the `ANALYZE` command can vary significantly depending on your database size. To monitor the progress of this operation,
+   you can periodically run the following query in another PostgreSQL database console. The `tables_remaining` column should gradually reach `0`:
+
+   ```SQL
+   SELECT
+     COUNT(*) AS total_tables,
+     SUM(CASE WHEN last_analyze IS NULL OR last_analyze < (NOW() - INTERVAL '2 hours') THEN 1 ELSE 0 END) AS tables_remaining
+   FROM pg_stat_user_tables;
+   ```
+
    If the upgrade used `pg_dump` and `pg_restore`, run the following query on the PostgreSQL database console:
 
    ```SQL
@@ -1137,12 +1159,15 @@ replication user's password.
    sudo gitlab-psql -qt -c 'select slot_name from pg_replication_slots'
    ```
 
-   If you can't find your `slot_name` here, or there is no output returned, your Geo secondaries may not be healthy. In that case, make sure the [secondaries are healthy and replication is working](https://docs.gitlab.com/ee/administration/geo/replication/troubleshooting.html#check-the-health-of-the-secondary-node).
+   If you can't find your `slot_name` here, or there is no output returned, your Geo secondaries may not be healthy. In that case, make sure the [secondaries are healthy and replication is working](https://docs.gitlab.com/ee/administration/geo/replication/troubleshooting/common.html#health-check-rake-task).
 
    Even if the query is empty, you can try to reinitialize the secondary database with the `slot_name` found on the [Geo sites admin area](https://docs.gitlab.com/ee/administration/geo_sites.html).
 
 1. Gather the replication user's password. It was set while setting up Geo in
    [Step 1. Configure the primary site](https://docs.gitlab.com/ee/administration/geo/setup/database.html#step-1-configure-the-primary-site).
+
+1. Optional. [Pause replication on each **secondary** site](https://docs.gitlab.com/ee/administration/geo/index.html#pausing-and-resuming-replication)
+   to protect their disaster recovery (DR) capability.
 
 1. Manually upgrade PostgreSQL on the Geo primary. Run on the Geo primary's
    database node:
@@ -1176,7 +1201,9 @@ replication user's password.
    `pg_hba.conf` file. This is needed because `replicate-geo-database`
    replicates the primary's file to the secondary.
 
-1. Restart `puma`, `sidekiq`, and `geo-logcursor`.
+1. If you paused replication in step 3,
+   [resume replication on each **secondary**](https://docs.gitlab.com/ee/administration/geo/index.html#pausing-and-resuming-replication).
+   Then, restart `puma`, `sidekiq`, and `geo-logcursor`.
 
    ```shell
    sudo gitlab-ctl hup puma

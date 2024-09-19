@@ -182,7 +182,7 @@
     include:
       - project: ${QA_TESTS_UPSTREAM_PROJECT}
         ref: ${QA_TESTS_REF}
-        file: .gitlab/ci/package-and-test/main.gitlab-ci.yml
+        file: .gitlab/ci/test-on-omnibus/main.gitlab-ci.yml
 
 #####################
 # Cache update jobs #
@@ -239,7 +239,7 @@ rubocop:
 
 # Perform content linting on documentation Markdown files
 docs-lint content:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.20-vale-3.6.1-markdownlint2-0.13.0-lychee-0.15.1
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.20-vale-3.7.1-markdownlint2-0.13.0-lychee-0.15.1
   stage: check
   cache: {}
   needs: []
@@ -254,7 +254,7 @@ docs-lint content:
 
 # Perform linting on documentation Markdown files
 docs-lint markdown:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.20-vale-3.6.1-markdownlint2-0.13.0-lychee-0.15.1
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.20-vale-3.7.1-markdownlint2-0.13.0-lychee-0.15.1
   stage: check
   cache: {}
   needs: []
@@ -269,7 +269,7 @@ docs-lint markdown:
 
 # Perform link checking on documentation Markdown files
 docs-lint links:
-  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.20-vale-3.6.1-markdownlint2-0.13.0-lychee-0.15.1
+  image: registry.gitlab.com/gitlab-org/gitlab-docs/lint-markdown:alpine-3.20-vale-3.7.1-markdownlint2-0.13.0-lychee-0.15.1
   stage: check
   cache: {}
   needs: []
@@ -568,6 +568,8 @@ RAT:
       allow_failure: true
     - if: '$PIPELINE_TYPE == "EE_NIGHTLY_BUILD_PIPELINE"'
       allow_failure: true
+      variables:
+        NIGHTLY: 'true'
   needs:
     - job: Ubuntu-22.04-branch
       artifacts: false
@@ -584,6 +586,16 @@ RAT:FIPS:
       artifacts: false
     - job: generate-facts
       artifacts: true
+
+RAT:ref_arch_envs:
+  extends: RAT
+  parallel:
+    matrix:
+      - REFERENCE_ARCHITECTURE: [1k, 2k, 3k, 10k]
+  rules:
+    - if: '$PIPELINE_TYPE == "TRIGGERED_EE_PIPELINE"'
+      when: manual
+      allow_failure: true
 
 GET:Geo:
   stage: qa

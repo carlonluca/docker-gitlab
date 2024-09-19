@@ -304,6 +304,24 @@ RSpec.describe 'postgresql' do
           runtime_conf
         ).with_content(/synchronous_commit = on/)
       end
+
+      it 'sets log_connections setting' do
+        expect(chef_run.node['postgresql']['log_connections'])
+          .to eq('off')
+
+        expect(chef_run).to render_file(
+          runtime_conf
+        ).with_content(/log_connections = off/)
+      end
+
+      it 'sets log_disconnections setting' do
+        expect(chef_run.node['postgresql']['log_disconnections'])
+          .to eq('off')
+
+        expect(chef_run).to render_file(
+          runtime_conf
+        ).with_content(/log_disconnections = off/)
+      end
     end
 
     context 'when rendering pg_hba.conf' do
@@ -425,6 +443,8 @@ RSpec.describe 'postgresql' do
                          max_standby_streaming_delay: '120s',
                          archive_command: 'command',
                          archive_timeout: '120',
+                         log_connections: 'on',
+                         log_disconnections: 'on'
                        })
       end
 
@@ -460,6 +480,24 @@ RSpec.describe 'postgresql' do
         expect(chef_run).to render_file(
           runtime_conf
         ).with_content(/archive_timeout = 120/)
+      end
+
+      it 'sets log_connections setting' do
+        expect(chef_run.node['postgresql']['log_connections'])
+          .to eq('on')
+
+        expect(chef_run).to render_file(
+          runtime_conf
+        ).with_content(/log_connections = on/)
+      end
+
+      it 'sets log_disconnections setting' do
+        expect(chef_run.node['postgresql']['log_disconnections'])
+          .to eq('on')
+
+        expect(chef_run).to render_file(
+          runtime_conf
+        ).with_content(/log_disconnections = on/)
       end
     end
 
@@ -620,6 +658,24 @@ RSpec.describe 'postgresql' do
   end
 end
 
+RSpec.describe 'postgresql 16' do
+  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service postgresql_config)).converge('gitlab::default') }
+  let(:postgresql_conf) { File.join(postgresql_data_dir, 'postgresql.conf') }
+  let(:runtime_conf) { '/var/opt/gitlab/postgresql/data/runtime.conf' }
+
+  before do
+    allow_any_instance_of(PgHelper).to receive(:version).and_return(PGVersion.new('16.0'))
+    allow_any_instance_of(PgHelper).to receive(:database_version).and_return(PGVersion.new('16.0'))
+  end
+
+  it 'configures wal_keep_size instead of wal_keep_segments' do
+    expect(chef_run).to render_file(runtime_conf).with_content { |content|
+      expect(content).to include("wal_keep_size")
+      expect(content).not_to include("wal_keep_segments")
+    }
+  end
+end
+
 RSpec.describe 'postgresql 14' do
   let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service postgresql_config)).converge('gitlab::default') }
   let(:postgresql_conf) { File.join(postgresql_data_dir, 'postgresql.conf') }
@@ -634,42 +690,6 @@ RSpec.describe 'postgresql 14' do
     expect(chef_run).to render_file(runtime_conf).with_content { |content|
       expect(content).to include("wal_keep_size")
       expect(content).not_to include("wal_keep_segments")
-    }
-  end
-end
-
-RSpec.describe 'postgresql 13' do
-  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service postgresql_config)).converge('gitlab::default') }
-  let(:postgresql_conf) { File.join(postgresql_data_dir, 'postgresql.conf') }
-  let(:runtime_conf) { '/var/opt/gitlab/postgresql/data/runtime.conf' }
-
-  before do
-    allow_any_instance_of(PgHelper).to receive(:version).and_return(PGVersion.new('13.0'))
-    allow_any_instance_of(PgHelper).to receive(:database_version).and_return(PGVersion.new('13.0'))
-  end
-
-  it 'configures wal_keep_size instead of wal_keep_segments' do
-    expect(chef_run).to render_file(runtime_conf).with_content { |content|
-      expect(content).to include("wal_keep_size")
-      expect(content).not_to include("wal_keep_segments")
-    }
-  end
-end
-
-RSpec.describe 'postgresql 12' do
-  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service postgresql_config)).converge('gitlab::default') }
-  let(:postgresql_conf) { File.join(postgresql_data_dir, 'postgresql.conf') }
-  let(:runtime_conf) { '/var/opt/gitlab/postgresql/data/runtime.conf' }
-
-  before do
-    allow_any_instance_of(PgHelper).to receive(:version).and_return(PGVersion.new('12.0'))
-    allow_any_instance_of(PgHelper).to receive(:database_version).and_return(PGVersion.new('12.0'))
-  end
-
-  it 'configures wal_keep_segments instead of wal_keep_size' do
-    expect(chef_run).to render_file(runtime_conf).with_content { |content|
-      expect(content).to include("wal_keep_segments")
-      expect(content).to_not include("wal_keep_size")
     }
   end
 end

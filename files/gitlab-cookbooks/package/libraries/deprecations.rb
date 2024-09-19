@@ -327,36 +327,6 @@ module Gitlab
             note: "Starting with GitLab 15.5, jemalloc is compiled in with the Ruby interpreter and can no longer be disabled."
           },
           {
-            config_keys: %w(gitlab sidekiq queue_selector),
-            deprecation: '15.9', # Remove message issue: https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/8495
-            removal: '17.0', # Removal issue: https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/2220
-            note: "Starting with GitLab 17.0, running Sidekiq with queue selector (`sidekiq['queue_selector'] = true`) will be removed. We recommend to follow the steps at https://docs.gitlab.com/ee/administration/sidekiq/extra_sidekiq_processes.html#start-multiple-processes, to run Sidekiq with multiple processes while listening to all queues."
-          },
-          {
-            config_keys: %w(gitlab sidekiq negate),
-            deprecation: '15.9', # Remove message issue: https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/8495
-            removal: '17.0', # Removal issue: https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/2220
-            note: "Starting with GitLab 17.0, running Sidekiq with negate (`sidekiq['negate'] = true`) will be removed. We recommend to follow the steps at https://docs.gitlab.com/ee/administration/sidekiq/extra_sidekiq_processes.html#start-multiple-processes, to run Sidekiq with multiple processes while listening to all queues."
-          },
-          {
-            config_keys: %w(postgres_exporter per_table_stats),
-            deprecation: '16.4', # Remove message issue: https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/8170
-            removal: '17.1', # Removed in https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/8169. This deprecation entry can be removed after the next upgrade stop.
-            note: "Starting with GitLab 17.0, this directive will be controlled by `postgres_exporter['flags'] = { 'collector.stat_user_tables' => bool }`."
-          },
-          {
-            config_keys: %w(gitlab sidekiq min_concurrency),
-            deprecation: '16.9', # Remove message issue: https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/8491
-            removal: '17.0', # Removal issue: https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/3422
-            note: "Starting with GitLab 17.0, `sidekiq['min_concurrency']` will be removed. Please follow https://docs.gitlab.com/ee/administration/sidekiq/extra_sidekiq_processes.html#manage-thread-counts-explicitly to use `sidekiq['concurrency']` instead."
-          },
-          {
-            config_keys: %w(gitlab sidekiq max_concurrency),
-            deprecation: '16.9', # Remove message issue: https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/8491
-            removal: '17.0', # Removal issue: https://gitlab.com/gitlab-com/gl-infra/scalability/-/issues/3422
-            note: "Starting with GitLab 17.0, `sidekiq['max_concurrency']` will be removed. Please follow https://docs.gitlab.com/ee/administration/sidekiq/extra_sidekiq_processes.html#manage-thread-counts-explicitly to use `sidekiq['concurrency']` instead."
-          },
-          {
             config_keys: %w(gitlab omnibus_gitconfig),
             deprecation: '16.10',
             removal: '17.0',
@@ -367,6 +337,12 @@ module Gitlab
             deprecation: '17.1',
             removal: '18.0',
             note: "`registry['default_notifications_threshold'] will be removed in 18.0. Please use `default_notifications_maxretries` instead https://gitlab.com/gitlab-org/container-registry/-/issues/1243."
+          },
+          {
+            config_keys: %w(gitlab gitlab_shell migration),
+            deprecation: '17.4',
+            removal: '18.0',
+            note: "`gitlab_shell['migration'] will be ignored from 17.3 and removed in 18.0. See https://gitlab.com/groups/gitlab-org/-/epics/14845."
           }
         ]
 
