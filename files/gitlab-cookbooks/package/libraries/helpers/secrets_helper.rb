@@ -81,8 +81,7 @@ class SecretsHelper
         'db_key_base' => Gitlab['gitlab_rails']['db_key_base'],
         'otp_key_base' => Gitlab['gitlab_rails']['otp_key_base'],
         'encrypted_settings_key_base' => Gitlab['gitlab_rails']['encrypted_settings_key_base'],
-        'openid_connect_signing_key' => Gitlab['gitlab_rails']['openid_connect_signing_key'],
-        'ci_jwt_signing_key' => Gitlab['gitlab_rails']['ci_jwt_signing_key']
+        'openid_connect_signing_key' => Gitlab['gitlab_rails']['openid_connect_signing_key']
       },
       'gitlab_pages' => {
         'gitlab_secret' => Gitlab['gitlab_pages']['gitlab_secret'],
@@ -120,6 +119,9 @@ class SecretsHelper
         'incoming_email_auth_token' => Gitlab['mailroom']['incoming_email_auth_token'],
         'service_desk_email_auth_token' => Gitlab['mailroom']['service_desk_email_auth_token'],
       },
+      'gitaly' => {
+        'gitlab_secret' => Gitlab['gitaly']['gitlab_secret']
+      }
     }
 
     if Gitlab['mattermost']['gitlab_enable']

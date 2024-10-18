@@ -24,7 +24,7 @@ skip_transitive_dependency_licensing true
 
 # Follow the Ruby upgrade guide when changing the ruby version
 # link: https://docs.gitlab.com/ee/development/ruby_upgrade.html
-current_ruby_version = Gitlab::Util.get_env('RUBY_VERSION') || '3.1.5'
+current_ruby_version = Gitlab::Util.get_env('RUBY_VERSION') || '3.2.5'
 
 # NOTE: When this value is updated, flip `USE_NEXT_RUBY_VERSION_IN_*` variable
 # to false to avoid surprises.
@@ -159,4 +159,7 @@ build do
   configure(*configure_command, env: env)
   make "-j #{workers}", env: env
   make "-j #{workers} install", env: env
+
+  # Install OpenSSL gem for FIPS fixes
+  gem "install openssl --version '#{Gitlab::Util.get_env('OPENSSL_GEM_VERSION')}' --force --no-document"
 end
