@@ -14,6 +14,12 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 17.5.1 (2024-10-22)
+
+### Fixed (1 change)
+
+- [Ensure postgresql_new is included in GitLab CE](gitlab-org/security/omnibus-gitlab@a51fd4d371d0d2e0550b82aa3501c6e3b6c5e3ee)
+
 ## 17.5.0 (2024-10-16)
 
 ### Added (3 changes)
