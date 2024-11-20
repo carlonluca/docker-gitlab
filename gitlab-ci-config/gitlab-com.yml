@@ -222,8 +222,6 @@ Trigger:ee-package:
     - if: '$PIPELINE_TYPE =~ /_MR_PIPELINE$/'
       when: manual
       variables: !reference [.ee-trigger-job-variables]
-    - if: '$PIPELINE_TYPE == "DEPS_IO_VERSION_BUMP_PIPELINE"'
-      variables: !reference [.ee-trigger-job-variables]
 
 rubocop:
   extends: .gems-cache
@@ -344,10 +342,10 @@ danger-review:
 Centos 7 knapsack: !reference [.knapsack]
 AlmaLinux 8 knapsack: !reference [.knapsack]
 AlmaLinux 9 knapsack: !reference [.knapsack]
-Debian 10 knapsack: !reference [.knapsack]
 Debian 11 knapsack: !reference [.knapsack]
 Debian 12 knapsack: !reference [.knapsack]
 OpenSUSE 15.5 knapsack: !reference [.knapsack]
+OpenSUSE 15.6 knapsack: !reference [.knapsack]
 Ubuntu 20.04 knapsack: !reference [.knapsack]
 Ubuntu 22.04 knapsack: !reference [.knapsack]
 Ubuntu 24.04 knapsack: !reference [.knapsack]
@@ -387,12 +385,6 @@ Ubuntu 24.04 specs:
   parallel: 6
   needs:
   - Ubuntu 24.04 knapsack
-Debian 10 specs :
-  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/debian_10-ruby:${BUILDER_IMAGE_REVISION}"
-  extends: .chef_spec_template
-  parallel: 6
-  needs:
-  - Debian 10 knapsack
 Debian 11 specs :
   image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/debian_11-ruby:${BUILDER_IMAGE_REVISION}"
   extends: .chef_spec_template
@@ -429,6 +421,12 @@ OpenSUSE 15.5 specs :
   parallel: 6
   needs:
     - OpenSUSE 15.5 knapsack
+OpenSUSE 15.6 specs :
+  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/opensuse_15.5-ruby:${BUILDER_IMAGE_REVISION}"
+  extends: .chef_spec_template
+  parallel: 6
+  needs:
+    - OpenSUSE 15.6 knapsack
 AmazonLinux 2 specs :
   image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/amazonlinux_2-ruby:${BUILDER_IMAGE_REVISION}"
   extends: .chef_spec_template
@@ -549,54 +547,6 @@ letsencrypt-test:
     - job: Docker-branch
       artifacts: false
 
-RAT:
-  stage: qa
-  variables:
-    PACKAGE_URL: ${RAT_PACKAGE_URL}
-    REFERENCE_ARCHITECTURE: ${RAT_REFERENCE_ARCHITECTURE}
-    QA_IMAGE: ${QA_IMAGE}
-  trigger:
-    project: 'gitlab-org/distribution/reference-architecture-tester'
-    branch: 'master'
-    strategy: depend
-    forward:
-      pipeline_variables: false
-      yaml_variables: true
-  rules:
-    - if: '$PIPELINE_TYPE == "TRIGGERED_EE_PIPELINE"'
-      when: manual
-      allow_failure: true
-    - if: '$PIPELINE_TYPE == "EE_NIGHTLY_BUILD_PIPELINE"'
-      allow_failure: true
-      variables:
-        NIGHTLY: 'true'
-  needs:
-    - job: Ubuntu-22.04-branch
-      artifacts: false
-    - job: generate-facts
-      artifacts: true
-
-RAT:FIPS:
-  extends: RAT
-  variables:
-    PACKAGE_URL: ${RAT_FIPS_PACKAGE_URL}
-    REFERENCE_ARCHITECTURE: ${RAT_FIPS_REFERENCE_ARCHITECTURE}
-  needs:
-    - job: Ubuntu-20.04-fips-branch
-      artifacts: false
-    - job: generate-facts
-      artifacts: true
-
-RAT:ref_arch_envs:
-  extends: RAT
-  parallel:
-    matrix:
-      - REFERENCE_ARCHITECTURE: [1k, 2k, 3k, 10k]
-  rules:
-    - if: '$PIPELINE_TYPE == "TRIGGERED_EE_PIPELINE"'
-      when: manual
-      allow_failure: true
-
 GET:Geo:
   stage: qa
   variables:
@@ -642,16 +592,6 @@ dependency_scanning:
       dependency_scanning: gl-dependency-scanning-report.json
     paths:
       - dependency_report.txt
-
-dependency_update:
-  image: "${BUILDER_IMAGE_REGISTRY}/distribution_ci_tools:${BUILDER_IMAGE_REVISION}"
-  stage: prepare
-  before_script: []
-  script:
-    - curl https://deps.app/install.sh | bash -s -- -b $HOME/bin
-    - $HOME/bin/deps ci
-  rules:
-    - if: '$PIPELINE_TYPE == "DEPS_IO_VERSION_CHECK_PIPELINE"'
 
 validate_renovate_checksum:
   image: docker.io/bash:5.2-alpine3.20

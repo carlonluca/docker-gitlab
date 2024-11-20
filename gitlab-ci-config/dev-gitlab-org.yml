@@ -65,6 +65,9 @@
   rules:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE =~ /_(NIGHTLY|BRANCH)_BUILD_PIPELINE$/'
+    # Include it in TRIGGER_CACHE_UPDATE_PIPELINE pipeline cache used by
+    # nightlies and triggered builds are refreshed periodically
+    - if: '$PIPELINE_TYPE == "TRIGGER_CACHE_UPDATE_PIPELINE"'
 
 .fips_branch_template:
   extends: .branch_template
@@ -73,6 +76,9 @@
   rules:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE == "EE_NIGHTLY_BUILD_PIPELINE"'
+    # Include it in TRIGGER_CACHE_UPDATE_PIPELINE pipeline cache used by
+    # nightlies and triggered builds are refreshed periodically
+    - if: '$PIPELINE_TYPE == "TRIGGER_CACHE_UPDATE_PIPELINE"'
     - if: '$PIPELINE_TYPE == "EE_BRANCH_BUILD_PIPELINE"'
       when: manual
       allow_failure: true
@@ -92,6 +98,9 @@
     - if: '$PIPELINE_TYPE == "CE_BRANCH_BUILD_PIPELINE"'
     - if: '$PIPELINE_TYPE == "CE_NIGHTLY_BUILD_PIPELINE"'
     - if: '$PIPELINE_TYPE == "EE_BRANCH_BUILD_PIPELINE" && $CI_PIPELINE_SOURCE == "parent_pipeline"'
+    # Include it in TRIGGER_CACHE_UPDATE_PIPELINE pipeline cache used by
+    # nightlies and triggered builds are refreshed periodically
+    - if: '$PIPELINE_TYPE == "TRIGGER_CACHE_UPDATE_PIPELINE"'
 
 .tag_template:
   stage: package
@@ -287,12 +296,6 @@ Ubuntu-24.04-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_24.04:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
 
-Debian-10-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/debian_10:${BUILDER_IMAGE_REVISION}"
-  extends: .branch_template
-Debian-10-arm64-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/debian_10_arm64:${BUILDER_IMAGE_REVISION}"
-  extends: .arm64_branch_template
 Debian-11-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/debian_11:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
@@ -342,6 +345,12 @@ OpenSUSE-15.5-branch:
   extends: .branch_template
 OpenSUSE-15.5-arm64-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.5_arm64:${BUILDER_IMAGE_REVISION}"
+  extends: .arm64_branch_template
+OpenSUSE-15.6-branch:
+  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.6:${BUILDER_IMAGE_REVISION}"
+  extends: .branch_template
+OpenSUSE-15.6-arm64-branch:
+  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.6_arm64:${BUILDER_IMAGE_REVISION}"
   extends: .arm64_branch_template
 AmazonLinux-2-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2:${BUILDER_IMAGE_REVISION}"
@@ -550,12 +559,6 @@ Ubuntu-22.04-arm64-staging:
     - if: '$PIPELINE_TYPE =~ /(_RC|_TAG|NIGHTLY)_BUILD_PIPELINE$/'
 
 ### Package builds
-Debian-10:
-  image: "${BUILDER_IMAGE_REGISTRY}/debian_10:${BUILDER_IMAGE_REVISION}"
-  extends: .tag_template
-Debian-10-arm64:
-  image: "${BUILDER_IMAGE_REGISTRY}/debian_10_arm64:${BUILDER_IMAGE_REVISION}"
-  extends: .arm64_tag_template
 Debian-11:
   image: "${BUILDER_IMAGE_REGISTRY}/debian_11:${BUILDER_IMAGE_REVISION}"
   extends: .tag_template
@@ -600,6 +603,12 @@ OpenSUSE-15.5:
   extends: .tag_template
 OpenSUSE-15.5-arm64:
   image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.5_arm64:${BUILDER_IMAGE_REVISION}"
+  extends: .arm64_tag_template
+OpenSUSE-15.6:
+  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.6:${BUILDER_IMAGE_REVISION}"
+  extends: .tag_template
+OpenSUSE-15.6-arm64:
+  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.6_arm64:${BUILDER_IMAGE_REVISION}"
   extends: .arm64_tag_template
 AmazonLinux-2:
   image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2:${BUILDER_IMAGE_REVISION}"
@@ -658,20 +667,6 @@ Docker:
     - if: '$PIPELINE_TYPE =~ /(_RC|_TAG|AUTO_DEPLOY)_BUILD_PIPELINE$/'
 
 ### Staging uploads
-Debian-10-staging:
-  extends: .staging_upload_template
-  needs:
-    - job: Debian-10
-      optional: true
-    - job: Debian-10-branch
-      optional: true
-Debian-10-arm64-staging:
-  extends: .staging_upload_template
-  needs:
-    - job: Debian-10-arm64
-      optional: true
-    - job: Debian-10-arm64-branch
-      optional: true
 Debian-11-staging:
   extends: .staging_upload_template
   needs:
@@ -769,6 +764,20 @@ OpenSUSE-15.5-arm64-staging:
     - job: OpenSUSE-15.5-arm64
       optional: true
     - job: OpenSUSE-15.5-arm64-branch
+      optional: true
+OpenSUSE-15.6-staging:
+  extends: .staging_upload_template
+  needs:
+    - job: OpenSUSE-15.6
+      optional: true
+    - job: OpenSUSE-15.6-branch
+      optional: true
+OpenSUSE-15.6-arm64-staging:
+  extends: .staging_upload_template
+  needs:
+    - job: OpenSUSE-15.6-arm64
+      optional: true
+    - job: OpenSUSE-15.6-arm64-branch
       optional: true
 AmazonLinux-2-staging:
   extends: .staging_upload_template
@@ -872,14 +881,6 @@ Ubuntu-24.04-arm64-release:
   extends: .production_release_template
   needs:
     - Ubuntu-24.04-arm64
-Debian-10-release:
-  extends: .production_release_template
-  needs:
-    - Debian-10
-Debian-10-arm64-release:
-  extends: .production_release_template
-  needs:
-    - Debian-10-arm64
 Debian-11-release:
   extends: .production_release_template
   needs:
@@ -924,6 +925,14 @@ OpenSUSE-15.5-arm64-release:
   extends: .production_release_template
   needs:
     - OpenSUSE-15.5-arm64
+OpenSUSE-15.6-release:
+  extends: .production_release_template
+  needs:
+    - OpenSUSE-15.6
+OpenSUSE-15.6-arm64-release:
+  extends: .production_release_template
+  needs:
+    - OpenSUSE-15.6-arm64
 AmazonLinux-2-release:
   extends: .production_release_template
   needs:
@@ -1081,19 +1090,6 @@ manifest-upload:
     - !reference [.skip_release_jobs, rules]
     - if: '$PIPELINE_TYPE =~ /_(RC|TAG)_BUILD_PIPELINE$/'
       when: manual
-
-RAT-Tag:
-  stage: qa
-  image: "dev.gitlab.org:5005/cookbooks/gitlab-omnibus-builder/ubuntu_22.04:${BUILDER_IMAGE_REVISION}"
-  script:
-    - bundle exec rake qa:rat:tag
-  cache: !reference [.tag-cache]
-  needs:
-    - Ubuntu-22.04
-  allow_failure: true
-  rules:
-    - !reference [.default_rules, rules]
-    - if: '$PIPELINE_TYPE =~ /^EE_(RC|TAG)_BUILD_PIPELINE$/'
 
 Raspberry-Pi-2-Buster:
   extends: .rpi_tag_template

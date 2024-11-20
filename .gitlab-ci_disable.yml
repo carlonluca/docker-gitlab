@@ -21,6 +21,7 @@ stages:
 include:
   - local: '/gitlab-ci-config/workflow-rules.yml'
   - local: '/gitlab-ci-config/variables.yml'
+  - local: '/gitlab-ci-config/rat.yml'
   - local: '/gitlab-ci-config/dev-gitlab-org.yml'
   - local: '/gitlab-ci-config/gitlab-com.yml'
     rules:
@@ -161,7 +162,6 @@ generate-facts:
     - if: '$PIPELINE_TYPE =~ /_TEST_PIPELINE$/'
     - if: '$PIPELINE_TYPE == "GITLAB_MR_PIPELINE"'
     - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/'
-    - if: '$PIPELINE_TYPE == "DEPS_IO_VERSION_BUMP_PIPELINE"'
     - if: '$PIPELINE_TYPE == "DEPENDENCY_SCANNING_PIPELINE"'
     - if: '$PIPELINE_TYPE == "FORK_MR_PIPELINE"'
     - when: never

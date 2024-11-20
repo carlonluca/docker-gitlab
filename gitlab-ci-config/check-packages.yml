@@ -95,12 +95,6 @@ Ubuntu-24.04-check:
 Ubuntu-24.04-arm64-check:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_24.04_arm64:latest"
   extends: .apt-arm-install
-Debian-10-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/debian_10:latest"
-  extends: .apt-install
-Debian-10-arm64-check:
-  image: "${BUILDER_IMAGE_REGISTRY}/debian_10_arm64:latest"
-  extends: .apt-arm-install
 Debian-11-check:
   image: "${BUILDER_IMAGE_REGISTRY}/debian_11:latest"
   extends: .apt-install
@@ -201,6 +195,12 @@ OpenSUSE-15.5-check:
   extends: .zypper-install
 OpenSUSE-15.5-arm64-check:
   image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.5_arm64:latest"
+  extends: .zypper-arm-install
+OpenSUSE-15.6-check:
+  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.6:latest"
+  extends: .zypper-install
+OpenSUSE-15.6-arm64-check:
+  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.6_arm64:latest"
   extends: .zypper-arm-install
 SLES-12.5-check:
   image: "${DEV_BUILDER_IMAGE_REGISTRY}/sles_12sp5:latest"
