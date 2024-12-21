@@ -23,19 +23,25 @@ module Build
         is_ee? || is_jh?
       end
 
+      def boringcrypto_supported?
+        system({ 'GOEXPERIMENT' => 'boringcrypto' }, *%w(go version))
+      end
+
       def fips?
         # TODO: Add code to automatically set to true on FIPS supported OSs
         false
       end
 
-      def boringcrypto_supported?
-        system({ 'GOEXPERIMENT' => 'boringcrypto' }, *%w(go version))
-      end
-
       def use_system_ssl?
-        # Once we implement the above TODO, we can get rid of this variable and
+        # Once we implement the `fips?` TODO, we can get rid of this variable and
         # gate on `fips?` alone.
         Gitlab::Util.get_env('USE_SYSTEM_SSL') == 'true' || fips?
+      end
+
+      def use_system_libgcrypt?
+        # Once we implement the `fips?` TODO, we can get rid of this variable and
+        # gate on `fips?` alone.
+        Gitlab::Util.get_env('USE_SYSTEM_LIBGCRYPT') == 'true' || fips?
       end
 
       def match_tag?(tag)
@@ -77,6 +83,10 @@ module Build
 
       def is_nightly?
         Gitlab::Util.get_env('NIGHTLY') == 'true'
+      end
+
+      def is_internal_release?
+        Gitlab::Util.get_env('INTERNAL_RELEASE') == 'true'
       end
 
       def no_changes?

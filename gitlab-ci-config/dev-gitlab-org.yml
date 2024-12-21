@@ -73,6 +73,7 @@
   extends: .branch_template
   variables:
     USE_SYSTEM_SSL: "true"
+    USE_SYSTEM_LIBGCRYPT: "true"
   rules:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE == "EE_NIGHTLY_BUILD_PIPELINE"'
@@ -141,6 +142,7 @@
   extends: .tag_template
   variables:
     USE_SYSTEM_SSL: "true"
+    USE_SYSTEM_LIBGCRYPT: "true"
   rules:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE =~ /^EE_(RC|TAG)_BUILD_PIPELINE$/'
@@ -182,6 +184,7 @@
   extends: .staging_upload_template
   variables:
     USE_SYSTEM_SSL: "true"
+    USE_SYSTEM_LIBGCRYPT: "true"
     INCLUDE_PACKAGECLOUD: "true"
   rules:
     - !reference [.default_rules, rules]
@@ -219,6 +222,7 @@
   extends: .production_release_template
   variables:
     USE_SYSTEM_SSL: "true"
+    USE_SYSTEM_LIBGCRYPT: "true"
     INCLUDE_PACKAGECLOUD: "true"
   rules:
     - !reference [.default_rules, rules]
@@ -282,19 +286,27 @@
 Ubuntu-20.04-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
+  rules:
+    - !reference [.default_rules, rules]
+    - if: '$PIPELINE_TYPE =~ /(NIGHTLY|BRANCH|INTERNAL_RELEASE)_BUILD_PIPELINE$/'
+    - if: '$PIPELINE_TYPE == "TRIGGER_CACHE_UPDATE_PIPELINE"'
 
 Ubuntu-22.04-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_22.04:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
   rules:
     - !reference [.default_rules, rules]
-    - if: '$PIPELINE_TYPE =~ /_(NIGHTLY|BRANCH)_BUILD_PIPELINE$/'
+    - if: '$PIPELINE_TYPE =~ /(NIGHTLY|BRANCH|INTERNAL_RELEASE)_BUILD_PIPELINE$/'
     - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/'
     - if: '$PIPELINE_TYPE == "TRIGGER_CACHE_UPDATE_PIPELINE"'
 
 Ubuntu-24.04-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_24.04:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
+  rules:
+    - !reference [.default_rules, rules]
+    - if: '$PIPELINE_TYPE =~ /(NIGHTLY|BRANCH|INTERNAL_RELEASE)_BUILD_PIPELINE$/'
+    - if: '$PIPELINE_TYPE == "TRIGGER_CACHE_UPDATE_PIPELINE"'
 
 Debian-11-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/debian_11:${BUILDER_IMAGE_REVISION}"
@@ -383,6 +395,8 @@ SLES-15.2-branch:
 AmazonLinux-2-fips-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2_fips:${BUILDER_IMAGE_REVISION}"
   extends: .fips_branch_template
+  variables:
+    USE_SYSTEM_LIBGCRYPT: "false" # AL2 libgcrypt is not compatible with Omnibus gpgme/gnupg
 AlmaLinux-8-fips-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8_fips:${BUILDER_IMAGE_REVISION}"
   extends: .fips_branch_template
@@ -395,6 +409,7 @@ Ubuntu-20.04-fips-branch:
   rules:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE == "EE_NIGHTLY_BUILD_PIPELINE"'
+    - if: '$PIPELINE_TYPE == "INTERNAL_RELEASE_BUILD_PIPELINE"'
     - if: '$PIPELINE_TYPE == "EE_BRANCH_BUILD_PIPELINE"'
       when: manual
       allow_failure: true
@@ -534,7 +549,7 @@ Ubuntu-20.04-staging:
       optional: true
   rules:
     - !reference [.default_rules, rules]
-    - if: '$PIPELINE_TYPE =~ /(_RC|_TAG|AUTO_DEPLOY|NIGHTLY)_BUILD_PIPELINE$/'
+    - if: '$PIPELINE_TYPE =~ /(_RC|_TAG|AUTO_DEPLOY|NIGHTLY|INTERNAL_RELEASE)_BUILD_PIPELINE$/'
 
 Ubuntu-22.04-staging:
   extends: .staging_upload_template
@@ -545,7 +560,7 @@ Ubuntu-22.04-staging:
       optional: true
   rules:
     - !reference [.default_rules, rules]
-    - if: '$PIPELINE_TYPE =~ /(_RC|_TAG|AUTO_DEPLOY|NIGHTLY)_BUILD_PIPELINE$/'
+    - if: '$PIPELINE_TYPE =~ /(_RC|_TAG|AUTO_DEPLOY|NIGHTLY|INTERNAL_RELEASE)_BUILD_PIPELINE$/'
 
 Ubuntu-22.04-arm64-staging:
   extends: .staging_upload_template
@@ -637,6 +652,8 @@ SLES-15.2:
 AmazonLinux-2-fips:
   image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2_fips:${BUILDER_IMAGE_REVISION}"
   extends: .fips_tag_template
+  variables:
+    USE_SYSTEM_LIBGCRYPT: "false" # AL2 libgcrypt is not compatible with Omnibus gpgme/gnupg
 AlmaLinux-8-fips:
   image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8_fips:${BUILDER_IMAGE_REVISION}"
   extends: .fips_tag_template
@@ -702,6 +719,9 @@ Ubuntu-24.04-staging:
       optional: true
     - job: Ubuntu-24.04-branch
       optional: true
+  rules:
+    - !reference [.default_rules, rules]
+    - if: '$PIPELINE_TYPE =~ /(_RC|_TAG|INTERNAL_RELEASE)_BUILD_PIPELINE$/'
 Ubuntu-20.04-arm64-staging:
   extends: .staging_upload_template
   needs:
@@ -829,6 +849,8 @@ SLES-15.2-staging:
     - if: '$PIPELINE_TYPE =~ /^EE_(RC|TAG)_BUILD_PIPELINE$/'
 AmazonLinux-2-fips-staging:
   extends: .fips_staging_upload_template
+  variables:
+    USE_SYSTEM_LIBGCRYPT: "false" # AL2 libgcrypt is not compatible with Omnibus gpgme/gnupg
   needs:
     - job: AmazonLinux-2-fips
       optional: true
@@ -855,6 +877,11 @@ Ubuntu-20.04-fips-staging:
       optional: true
     - job: Ubuntu-20.04-fips-branch
       optional: true
+  rules:
+    - !reference [.default_rules, rules]
+    - if: '$PIPELINE_TYPE =~ /^EE_(RC|TAG)_BUILD_PIPELINE$/'
+    - if: '$PIPELINE_TYPE == "INTERNAL_RELEASE_BUILD_PIPELINE"'
+    - if: '$PIPELINE_TYPE == "EE_NIGHTLY_BUILD_PIPELINE"'
 
 ### Package releases
 Ubuntu-20.04-release:
@@ -971,6 +998,8 @@ AmazonLinux-2-fips-release:
   extends: .fips_release_template
   needs:
     - AmazonLinux-2-fips
+  variables:
+    USE_SYSTEM_LIBGCRYPT: "false" # AL2 libgcrypt is not compatible with Omnibus gpgme/gnupg
 AlmaLinux-8-fips-release:
   extends: .fips_release_template
   needs:
@@ -1153,16 +1182,27 @@ check-packages-functionality:
   allow_failure: true
   trigger:
     include: '/gitlab-ci-config/check-packages.yml'
+  variables:
+    deploy_instance: "true"
+    package_repository: "${STAGING_REPO}"
+    package_repo_token: "${STAGING_REPO_TOKEN}:@"
+    image_registry: "${CI_REGISTRY_IMAGE}"
   rules:
     - !reference [.default_rules, rules]
     - if: '$SKIP_PACKAGE_FUNCTIONALITY_CHECK'
       when: never
-    - if: '$PIPELINE_TYPE =~ /_(RC|TAG)_BUILD_PIPELINE$/'
+    - if: '$PIPELINE_TYPE =~ /CE_(RC|TAG)_BUILD_PIPELINE$/'
       variables:
-        deploy_instance: "true"
-        package_repository: "pre-release"
-        package_repo_token: "${PRE_RELEASE_REPO_TOKEN}:@"
-        image_registry: "${CI_REGISTRY_IMAGE}"
+        PIPELINE_TYPE: 'CE_CHECK_PACKAGE_FUNCTIONALITY_PIPELINE'
+    - if: '$PIPELINE_TYPE =~ /EE_(RC|TAG)_BUILD_PIPELINE$/'
+      variables:
+        PIPELINE_TYPE: 'EE_CHECK_PACKAGE_FUNCTIONALITY_PIPELINE'
+    - if: '$PIPELINE_TYPE == "INTERNAL_RELEASE_BUILD_PIPELINE"'
+      variables:
+        ee: 'true'
+        PIPELINE_TYPE: 'INTERNAL_RELEASE_CHECK_PACKAGE_PIPELINE'
+        INTERNAL_RELEASE: 'true'
+        INTERNAL_RELEASE_ITERATION: "${INTERNAL_RELEASE_ITERATION}"
 
 # Check if the packages are available from public repositories
 check-packages-availability:
@@ -1171,7 +1211,12 @@ check-packages-availability:
     include: '/gitlab-ci-config/check-packages.yml'
   rules:
     - !reference [.default_rules, rules]
-    - if: '$PIPELINE_TYPE =~ /_TAG_BUILD_PIPELINE$/'
+    - if: '$PIPELINE_TYPE =~ /CE_TAG_BUILD_PIPELINE$/'
+      variables:
+        PIPELINE_TYPE: 'CE_CHECK_PACKAGE_AVAILABILITY_PIPELINE'
+    - if: '$PIPELINE_TYPE =~ /EE_TAG_BUILD_PIPELINE$/'
+      variables:
+        PIPELINE_TYPE: 'EE_CHECK_PACKAGE_AVAILABILITY_PIPELINE'
 
 create-gitlab-release:
   stage: package-and-image-release
