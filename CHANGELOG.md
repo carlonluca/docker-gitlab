@@ -14,6 +14,35 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 17.8.0 (2025-01-15)
+
+### Added (1 change)
+
+- [Make geo_metrics_update_worker interval configurable](gitlab-org/omnibus-gitlab@186d6863246e8ff49e8972c03381e194b8c5f571) ([merge request](gitlab-org/omnibus-gitlab!8066))
+
+### Fixed (2 changes)
+
+- [Mark SMTP settings as sensitive](gitlab-org/omnibus-gitlab@7c7ce5dbbac48f1b250bb7a2c04645cf96c9912f) ([merge request](gitlab-org/omnibus-gitlab!8090))
+- [Force older x86 platforms to recompile native gems](gitlab-org/omnibus-gitlab@5b8bc4e0e4d37e37b770cdc06adf6801cf56f49d) ([merge request](gitlab-org/omnibus-gitlab!8087))
+
+### Changed (5 changes)
+
+- [Bump libpng to v1.6.45](gitlab-org/omnibus-gitlab@74dd1e3aaa94258fdc09540d093f01dc91ad70e4) by @gitlab-dependency-update-bot ([merge request](gitlab-org/omnibus-gitlab!8103))
+- [Bump docker-distribution-pruner to v0.3.0](gitlab-org/omnibus-gitlab@c8e94eecaa766f2b2525d348b6166a5dc2421b3f) ([merge request](gitlab-org/omnibus-gitlab!8111))
+- [Bump PostgreSQL versions to 14.15 and 16.6](gitlab-org/omnibus-gitlab@2d72f035b544b67e5ee4aa82a61bafd00e80c603) ([merge request](gitlab-org/omnibus-gitlab!8074))
+- [Update dependency curl/curl to curl-8_11_1](gitlab-org/omnibus-gitlab@c5ece2410265fd3fd27af7e1b0cfcfc781f5f823) ([merge request](gitlab-org/omnibus-gitlab!8070))
+- [Update dependency libxml2 to v2.13.5](gitlab-org/omnibus-gitlab@9c87eea6cf5009b80f03ea2b9e143691b0cc9faa) ([merge request](gitlab-org/omnibus-gitlab!8030))
+
+### Deprecated (2 changes)
+
+- [Deprecate `git_data_dirs` setting.](gitlab-org/omnibus-gitlab@ad074da9cd4c371dbc86fba83eb1695d0cb5c58c) ([merge request](gitlab-org/omnibus-gitlab!8091))
+- [Deprecate `git_data_dirs` setting](gitlab-org/omnibus-gitlab@27ecbfe71a8325627e270b6bf7d7c48be5c8a6ae) ([merge request](gitlab-org/omnibus-gitlab!7962))
+
+### Removed (2 changes)
+
+- [CI: Stop building RHEL 7 packages](gitlab-org/omnibus-gitlab@5f4845ea82e4b9bb35f8fa2041098bb9724c7252) ([merge request](gitlab-org/omnibus-gitlab!8097))
+- [Drop RaspberryPi OS Buster builds](gitlab-org/omnibus-gitlab@317c5f3894faf5eab32f4fd2e546565d7b1553e2) ([merge request](gitlab-org/omnibus-gitlab!8105))
+
 ## 17.7.1 (2025-01-08)
 
 No changes.
@@ -40,6 +69,10 @@ No changes.
 - [Update dependency git-filter-repo to v2.47.0](gitlab-org/omnibus-gitlab@fb520cb5cab1bdf2bd06500f3e32c4f15ec824cc) ([merge request](gitlab-org/omnibus-gitlab!8060))
 - [Make gitlab-ctl commands exit 1 on non-existent services](gitlab-org/omnibus-gitlab@7f55ceba286b0e725ab1f551f5c03636e9053b27) ([merge request](gitlab-org/omnibus-gitlab!8037))
 - [Update bundled OpenSSL from 1.1.1 to 3.4.0](gitlab-org/omnibus-gitlab@8f76ff2cf1576b95f27cf744b16b0548cf5c624b) ([merge request](gitlab-org/omnibus-gitlab!8049))
+
+## 17.6.3 (2025-01-08)
+
+No changes.
 
 ## 17.6.2 (2024-12-10)
 
@@ -81,6 +114,10 @@ No changes.
 ### Removed (1 change)
 
 - [Stop building Debian 10 packages](gitlab-org/omnibus-gitlab@85810e56f20374ed463aed067bd1d2e058f41622) ([merge request](gitlab-org/omnibus-gitlab!7990))
+
+## 17.5.5 (2025-01-08)
+
+No changes.
 
 ## 17.5.4 (2024-12-10)
 

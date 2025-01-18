@@ -1,5 +1,5 @@
 #
-## Copyright:: Copyright (c) 2013, 2014 GitLab.com
+## Copyright:: Copyright (c) 2013, 2014 GitLab Inc.
 ## License:: Apache License, Version 2.0
 ##
 ## Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,9 +70,6 @@ end
 
 if rhel?
   case OhaiHelper.get_centos_version
-  when '6', '7'
-    runtime_dependency 'policycoreutils-python'
-    runtime_dependency 'perl'
   when '8', '9'
     runtime_dependency 'policycoreutils-python-utils'
     runtime_dependency 'perl-interpreter'

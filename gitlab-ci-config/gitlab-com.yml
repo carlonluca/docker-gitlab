@@ -142,7 +142,7 @@
   before_script:
     - gem install gitlab --no-doc
     # We need to download the script rather than clone the repo since the
-    # review-docs-cleanup job will not be able to run when the branch gets
+    # review-docs-cleanup and review-docs-hugo-cleanup job will not be able to run when the branch gets
     # deleted (when merging the MR).
     - apk add --update openssl
     - wget https://gitlab.com/gitlab-org/gitlab/-/raw/master/scripts/trigger-build.rb
@@ -327,6 +327,30 @@ review-docs-cleanup:
   script:
     - ./trigger-build.rb docs cleanup
 
+# Trigger a docs build in gitlab-docs-hugo
+# Useful to preview the docs changes live
+# https://docs.gitlab.com/ee/development/documentation/review_apps.html
+review-docs-hugo-deploy:
+  extends:
+  - .review-docs
+  environment:
+    name: review-docs/mr-${CI_MERGE_REQUEST_IID}-hugo
+    url: https://new.docs.gitlab.com/upstream-review-mr-${DOCS_GITLAB_REPO_SUFFIX}-${CI_MERGE_REQUEST_IID}/${DOCS_GITLAB_REPO_SUFFIX}
+    auto_stop_in: 2 weeks
+    on_stop: review-docs-hugo-cleanup
+  script:
+  - ./trigger-build.rb docs-hugo deploy
+
+# Cleanup remote environment of gitlab-docs-hugo
+review-docs-hugo-cleanup:
+  extends:
+  - .review-docs
+  environment:
+    name: review-docs/mr-${CI_MERGE_REQUEST_IID}-hugo
+    action: stop
+  script:
+  - ./trigger-build.rb docs-hugo cleanup
+
 include:
   - component: ${CI_SERVER_FQDN}/gitlab-org/components/danger-review/danger-review@2.0.0
     inputs:
@@ -339,7 +363,6 @@ danger-review:
     - if: '$PIPELINE_TYPE =~ /_MR_PIPELINE$/'
     - if: '$PIPELINE_TYPE == "DOCS_PIPELINE"'
 
-Centos 7 knapsack: !reference [.knapsack]
 AlmaLinux 8 knapsack: !reference [.knapsack]
 AlmaLinux 9 knapsack: !reference [.knapsack]
 Debian 11 knapsack: !reference [.knapsack]
@@ -397,12 +420,6 @@ Debian 12 specs :
   parallel: 6
   needs:
   - Debian 12 knapsack
-Centos 7 specs :
-  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/centos_7-ruby:${BUILDER_IMAGE_REVISION}"
-  extends: .chef_spec_template
-  parallel: 6
-  needs:
-  - Centos 7 knapsack
 AlmaLinux 8 specs :
   image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/almalinux_8-ruby:${BUILDER_IMAGE_REVISION}"
   extends: .chef_spec_template

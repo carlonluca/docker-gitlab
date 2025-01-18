@@ -337,9 +337,6 @@ Ubuntu-22.04-arm64-branch:
 Ubuntu-24.04-arm64-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_24.04_arm64:${BUILDER_IMAGE_REVISION}"
   extends: .arm64_branch_template
-CentOS-7-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/centos_7:${BUILDER_IMAGE_REVISION}"
-  extends: .branch_template
 AlmaLinux-8-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
@@ -471,10 +468,6 @@ QA-branch:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE =~ /_(NIGHTLY|BRANCH)_BUILD_PIPELINE$/'
 
-Raspberry-Pi-2-Buster-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/rpi_10:${BUILDER_IMAGE_REVISION}"
-  extends: .rpi_branch_template
-
 Raspberry-Pi-2-Bullseye-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/rpi_11:${BUILDER_IMAGE_REVISION}"
   extends: .rpi_branch_template
@@ -598,9 +591,6 @@ Ubuntu-22.04-arm64:
 Ubuntu-24.04-arm64:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_24.04_arm64:${BUILDER_IMAGE_REVISION}"
   extends: .arm64_tag_template
-CentOS-7:
-  image: "${BUILDER_IMAGE_REGISTRY}/centos_7:${BUILDER_IMAGE_REVISION}"
-  extends: .tag_template
 AlmaLinux-8:
   image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8:${BUILDER_IMAGE_REVISION}"
   extends: .tag_template
@@ -735,13 +725,6 @@ Ubuntu-24.04-arm64-staging:
     - job: Ubuntu-24.04-arm64
       optional: true
     - job: Ubuntu-24.04-arm64-branch
-      optional: true
-CentOS-7-staging:
-  extends: .staging_upload_template
-  needs:
-    - job: CentOS-7
-      optional: true
-    - job: CentOS-7-branch
       optional: true
 AlmaLinux-8-staging:
   extends: .staging_upload_template
@@ -924,10 +907,6 @@ Debian-12-arm64-release:
   extends: .production_release_template
   needs:
     - Debian-12-arm64
-CentOS-7-release:
-  extends: .production_release_template
-  needs:
-    - CentOS-7
 AlmaLinux-8-release:
   extends: .production_release_template
   needs:
@@ -1120,10 +1099,6 @@ manifest-upload:
     - if: '$PIPELINE_TYPE =~ /_(RC|TAG)_BUILD_PIPELINE$/'
       when: manual
 
-Raspberry-Pi-2-Buster:
-  extends: .rpi_tag_template
-  image: "${BUILDER_IMAGE_REGISTRY}/rpi_10:${BUILDER_IMAGE_REVISION}"
-
 Raspberry-Pi-2-Bullseye:
   extends: .rpi_tag_template
   image: "${BUILDER_IMAGE_REGISTRY}/rpi_11:${BUILDER_IMAGE_REVISION}"
@@ -1131,11 +1106,6 @@ Raspberry-Pi-2-Bullseye:
 Raspberry-Pi-2-Bookworm:
   extends: .rpi_tag_template
   image: "${BUILDER_IMAGE_REGISTRY}/rpi_12:${BUILDER_IMAGE_REVISION}"
-
-Raspberry-Pi-2-Buster-release:
-  extends: .raspbian_release_template
-  needs:
-    - Raspberry-Pi-2-Buster
 
 Raspberry-Pi-2-Bullseye-release:
   extends: .raspbian_release_template

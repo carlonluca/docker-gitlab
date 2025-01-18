@@ -1,6 +1,6 @@
 #
 # Copyright:: Copyright (c) 2012 Opscode, Inc.
-# Copyright:: Copyright (c) 2015 GitLab B.V.
+# Copyright:: Copyright (c) 2015 GitLab Inc.
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +41,7 @@ account "Mattermost user and group" do
   ugid mattermost_group
   groupname mattermost_group
   gid mattermost_gid
-  shell '/bin/sh'
+  shell '/usr/sbin/nologin'
   home mattermost_home
   manage node['gitlab']['manage_accounts']['enable']
 end

@@ -1,6 +1,6 @@
 #
 # Copyright:: Copyright (c) 2012 Opscode, Inc.
-# Copyright:: Copyright (c) 2014 GitLab.com
+# Copyright:: Copyright (c) 2014 GitLab Inc.
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -363,6 +363,7 @@ templatesymlink "Create a smtp_settings.rb and create a symlink to Rails root" d
   dependent_services.each { |svc| notifies :restart, svc }
 
   action :delete unless node['gitlab']['gitlab_rails']['smtp_enable']
+  sensitive true
 end
 
 templatesymlink "Create a gitlab.yml and create a symlink to Rails root" do

@@ -88,7 +88,24 @@ env['CFLAGS'] << " -DOPENSSL_FIPS" if Build::Check.use_system_ssl?
 env['CFLAGS'] << ' -O3 -g -pipe'
 
 # Workaround for https://bugs.ruby-lang.org/issues/19161
-env['CFLAGS'] << ' -std=gnu99' if OhaiHelper.get_centos_version.to_i == 7 || OhaiHelper.os_platform == 'sles'
+env['CFLAGS'] << ' -std=gnu99' if OhaiHelper.os_platform == 'sles'
+
+# We need to recompile native gems on SLES 12 because precompiled gems
+# such as nokogiri now require glibc >= 2.29, and SLES 12 uses an older
+# version.
+#
+# By default, Ruby C extensions use `RbConfig::MAKEFILE_CONFIG["CC"]`,
+# which is the C compiler used to build Ruby. Some C extensions can use
+# alternative compilers by defining the CC/CXX environment
+# variables. However, google-protobuf does not yet support this, but
+# https://github.com/protocolbuffers/protobuf/pull/19863 adds upstream
+# support. For now, compiling the Ruby interpreter with GCC 8 works and
+# avoids the need to specify the compiler for every extension that needs
+# it.
+if OhaiHelper.sles12?
+  env['CC'] = "/usr/bin/gcc-8"
+  env['CXX'] = "/usr/bin/g++-8"
+end
 
 build do
   env['CFLAGS'] << ' -fno-omit-frame-pointer'
