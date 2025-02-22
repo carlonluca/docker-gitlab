@@ -2,9 +2,8 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://about.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Maintainership
 ---
-
-# Maintainership
 
 ## Scoped Maintainership
 
@@ -40,12 +39,15 @@ get infrequent updates, therefore it is not fair to expect trainee-maintainers
 to work on all of them. The following checklist provides a guideline to evaluate
 the progress of a trainee-maintainer in the build scope.
 
-NOTE:
+{{< alert type="note" >}}
+
 We do not differentiate between the trainee-maintainer as the author
 or reviewer in this list because `omnibus-gitlab` is a relatively stable
 and mature project. The majority of merge requests follow established
 patterns and only need to pass a set of well known tests that prove
 the changes work as expected.
+
+{{< /alert >}}
 
 1. Author or review merge requests which update any 3 components from the list below that
    support high availability. The trainee-maintainer should gain familiarity with complex

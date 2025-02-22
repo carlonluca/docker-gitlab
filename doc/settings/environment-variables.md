@@ -2,13 +2,15 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Setting custom environment variables
 ---
 
-# Setting custom environment variables
+{{< details >}}
 
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** Self-managed
+- Tier: Free, Premium, Ultimate
+- Offering: GitLab Self-Managed
+
+{{< /details >}}
 
 If necessary you can set custom environment variables to be used by Puma,
 Sidekiq, Rails and Rake via `/etc/gitlab/gitlab.rb`. This can be useful in
@@ -61,9 +63,12 @@ your proxy has its own SSL certificate and SSL enabled. This means, even for
 the `https_proxy` value, you should usually specify a value as
 `http://<USERNAME>:<PASSWORD>@example.com:8080`.
 
-NOTE:
+{{< alert type="note" >}}
+
 DNS rebind protection is disabled when either the HTTP_PROXY or the HTTPS_PROXY environment variable is set,
 and the domain DNS can't be resolved.
+
+{{< /alert >}}
 
 ## Applying the changes
 

@@ -2,13 +2,15 @@
 stage: Data Stores
 group: Cloud Connector
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Running GitLab in a memory-constrained environment
 ---
 
-# Running GitLab in a memory-constrained environment
+{{< details >}}
 
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** Self-managed
+- Tier: Free, Premium, Ultimate
+- Offering: GitLab Self-Managed
+
+{{< /details >}}
 
 GitLab requires a significant amount of memory when running with all features enabled.
 There are use-cases such as running GitLab on smaller installations where not all functionality
@@ -19,8 +21,8 @@ is required. Examples include:
 - Using resource-constrained devices like the Raspberry PI.
 
 With some adjustments, GitLab can run comfortably on much lower specifications than described in
-[minimum requirements](https://docs.gitlab.com/ee/install/requirements.html) or the
-[reference architectures](https://docs.gitlab.com/ee/administration/reference_architectures/).
+[minimum requirements](https://docs.gitlab.com/install/requirements/) or the
+[reference architectures](https://docs.gitlab.com/administration/reference_architectures/).
 
 The following sections contain advice that allows GitLab to run in environments
 that do not meet the minimum requirements. While most GitLab parts should be
@@ -117,20 +119,23 @@ than [GitLab Community Edition (CE)](https://about.gitlab.com/install/?version=c
 increase compute and memory requirements.
 
 When memory consumption is the primary concern, install GitLab CE. You can
-always [upgrade to GitLab EE](https://docs.gitlab.com/ee/update/package/convert_to_ee.html) later.
+always [upgrade to GitLab EE](https://docs.gitlab.com/update/package/convert_to_ee/) later.
 
 ## Optimize Puma
 
-WARNING:
-This is an experimental [Alpha feature](https://docs.gitlab.com/ee/policy/development_stages_support.html#alpha-features) and subject to change without notice. The feature
+{{< alert type="warning" >}}
+
+This is an experimental [Alpha feature](https://docs.gitlab.com/policy/development_stages_support/#alpha-features) and subject to change without notice. The feature
 is not ready for production use. If you want to use this feature, we recommend testing
-with non-production data first. See the [known issues](https://docs.gitlab.com/ee/administration/operations/puma.html#puma-single-mode-known-issues)
+with non-production data first. See the [known issues](https://docs.gitlab.com/administration/operations/puma/#puma-single-mode-known-issues)
 for additional details.
+
+{{< /alert >}}
 
 GitLab by default runs with a configuration that is designed to handle many concurrent connections.
 
 For small installations, which do not require high throughput,
-consider [disabling](https://docs.gitlab.com/ee/administration/operations/puma.html#memory-constrained-environments)
+consider [disabling](https://docs.gitlab.com/administration/operations/puma/#memory-constrained-environments)
 Puma [Clustered mode](https://github.com/puma/puma#clustered-mode).
 As the result, only a single Puma process would serve the application.
 

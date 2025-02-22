@@ -2,30 +2,32 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Configuring a Linux package installation
 ---
 
-# Configuring a Linux package installation
+{{< details >}}
 
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** Self-managed
+- Tier: Free, Premium, Ultimate
+- Offering: GitLab Self-Managed
 
-- [Asset proxy server](https://docs.gitlab.com/ee/security/asset_proxy.html)
+{{< /details >}}
+
+- [Asset proxy server](https://docs.gitlab.com/security/asset_proxy/)
 - [Backups](backups.md)
 - [Configuration options](configuration.md)
 - [Database](database.md)
 - [Environment variables](environment-variables.md)
 - [Gitaly Cluster](praefect.md)
 - [`gitlab.yml`](gitlab.yml.md)
-- [LDAP](https://docs.gitlab.com/ee/administration/auth/ldap/index.html)
+- [LDAP](https://docs.gitlab.com/administration/auth/ldap/)
 - [Logs](logs.md)
-- [Mattermost](https://docs.gitlab.com/ee/integration/mattermost/)
+- [Mattermost](https://docs.gitlab.com/integration/mattermost/)
 - [NGINX](nginx.md)
-- [Pages](https://docs.gitlab.com/ee/administration/pages/index.html)
+- [Pages](https://docs.gitlab.com/administration/pages/)
 - [Prometheus Monitoring](prometheus.md)
-- [Puma](https://docs.gitlab.com/ee/administration/operations/puma.html)
+- [Puma](https://docs.gitlab.com/administration/operations/puma/)
 - [Raspberry Pi](rpi.md)
 - [Redis](redis.md)
 - [SMTP](smtp.md)
-- [SSL](ssl/index.md)
+- [SSL](ssl/_index.md)
 - [Image scaling](image_scaling.md)

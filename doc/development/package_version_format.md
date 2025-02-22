@@ -2,9 +2,8 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Version format for the packages and Docker images
 ---
-
-# Version format for the packages and Docker images
 
 ## Packages
 
@@ -16,11 +15,14 @@ pipelines generally produce three types of packages:
 - nightly builds
 - tagged release builds
 
-NOTE:
+{{< alert type="note" >}}
+
 The `build_iteration` portion of versions strings conveys a specific meaning
 and contributes to how `build_version` is computed. The next sections are
 written with that in mind as `build_iteration` must be understood first even
 though it comes last in the version string.
+
+{{< /alert >}}
 
 ### Build Iteration
 

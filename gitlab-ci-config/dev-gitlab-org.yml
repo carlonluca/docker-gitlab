@@ -349,12 +349,6 @@ AlmaLinux-9-branch:
 AlmaLinux-9-arm64-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/almalinux_9_arm64:${BUILDER_IMAGE_REVISION}"
   extends: .arm64_branch_template
-OpenSUSE-15.5-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.5:${BUILDER_IMAGE_REVISION}"
-  extends: .branch_template
-OpenSUSE-15.5-arm64-branch:
-  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.5_arm64:${BUILDER_IMAGE_REVISION}"
-  extends: .arm64_branch_template
 OpenSUSE-15.6-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.6:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
@@ -394,6 +388,9 @@ AmazonLinux-2-fips-branch:
   extends: .fips_branch_template
   variables:
     USE_SYSTEM_LIBGCRYPT: "false" # AL2 libgcrypt is not compatible with Omnibus gpgme/gnupg
+AmazonLinux-2023-fips-branch:
+  image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2023_fips:${BUILDER_IMAGE_REVISION}"
+  extends: .fips_branch_template
 AlmaLinux-8-fips-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8_fips:${BUILDER_IMAGE_REVISION}"
   extends: .fips_branch_template
@@ -603,12 +600,6 @@ AlmaLinux-9:
 AlmaLinux-9-arm64:
   image: "${BUILDER_IMAGE_REGISTRY}/almalinux_9_arm64:${BUILDER_IMAGE_REVISION}"
   extends: .arm64_tag_template
-OpenSUSE-15.5:
-  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.5:${BUILDER_IMAGE_REVISION}"
-  extends: .tag_template
-OpenSUSE-15.5-arm64:
-  image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.5_arm64:${BUILDER_IMAGE_REVISION}"
-  extends: .arm64_tag_template
 OpenSUSE-15.6:
   image: "${BUILDER_IMAGE_REGISTRY}/opensuse_15.6:${BUILDER_IMAGE_REVISION}"
   extends: .tag_template
@@ -644,6 +635,9 @@ AmazonLinux-2-fips:
   extends: .fips_tag_template
   variables:
     USE_SYSTEM_LIBGCRYPT: "false" # AL2 libgcrypt is not compatible with Omnibus gpgme/gnupg
+AmazonLinux-2023-fips:
+  image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2023_fips:${BUILDER_IMAGE_REVISION}"
+  extends: .fips_tag_template
 AlmaLinux-8-fips:
   image: "${BUILDER_IMAGE_REGISTRY}/almalinux_8_fips:${BUILDER_IMAGE_REVISION}"
   extends: .fips_tag_template
@@ -754,20 +748,6 @@ AlmaLinux-9-arm64-staging:
       optional: true
     - job: AlmaLinux-9-arm64-branch
       optional: true
-OpenSUSE-15.5-staging:
-  extends: .staging_upload_template
-  needs:
-    - job: OpenSUSE-15.5
-      optional: true
-    - job: OpenSUSE-15.5-branch
-      optional: true
-OpenSUSE-15.5-arm64-staging:
-  extends: .staging_upload_template
-  needs:
-    - job: OpenSUSE-15.5-arm64
-      optional: true
-    - job: OpenSUSE-15.5-arm64-branch
-      optional: true
 OpenSUSE-15.6-staging:
   extends: .staging_upload_template
   needs:
@@ -838,6 +818,13 @@ AmazonLinux-2-fips-staging:
     - job: AmazonLinux-2-fips
       optional: true
     - job: AmazonLinux-2-fips-branch
+      optional: true
+AmazonLinux-2023-fips-staging:
+  extends: .fips_staging_upload_template
+  needs:
+    - job: AmazonLinux-2023-fips
+      optional: true
+    - job: AmazonLinux-2023-fips-branch
       optional: true
 AlmaLinux-8-fips-staging:
   extends: .fips_staging_upload_template
@@ -923,14 +910,6 @@ AlmaLinux-9-arm64-release:
   extends: .production_release_template
   needs:
     - AlmaLinux-9-arm64
-OpenSUSE-15.5-release:
-  extends: .production_release_template
-  needs:
-    - OpenSUSE-15.5
-OpenSUSE-15.5-arm64-release:
-  extends: .production_release_template
-  needs:
-    - OpenSUSE-15.5-arm64
 OpenSUSE-15.6-release:
   extends: .production_release_template
   needs:
@@ -979,6 +958,10 @@ AmazonLinux-2-fips-release:
     - AmazonLinux-2-fips
   variables:
     USE_SYSTEM_LIBGCRYPT: "false" # AL2 libgcrypt is not compatible with Omnibus gpgme/gnupg
+AmazonLinux-2023-fips-release:
+  extends: .fips_release_template
+  needs:
+    - AmazonLinux-2023-fips
 AlmaLinux-8-fips-release:
   extends: .fips_release_template
   needs:

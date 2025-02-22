@@ -2,13 +2,15 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Troubleshooting Omnibus GitLab installation issues
 ---
 
-# Troubleshooting Omnibus GitLab installation issues
+{{< details >}}
 
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** Self-managed
+- Tier: Free, Premium, Ultimate
+- Offering: GitLab Self-Managed
+
+{{< /details >}}
 
 Use this page to learn about common issues users can encounter when installing Omnibus GitLab packages.
 
@@ -64,7 +66,7 @@ You already have GitLab repositories configured, and ran `apt-get update`,
 `apt-get install` or `yum install`, and saw errors like the following:
 
 ```plaintext
-The following signatures couldn’t be verified because the public key is not available: NO_PUBKEY 3F01618A51312F3F
+The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 3F01618A51312F3F
 ```
 
 or
@@ -124,8 +126,11 @@ registry_external_url "https://registry.example.com"
 mattermost_external_url "https://mattermost.example.com"
 ```
 
-NOTE:
+{{< alert type="note" >}}
+
 Don't add the equal sign (`=`) between `external_url` and the value.
+
+{{< /alert >}}
 
 ## Emails are not being delivered
 
@@ -176,10 +181,13 @@ command is available.
 Omnibus GitLab detects default path changes in `/etc/gitlab/gitlab.rb` and should apply
 the correct file contexts.
 
-NOTE:
+{{< alert type="note" >}}
+
 From GitLab 16.10 forward, administrators can try `gitlab-ctl apply-sepolicy`
 to automatically fix SELinux issues. Consult
 `gitlab-ctl apply-sepolicy --help` for runtime options.
+
+{{< /alert >}}
 
 For installations using custom data path configuration,
 the administrator may have to manually resolve SELinux issues.
@@ -285,7 +293,7 @@ To fix this problem, you have two options:
      sudo gitlab-ctl reconfigure
      ```
 
-- Or, you can consider [using PgBouncer](https://docs.gitlab.com/ee/administration/postgresql/pgbouncer.html) which is a connection pooler for PostgreSQL.
+- Or, you can consider [using PgBouncer](https://docs.gitlab.com/administration/postgresql/pgbouncer/) which is a connection pooler for PostgreSQL.
 
 ## Reconfigure complains about the GLIBC version
 
@@ -473,7 +481,7 @@ sudo chown -R git:git /var/opt/gitlab/gitlab-rails/tmp/cache
 
 ## 'Short read or OOM loading DB' error
 
-Try [cleaning the old Redis session](https://docs.gitlab.com/ee/administration/operations/index.html).
+Try [cleaning the old Redis session](https://docs.gitlab.com/administration/operations/).
 
 ## Apt error 'The requested URL returned error: 403'
 
@@ -503,7 +511,7 @@ Faraday::SSLError (SSL_connect returned=1 errno=0 state=SSLv3 read server certif
 
 when GitLab tries to connect with the internal services like GitLab Shell.
 
-To fix these errors, see the [Install Custom Public Certificates](settings/ssl/index.md#install-custom-public-certificates) section.
+To fix these errors, see the [Install Custom Public Certificates](settings/ssl/_index.md#install-custom-public-certificates) section.
 
 ## error: proxyRoundTripper: XXX failed with: "net/http: timeout awaiting response headers"
 
@@ -519,7 +527,7 @@ You can increase the default timeout value by setting the value in `/etc/gitlab/
 gitlab_workhorse['proxy_headers_timeout'] = "2m0s"
 ```
 
-Save the file and [reconfigure GitLab](https://docs.gitlab.com/ee/administration/restart_gitlab.html#omnibus-gitlab-reconfigure) for the changes to take effect.
+Save the file and [reconfigure GitLab](https://docs.gitlab.com/administration/restart_gitlab/#omnibus-gitlab-reconfigure) for the changes to take effect.
 
 ## The change you wanted was rejected
 
@@ -541,7 +549,7 @@ how to override the default headers.
 
 ## Extension missing pg_trgm
 
-[GitLab requires](https://docs.gitlab.com/ee/install/requirements.html#postgresql-requirements)
+[GitLab requires](https://docs.gitlab.com/install/requirements/#postgresql-requirements)
 the PostgreSQL extension `pg_trgm`.
 If you are using Omnibus GitLab package with the bundled database, the extension
 should be automatically enabled when you upgrade.
@@ -601,7 +609,7 @@ above, and finally restart the container.
 
 ## Errno::ENOMEM: Cannot allocate memory during backup or upgrade
 
-[GitLab requires](https://docs.gitlab.com/ee/install/requirements.html#memory)
+[GitLab requires](https://docs.gitlab.com/install/requirements/#memory)
 2GB of available memory to run without errors. Having 2GB of memory installed may
 not be enough depending on the resource usage of other processes on your server.
 If GitLab runs fine when not upgrading or running a backup, then adding more swap
@@ -802,7 +810,7 @@ If you have set `external_url` with underscores (for example `https://my_company
 - It will not be possible to open project's **Settings > CI/CD** page.
 - Runners will not pick up jobs and will fail with an error 500.
 
-If that's the case, [`production.log`](https://docs.gitlab.com/ee/administration/logs/index.html#productionlog) will contain the following error:
+If that's the case, [`production.log`](https://docs.gitlab.com/administration/logs/#productionlog) will contain the following error:
 
 ```plaintext
 Completed 500 Internal Server Error in 50ms (ActiveRecord: 4.9ms | Elasticsearch: 0.0ms | Allocations: 17672)
@@ -843,7 +851,7 @@ Refer to [issue 341573](https://gitlab.com/gitlab-org/gitlab/-/issues/341573) fo
 
 Because of a [known issue](https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/7776), you can see the reconfigure process stuck at
 `ruby_block[wait for logrotate service socket] action run` after uninstalling GitLab and trying to install it again. This problem occurs when one of the `systemctl` commands are
-not executed when [uninstalling GitLab](installation/index.md#uninstall-the-linux-package-omnibus).
+not executed when [uninstalling GitLab](installation/_index.md#uninstall-the-linux-package-omnibus).
 
 To resolve this issue:
 

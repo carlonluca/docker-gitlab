@@ -2,9 +2,8 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: GitLab Team member's guide to using official build infrastructure
 ---
-
-# GitLab Team member's guide to using official build infrastructure
 
 If you are a GitLab team member, you have access to the build
 infrastructure or to the colleagues who have access to the infrastructure. You
@@ -55,8 +54,11 @@ environment variable is set to the commit SHA corresponding to the pipeline.
 Other environment variables, if not specified, are populated from
 their corresponding files and passed on to the triggered pipeline.
 
-NOTE:
+{{< alert type="note" >}}
+
 Environment variables take precedence over `*_VERSION` files.
+
+{{< /alert >}}
 
 ### Temporarily specify a component version
 
@@ -72,7 +74,7 @@ Temporarily specify a component version using any of the following methods:
   merge. We recommend you open an unresolved discussion on this diff in the
   MR so you remember to revert it.
 
-- Pass the environment variable as a [Git push option](https://docs.gitlab.com/ee/user/project/push_options.html#push-options-for-gitlab-cicd).
+- Pass the environment variable as a [Git push option](https://docs.gitlab.com/user/project/push_options/#push-options-for-gitlab-cicd).
 
   ```shell
   git push <REMOTE> -o ci.variable="<ENV_VAR>=<VALUE>"

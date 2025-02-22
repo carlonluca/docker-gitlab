@@ -2,22 +2,27 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: SMTP settings
 ---
 
-# SMTP settings
+{{< details >}}
 
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** Self-managed
+- Tier: Free, Premium, Ultimate
+- Offering: GitLab Self-Managed
+
+{{< /details >}}
 
 If you would rather send application email via an SMTP server instead of via
 Sendmail or Postfix, add the following configuration information to
 `/etc/gitlab/gitlab.rb` and run `gitlab-ctl reconfigure`.
 
-WARNING:
+{{< alert type="warning" >}}
+
 Your `smtp_password` should not contain any String delimiters used in
 Ruby or YAML (f.e. `'`) to avoid unexpected behavior during the processing of
 config settings.
+
+{{< /alert >}}
 
 There are [example configurations](#example-configurations) at the end of this page.
 
@@ -52,13 +57,13 @@ You can enable SMTP connection pooling with the following setting:
 gitlab_rails['smtp_pool'] = true
 ```
 
-This allows Sidekiq workers to reuse SMTP connections for multiple jobs. The maximum number of connections in the pool follows the [maximum concurrency configuration for Sidekiq](https://docs.gitlab.com/ee/administration/sidekiq/extra_sidekiq_processes.html#concurrency).
+This allows Sidekiq workers to reuse SMTP connections for multiple jobs. The maximum number of connections in the pool follows the [maximum concurrency configuration for Sidekiq](https://docs.gitlab.com/administration/sidekiq/extra_sidekiq_processes/#concurrency).
 
 ## Using encrypted credentials
 
 Instead of storing the SMTP credentials in the configuration files as plain text, you can optionally
 use an encrypted file for the SMTP credentials. To use this feature, you first need to enable
-[GitLab encrypted configuration](https://docs.gitlab.com/ee/administration/encrypted_configuration.html).
+[GitLab encrypted configuration](https://docs.gitlab.com/administration/encrypted_configuration/).
 
 The encrypted configuration for SMTP exists in an encrypted YAML file. By default the file will be created at
 `/var/opt/gitlab/gitlab-rails/shared/encrypted_configuration/smtp.yaml.enc`. This location is configurable in the GitLab configuration.
@@ -71,7 +76,7 @@ The supported configuration items for the encrypted file are:
 - `user_name`
 - `password`
 
-The encrypted contents can be configured with the [SMTP secret edit Rake command](https://docs.gitlab.com/ee/administration/raketasks/smtp.html).
+The encrypted contents can be configured with the [SMTP secret edit Rake command](https://docs.gitlab.com/administration/raketasks/smtp/).
 
 **Configuration**
 
@@ -139,11 +144,14 @@ gitlab_rails['smtp_force_ssl'] = false
 
 ### Gmail
 
-NOTE:
+{{< alert type="note" >}}
+
 Gmail has [strict sending limits](https://support.google.com/a/answer/166852)
 that can impair functionality as your organization grows. We strongly recommend using a
 transactional service like [SendGrid](https://sendgrid.com/en-us) or [Mailgun](https://www.mailgun.com/)
 for teams using SMTP configuration.
+
+{{< /alert >}}
 
 ```ruby
 gitlab_rails['smtp_enable'] = true
@@ -1375,25 +1383,28 @@ For more details, read [about the confusion over SMTP ports, TLS, and STARTTLS](
 
 ### Emails not sending when using external Sidekiq
 
-If your instance has [an external Sidekiq](https://docs.gitlab.com/ee/administration/sidekiq/index.html)
+If your instance has [an external Sidekiq](https://docs.gitlab.com/administration/sidekiq/)
 configured, the SMTP configuration must be present in `/etc/gitlab/gitlab.rb` on the external Sidekiq server. If
 the SMTP configuration is missing, you may notice that emails do not get sent through SMTP as many
 GitLab emails are sent via Sidekiq.
 
 ### Emails not sending when using Sidekiq routing rules
 
-If you are using Sidekiq [routing rules](https://docs.gitlab.com/ee/administration/sidekiq/processing_specific_job_classes.html#routing-rules), your configuration might be missing the `mailers` queue which is required for outgoing mail.
+If you are using Sidekiq [routing rules](https://docs.gitlab.com/administration/sidekiq/processing_specific_job_classes/#routing-rules), your configuration might be missing the `mailers` queue which is required for outgoing mail.
 
-For more details, review the [example configuration](https://docs.gitlab.com/ee/administration/sidekiq/processing_specific_job_classes.html#detailed-example).
+For more details, review the [example configuration](https://docs.gitlab.com/administration/sidekiq/processing_specific_job_classes/#detailed-example).
 
 ### Email not sent
 
-WARNING:
+{{< alert type="warning" >}}
+
 Any command that changes data directly could be damaging if not run correctly, or under the right conditions. We highly recommend running them in a test environment with a backup of the instance ready to be restored, just in case.
+
+{{< /alert >}}
 
 If you have correctly configured an email server, but email is not sent:
 
-1. Run a [Rails console](https://docs.gitlab.com/ee/administration/operations/rails_console.html#starting-a-rails-console-session).
+1. Run a [Rails console](https://docs.gitlab.com/administration/operations/rails_console/#starting-a-rails-console-session).
 1. Check the `ActionMailer` `delivery_method`. It must match the type of server you're using, either `:smtp` for an SMTP server or `:sendmail`
    for Sendmail:
    intended. If you configured SMTP, it should say `:smtp`. If you're using
@@ -1434,8 +1445,11 @@ This error occurs when both `gitlab_rails['smtp_enable_starttls_auto']` and `git
 
 ## Disable all outgoing email
 
-NOTE:
+{{< alert type="note" >}}
+
 This will disable **all** outgoing email from your GitLab instance, including but not limited to notification emails, direct mentions, and password reset emails.
+
+{{< /alert >}}
 
 In order to disable **all** outgoing email, you can edit or add the following line to `/etc/gitlab/gitlab.rb`:
 

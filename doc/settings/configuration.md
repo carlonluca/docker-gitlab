@@ -2,13 +2,15 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Configuration options for Linux package installations
 ---
 
-# Configuration options for Linux package installations
+{{< details >}}
 
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** Self-managed
+- Tier: Free, Premium, Ultimate
+- Offering: GitLab Self-Managed
+
+{{< /details >}}
 
 To configure GitLab, set the relevant options in the `/etc/gitlab/gitlab.rb` file.
 
@@ -16,11 +18,14 @@ To configure GitLab, set the relevant options in the `/etc/gitlab/gitlab.rb` fil
 contains a complete list of available options. New installations have all the
 options of the template listed in `/etc/gitlab/gitlab.rb` by default.
 
-NOTE:
+{{< alert type="note" >}}
+
 The examples provided when you edit `/etc/gitlab/gitlab.rb` might not always reflect the default settings for an instance.
 
+{{< /alert >}}
+
 For a list of default settings, see the
-[package defaults](https://docs.gitlab.com/ee/administration/package_information/defaults.html).
+[package defaults](https://docs.gitlab.com/administration/package_information/defaults/).
 
 ## Configure the external URL for GitLab
 
@@ -28,12 +33,12 @@ To display the correct repository clone links to your users,
 you must provide GitLab with the URL your users use to reach the repository.
 You can use the IP of your server, but a Fully Qualified Domain Name (FQDN)
 is preferred. See the [DNS documentation](dns.md)
-for more details about the use of DNS in a self-managed GitLab instance.
+for more details about the use of DNS in a GitLab Self-Managed instance.
 
 To change the external URL:
 
 1. Optional. Before you change the external URL, determine if you have previously
-   defined a [custom **Home page URL** or **After sign-out path**](https://docs.gitlab.com/ee/administration/settings/sign_in_restrictions.html#sign-in-information).
+   defined a [custom **Home page URL** or **After sign-out path**](https://docs.gitlab.com/administration/settings/sign_in_restrictions/#sign-in-information).
    Both of these settings might cause unintentional redirecting after configuring
    a new external URL. If you have defined any URLs, remove them completely.
 
@@ -50,7 +55,7 @@ To change the external URL:
    ```
 
    In the previous examples we use plain HTTP. If you want to use HTTPS, see
-   how to [configure SSL](ssl/index.md).
+   how to [configure SSL](ssl/_index.md).
 
 1. Reconfigure GitLab:
 
@@ -60,7 +65,7 @@ To change the external URL:
 
 1. Optional. If you had been using GitLab for a while, after you change the
    external URL, you should also
-   [invalidate the Markdown cache](https://docs.gitlab.com/ee/administration/invalidate_markdown_cache.html).
+   [invalidate the Markdown cache](https://docs.gitlab.com/administration/invalidate_markdown_cache/).
 
 ### Specify the external URL at the time of installation
 
@@ -84,9 +89,12 @@ sudo EXTERNAL_URL="https://gitlab.example.com" apt-get install gitlab-ee
 
 ## Configure a relative URL for GitLab
 
-NOTE:
+{{< alert type="note" >}}
+
 For self-compiled (source) installations, there is a
-[separate document](https://docs.gitlab.com/ee/install/relative_url.html).
+[separate document](https://docs.gitlab.com/install/relative_url/).
+
+{{< /alert >}}
 
 While we recommended installing GitLab in its own (sub)domain, sometimes
 it is not possible. In that case, GitLab can also
@@ -272,17 +280,20 @@ To change the location of the directory,
       ```
 
 If you're running Gitaly on a separate server, see
-[the documentation on configuring Gitaly](https://docs.gitlab.com/ee/administration/gitaly/configure_gitaly.html#configure-gitaly-clients).
+[the documentation on configuring Gitaly](https://docs.gitlab.com/administration/gitaly/configure_gitaly/#configure-gitaly-clients).
 
 If you're not looking to move all repositories, but instead want to move specific
 projects between existing repository storages, use the
-[Edit Project API](https://docs.gitlab.com/ee/api/projects.html#edit-project)
+[Edit Project API](https://docs.gitlab.com/api/projects/#edit-project)
 endpoint and specify the `repository_storage` attribute.
 
 ## Change the name of the Git user or group
 
-WARNING:
+{{< alert type="warning" >}}
+
 We do not recommend changing the user or group of an existing installation because it can cause unpredictable side effects.
+
+{{< /alert >}}
 
 By default, Linux package installations use the user name `git` for Git GitLab Shell login,
 ownership of the Git data itself, and SSH URL generation on the web interface.
@@ -587,8 +598,11 @@ from starting before a given file system is mounted, you can set the
    sudo gitlab-ctl reconfigure
    ```
 
-   NOTE:
-   If the mount point doesn't exist, GitLab fails to reconfigure.
+   {{< alert type="note" >}}
+
+If the mount point doesn't exist, GitLab fails to reconfigure.
+
+   {{< /alert >}}
 
 ## Configure the runtime directory
 
@@ -625,7 +639,7 @@ To enable the Rails metrics again:
 ## Configure a failed authentication ban
 
 You can configure a
-[failed authentication ban](https://docs.gitlab.com/ee/security/rate_limits.html#failed-authentication-ban-for-git-and-container-registry)
+[failed authentication ban](https://docs.gitlab.com/security/rate_limits/#failed-authentication-ban-for-git-and-container-registry)
 for Git and the container registry. When a client is banned, a 403 error code
 is returned.
 
@@ -683,11 +697,14 @@ To disable automatic cache cleaning during installation:
 
 ## Error Reporting and Logging with Sentry
 
-WARNING:
+{{< alert type="warning" >}}
+
 From GitLab 17.0, only Sentry versions 21.5.0 or later will be supported. If
 you use an earlier version of a Sentry instance that you host, you must
 [upgrade Sentry](https://develop.sentry.dev/self-hosted/releases/) to continue
 collecting errors from your GitLab environments.
+
+{{< /alert >}}
 
 Sentry is an open source error reporting and logging tool which can be used as
 SaaS (<https://sentry.io>) or [host it yourself](https://develop.sentry.dev/self-hosted/).
@@ -762,12 +779,15 @@ cross-site scripting (XSS) attacks. See
 details.
 
 [CSP and nonce-source with inline JavaScript](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/script-src) is available on GitLab.com.
-It is [not configured by default](https://gitlab.com/gitlab-org/gitlab/-/issues/30720) on self-managed.
+It is [not configured by default](https://gitlab.com/gitlab-org/gitlab/-/issues/30720) on GitLab Self-Managed.
 
-NOTE:
+{{< alert type="note" >}}
+
 Improperly configuring the CSP rules could prevent GitLab from working
 properly. Before rolling out a policy, you may also want to change
 `report_only` to `true` to test the configuration.
+
+{{< /alert >}}
 
 To add a CSP:
 
@@ -810,7 +830,7 @@ To add a CSP:
 ## Set initial root password on installation
 
 The initial password for the administrator user `root` can be set at installation time. For more information, see
-[Set up the initial password](../installation/index.md#set-up-the-initial-account).
+[Set up the initial password](../installation/_index.md#set-up-the-initial-account).
 
 ## Set allowed hosts to prevent host header attacks
 
@@ -885,11 +905,14 @@ components:
 As an example, you can use the script and `gitlab.rb` snippet below to specify
 the password to Redis server and components that need to connect to Redis.
 
-NOTE:
+{{< alert type="note" >}}
+
 When specifying password to Redis server, this method only saves the user from
 having the plaintext password in `gitlab.rb` file. The password will end up in
 plaintext in the Redis server configuration file present at
 `/var/opt/gitlab/redis/redis.conf`.
+
+{{< /alert >}}
 
 1. Save the script below as `/opt/generate-redis-conf`
 
@@ -1020,9 +1043,9 @@ password that GitLab Rails should use to connect to the PostgreSQL server.
 
 ## Related topics
 
-- [Disable impersonation](https://docs.gitlab.com/ee/api/index.html#disable-impersonation)
-- [Set up LDAP sign-in](https://docs.gitlab.com/ee/administration/auth/ldap/index.html)
-- [Smartcard authentication](https://docs.gitlab.com/ee/administration/auth/smartcard.html)
+- [Disable impersonation](https://docs.gitlab.com/api/#disable-impersonation)
+- [Set up LDAP sign-in](https://docs.gitlab.com/administration/auth/ldap/)
+- [Smartcard authentication](https://docs.gitlab.com/administration/auth/smartcard/)
 - [Set up NGINX](nginx.md) for things like:
   - Set up HTTPS
   - Redirect `HTTP` requests to `HTTPS`
@@ -1037,8 +1060,8 @@ password that GitLab Rails should use to connect to the PostgreSQL server.
 - [Add `ENV` vars to the GitLab runtime environment](environment-variables.md)
 - [Changing `gitlab.yml` and `application.yml` settings](gitlab.yml.md)
 - [Send application email via SMTP](smtp.md)
-- [Set up OmniAuth (Google, Twitter, GitHub login)](https://docs.gitlab.com/ee/integration/omniauth.html)
-- [Adjust Puma settings](https://docs.gitlab.com/ee/administration/operations/puma.html)
+- [Set up OmniAuth (Google, Twitter, GitHub login)](https://docs.gitlab.com/integration/omniauth/)
+- [Adjust Puma settings](https://docs.gitlab.com/administration/operations/puma/)
 
 ## Troubleshooting
 

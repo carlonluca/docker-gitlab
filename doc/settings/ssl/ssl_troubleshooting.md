@@ -2,21 +2,23 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Troubleshooting SSL
 ---
 
-# Troubleshooting SSL
+{{< details >}}
 
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** Self-managed
+- Tier: Free, Premium, Ultimate
+- Offering: GitLab Self-Managed
+
+{{< /details >}}
 
 This page contains a list of common SSL-related errors and scenarios that you
 may encounter while working with GitLab. It should serve as an addition to the
 main SSL documentation:
 
-- [Configure SSL for a Linux package installation](index.md).
+- [Configure SSL for a Linux package installation](_index.md).
 - [Self-signed certificates or custom Certification Authorities for GitLab Runner](https://docs.gitlab.com/runner/configuration/tls-self-signed.html).
-- [Configure HTTPS manually](index.md#configure-https-manually).
+- [Configure HTTPS manually](_index.md#configure-https-manually).
 
 ## Useful OpenSSL Debugging Commands
 
@@ -24,10 +26,13 @@ Sometimes it's helpful to get a better picture of the SSL certificate chain by v
 at the source. These commands are part of the standard OpenSSL library of tools for diagnostics and
 debugging.
 
-NOTE:
-GitLab includes its own [custom-compiled version of OpenSSL](index.md#details-on-how-gitlab-and-ssl-work)
+{{< alert type="note" >}}
+
+GitLab includes its own [custom-compiled version of OpenSSL](_index.md#details-on-how-gitlab-and-ssl-work)
 that all GitLab libraries are linked against. It's important to run the following commands using
 this OpenSSL version.
+
+{{< /alert >}}
 
 - Perform a test connection to the host over HTTPS. Replace `HOSTNAME` with your GitLab URL
   (excluding HTTPS), and replace `port` with the port that serves HTTPS connections (usually 443):
@@ -69,25 +74,31 @@ this OpenSSL version.
 
 1. `SSL certificate problem: unable to get local issuer certificate`
 
-   This error indicates the client cannot get the root CA. To fix this, you can either [trust the root CA](index.md#install-custom-public-certificates) of the server you are trying to connect to on the client or [modify the certificate](index.md#configure-https-manually) to present the full chained certificate on the server you are trying to connect to.
+   This error indicates the client cannot get the root CA. To fix this, you can either [trust the root CA](_index.md#install-custom-public-certificates) of the server you are trying to connect to on the client or [modify the certificate](_index.md#configure-https-manually) to present the full chained certificate on the server you are trying to connect to.
 
-   NOTE:
-   It is recommended to use the full certificate chain in order to prevent SSL errors when clients connect. The full certificate chain order should consist of the server certificate first, followed by all intermediate certificates, with the root CA last.
+   {{< alert type="note" >}}
+
+It is recommended to use the full certificate chain in order to prevent SSL errors when clients connect. The full certificate chain order should consist of the server certificate first, followed by all intermediate certificates, with the root CA last.
+
+   {{< /alert >}}
 
 1. `unable to verify the first certificate`
 
-   This error indicates that an incomplete certificate chain is being presented by the server. To fix this error, you will need to [replace server's certificate with the full chained certificate](index.md#configure-https-manually). The full certificate chain order should consist of the server certificate first, followed by all intermediate certificates, with the root CA last.
+   This error indicates that an incomplete certificate chain is being presented by the server. To fix this error, you will need to [replace server's certificate with the full chained certificate](_index.md#configure-https-manually). The full certificate chain order should consist of the server certificate first, followed by all intermediate certificates, with the root CA last.
 
-   NOTE:
-   If you get this error while running the system OpenSSL utility instead of the `/opt/gitlab/embedded/bin/openssl` utility, make sure you update your CA certificates at the OS level to fix it.
+   {{< alert type="note" >}}
+
+If you get this error while running the system OpenSSL utility instead of the `/opt/gitlab/embedded/bin/openssl` utility, make sure you update your CA certificates at the OS level to fix it.
+
+   {{< /alert >}}
 
 1. `certificate signed by unknown authority`
 
-   This error indicates that the client does not trust the certificate or CA. To fix this error, the client connecting to server will need to [trust the certificate or CA](index.md#install-custom-public-certificates).
+   This error indicates that the client does not trust the certificate or CA. To fix this error, the client connecting to server will need to [trust the certificate or CA](_index.md#install-custom-public-certificates).
 
 1. `SSL certificate problem: self signed certificate in certificate chain`
 
-   This error indicates that the client does not trust the certificate or CA. To fix this error, the client connecting to server will need to [trust the certificate or CA](index.md#install-custom-public-certificates).
+   This error indicates that the client does not trust the certificate or CA. To fix this error, the client connecting to server will need to [trust the certificate or CA](_index.md#install-custom-public-certificates).
 
 1. `x509: certificate relies on legacy Common Name field, use SANs instead`
 
@@ -101,12 +112,15 @@ ERROR: Not a certificate: /opt/gitlab/embedded/ssl/certs/FILE. Move it from /opt
 
 Check `/opt/gitlab/embedded/ssl/certs` and remove any files other than `README.md` that aren't valid X.509 certificates.
 
-NOTE:
+{{< alert type="note" >}}
+
 Running `gitlab-ctl reconfigure` constructs symlinks named from the subject hashes
 of your custom public certificates and places them in `/opt/gitlab/embedded/ssl/certs/`.
 Broken symlinks in `/opt/gitlab/embedded/ssl/certs/` will be automatically removed.
 Files other than `cacert.pem` and `README.md` stored in
 `/opt/gitlab/embedded/ssl/certs/` will be moved into the `/etc/gitlab/trusted-certs/`.
+
+{{< /alert >}}
 
 ## Custom Certificates Missing or Skipped
 
@@ -202,10 +216,13 @@ Where HOSTNAME is the hostname of the certificate.
 
 ## Let's Encrypt fails on reconfigure
 
-NOTE:
+{{< alert type="note" >}}
+
 You can test your domain using the [Let's Debug](https://letsdebug.net/)
 diagnostic tool. It can help you figure out why you can't issue a Let's Encrypt
 certificate.
+
+{{< /alert >}}
 
 When you reconfigure, there are common scenarios under which Let's Encrypt may fail:
 
@@ -215,7 +232,7 @@ When you reconfigure, there are common scenarios under which Let's Encrypt may f
   letsencrypt_certificate[gitlab.domain.com] (letsencrypt::http_authorization line 3) had an error: RuntimeError: acme_certificate[staging]  (/opt/gitlab/embedded/cookbooks/cache/cookbooks/letsencrypt/resources/certificate.rb line 20) had an error: RuntimeError: [gitlab.domain.com] Validation failed for domain gitlab.domain.com
   ```
 
-  If you run into issues reconfiguring GitLab due to Let's Encrypt [make sure you have ports 80 and 443 open and accessible](index.md#enable-the-lets-encrypt-integration).
+  If you run into issues reconfiguring GitLab due to Let's Encrypt [make sure you have ports 80 and 443 open and accessible](_index.md#enable-the-lets-encrypt-integration).
 
 - Your domain's Certification Authority Authorization (CAA) record does not allow Let's Encrypt to issue a certificate for your domain. Look for the following error in the reconfigure output:
 
@@ -251,7 +268,7 @@ following issues:
   More details here: https://curl.haxx.se/docs/sslcerts.html
   ```
 
-- Testing by using the [rails console](https://docs.gitlab.com/ee/administration/operations/rails_console.html#starting-a-rails-console-session)
+- Testing by using the [rails console](https://docs.gitlab.com/administration/operations/rails_console/#starting-a-rails-console-session)
   also fails:
 
   ```ruby
@@ -267,7 +284,7 @@ following issues:
   ```
 
 - The error `SSL certificate problem: unable to get local issuer certificate`
-  is displayed when setting up a [mirror](https://docs.gitlab.com/ee/user/project/repository/mirror/index.html)
+  is displayed when setting up a [mirror](https://docs.gitlab.com/user/project/repository/mirror/)
   from this GitLab instance.
 - `openssl` works when specifying the path to the certificate:
 
@@ -340,7 +357,7 @@ Follow the details in [Self-signed certificates or custom Certification Authorit
 
 ## Mirroring a remote GitLab repository that uses a self-signed SSL certificate
 
-When configuring a local GitLab instance to [mirror a repository](https://docs.gitlab.com/ee/user/project/repository/mirror/index.html)
+When configuring a local GitLab instance to [mirror a repository](https://docs.gitlab.com/user/project/repository/mirror/)
 from a remote GitLab instance that uses a self-signed certificate, you may see
 the `SSL certificate problem: self signed certificate` error message in the
 user interface.
@@ -374,7 +391,7 @@ To fix this problem:
 - Add the self-signed certificate from the remote GitLab instance to the
   `/etc/gitlab/trusted-certs` directory on the local GitLab instance, and then
   run `sudo gitlab-ctl reconfigure` as per the instructions for
-  [installing custom public certificates](index.md#install-custom-public-certificates).
+  [installing custom public certificates](_index.md#install-custom-public-certificates).
 - If your local GitLab instance was installed using the Helm Charts, you can
   [add your self-signed certificate to your GitLab instance](https://docs.gitlab.com/runner/install/kubernetes.html#providing-a-custom-certificate-for-accessing-gitlab).
 
@@ -460,7 +477,7 @@ Some of these errors come from the Excon Ruby gem, and could be generated in
 circumstances where GitLab is configured to initiate an HTTPS session to a
 remote server that is serving only HTTP.
 
-One scenario is that you're using [object storage](https://docs.gitlab.com/ee/administration/object_storage.html), which
+One scenario is that you're using [object storage](https://docs.gitlab.com/administration/object_storage/), which
 isn't served under HTTPS. GitLab is misconfigured and attempts a TLS handshake,
 but the object storage responds with plain HTTP.
 
@@ -480,9 +497,12 @@ git config --system http.sslbackend openssl
 
 Alternatively, you can ignore SSL verification by running:
 
-WARNING:
+{{< alert type="warning" >}}
+
 Proceed with caution when [ignoring SSL](https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpsslVerify)
 due to the potential security issues associated with disabling this option at global level. Use this option _only_ when troubleshooting, and reinstate SSL verification immediately after.
+
+{{< /alert >}}
 
 ```shell
 git config --global http.sslVerify false
@@ -490,7 +510,7 @@ git config --global http.sslVerify false
 
 ## Upgrade to OpenSSL 3
 
-Starting from [version 17.7](https://docs.gitlab.com/ee/update/versions/gitlab_17_changes.html#1770),
+Starting from [version 17.7](https://docs.gitlab.com/update/versions/gitlab_17_changes/#1770),
 GitLab uses OpenSSL 3. Some of the older TLS protocols and cipher suites, or
 weaker TLS certificates for external integrations may be incompatible with
 OpenSSL 3 defaults.

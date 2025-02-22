@@ -201,13 +201,15 @@ class OhaiHelper
     def ruby_native_gems_unsupported?
       %w[
         amazon-2
+        amazon-2_fips
         amazon-2_aarch64
         debian-buster_aarch64
-        el-7
         el-8
+        el-8_fips
         el-8_aarch64
         raspbian-buster_aarch64
         sles-12.5
+        sles-15.2
       ].include?(platform_dir)
     end
   end

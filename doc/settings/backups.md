@@ -2,13 +2,15 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Backup
 ---
 
-# Backup
+{{< details >}}
 
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** Self-managed
+- Tier: Free, Premium, Ultimate
+- Offering: GitLab Self-Managed
+
+{{< /details >}}
 
 ## Backup and restore configuration on a Linux package installation
 
@@ -27,10 +29,13 @@ configuration, just run `sudo gitlab-ctl backup-etc`. It creates a tar
 archive in `/etc/gitlab/config_backup/`. Directory and backup files will be
 readable only to root.
 
-NOTE:
+{{< alert type="note" >}}
+
 Running `sudo gitlab-ctl backup-etc --backup-path <DIRECTORY>` will place
 the backup in the specified directory. The directory will be created if it
 does not exist. Absolute paths are recommended.
+
+{{< /alert >}}
 
 To create a daily application backup, edit the cron table for user root:
 
@@ -48,8 +53,11 @@ weekday, Tuesday (day 2) through Saturday (day 6):
 15 04 * * 2-6  gitlab-ctl backup-etc && cd /etc/gitlab/config_backup && cp $(ls -t | head -n1) /secret/gitlab/backups/
 ```
 
-NOTE:
+{{< alert type="note" >}}
+
 Make sure that `/secret/gitlab/backups/` exists.
+
+{{< /alert >}}
 
 You can extract the tar file as follows.
 
@@ -63,13 +71,16 @@ sudo tar -xf gitlab_config_1487687824_2017_02_21.tar -C /
 Remember to run `sudo gitlab-ctl reconfigure` after restoring a configuration
 backup.
 
-NOTE:
+{{< alert type="note" >}}
+
 Your machines SSH host keys are stored in a separate location at `/etc/ssh/`. Be sure to also [backup and restore those keys](https://superuser.com/questions/532040/copy-ssh-keys-from-one-server-to-another-server/532079#532079) to avoid man-in-the-middle attack warnings if you have to perform a full machine restore.
+
+{{< /alert >}}
 
 ### Limit backup lifetime for configuration backups (prune old backups)
 
 GitLab configuration backups can be pruned using the same `backup_keep_time` setting that is
-[used for the GitLab application backups](https://docs.gitlab.com/ee/administration/backup_restore/backup_gitlab.html#limit-backup-lifetime-for-local-files-prune-old-backups)
+[used for the GitLab application backups](https://docs.gitlab.com/administration/backup_restore/backup_gitlab/#limit-backup-lifetime-for-local-files-prune-old-backups)
 
 To make use of this setting, edit `/etc/gitlab/gitlab.rb`:
 
@@ -85,9 +96,12 @@ backups older than the current time minus the `backup_keep_time`.
 
 You can provide the parameter `--no-delete-old-backups` if you want to keep all existing backups.
 
-WARNING:
+{{< alert type="warning" >}}
+
 If no parameter is provided the default is `--delete-old-backups`, which will delete any backups
 older than the current time minus the `backup_keep_time`, if `backup_keep_time` is greater than 0.
+
+{{< /alert >}}
 
 ### Separate configuration backups from application data
 
@@ -107,7 +121,7 @@ lost/leaked/stolen together with the keys needed to decrypt it.
 ## Creating an application backup
 
 To create a backup of your repositories and GitLab metadata, follow the
-[backup create documentation](https://docs.gitlab.com/ee/administration/backup_restore/backup_gitlab.html).
+[backup create documentation](https://docs.gitlab.com/administration/backup_restore/backup_gitlab/).
 
 Backup create will store a tar file in `/var/opt/gitlab/backups`.
 
@@ -121,9 +135,12 @@ gitlab_rails['backup_path'] = '/mnt/backups'
 
 ## Creating backups for GitLab instances in Docker containers
 
-WARNING:
-The backup command requires [additional parameters](https://docs.gitlab.com/ee/administration/backup_restore/backup_gitlab.html#back-up-and-restore-for-installations-using-pgbouncer)
+{{< alert type="warning" >}}
+
+The backup command requires [additional parameters](https://docs.gitlab.com/administration/backup_restore/backup_gitlab/#back-up-and-restore-for-installations-using-pgbouncer)
 when your installation is using PgBouncer, for either performance reasons or when using it with a Patroni cluster.
+
+{{< /alert >}}
 
 Backups can be scheduled on the host by prepending `docker exec -t <your container name>` to the commands.
 
@@ -139,11 +156,14 @@ Backup configuration and secrets:
 docker exec -t <your container name> /bin/sh -c 'gitlab-ctl backup-etc && cd /etc/gitlab/config_backup && cp $(ls -t | head -n1) /secret/gitlab/backups/'
 ```
 
-NOTE:
+{{< alert type="note" >}}
+
 To persist these backups outside the container, mount volumes in the following directories:
 
+{{< /alert >}}
+
 1. `/secret/gitlab/backups`.
-1. `/var/opt/gitlab` for [all application data](https://docs.gitlab.com/ee/install/docker.html#set-up-the-volumes-location), which includes backups.
+1. `/var/opt/gitlab` for [all application data](https://docs.gitlab.com/install/docker/#set-up-the-volumes-location), which includes backups.
 1. `/var/opt/gitlab/backups` (optional). The `gitlab-backup` tool writes to this directory [by default](#creating-an-application-backup).
    While this directory is nested inside `/var/opt/gitlab`, [Docker sorts these mounts](https://github.com/moby/moby/pull/8055), allowing them to work in harmony.
 
@@ -154,7 +174,7 @@ To persist these backups outside the container, mount volumes in the following d
 
 ## Restoring an application backup
 
-See [restore documentation](https://docs.gitlab.com/ee/administration/backup_restore/restore_gitlab.html).
+See [restore documentation](https://docs.gitlab.com/administration/backup_restore/restore_gitlab/).
 
 ## Backup and restore using non-packaged database
 
@@ -162,7 +182,7 @@ If you are using non-packaged database see [documentation on using non-packaged 
 
 ## Upload backups to remote (cloud) storage
 
-For details check [backup documentation](https://docs.gitlab.com/ee/administration/backup_restore/backup_gitlab.html#upload-backups-to-a-remote-cloud-storage).
+For details check [backup documentation](https://docs.gitlab.com/administration/backup_restore/backup_gitlab/#upload-backups-to-a-remote-cloud-storage).
 
 ## Manually manage backup directory
 

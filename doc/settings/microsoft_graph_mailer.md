@@ -2,15 +2,21 @@
 stage: Manage
 group: Authentication and Authorization
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#designated-technical-writers
+title: Microsoft Graph Mailer settings
 ---
 
-# Microsoft Graph Mailer settings
+{{< details >}}
 
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** Self-managed
+- Tier: Free, Premium, Ultimate
+- Offering: GitLab Self-Managed
 
-> - [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/8259) in GitLab 15.5.
+{{< /details >}}
+
+{{< history >}}
+
+- [Introduced](https://gitlab.com/groups/gitlab-org/-/epics/8259) in GitLab 15.5.
+
+{{< /history >}}
 
 Prerequisites:
 

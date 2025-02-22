@@ -2,13 +2,15 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Changing `gitlab.yml` and `application.yml` settings
 ---
 
-# Changing `gitlab.yml` and `application.yml` settings
+{{< details >}}
 
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** Self-managed
+- Tier: Free, Premium, Ultimate
+- Offering: GitLab Self-Managed
+
+{{< /details >}}
 
 Some GitLab features can be customized through
 [`gitlab.yml`](https://gitlab.com/gitlab-org/gitlab-foss/blob/master/config/gitlab.yml.example). If you want to change a `gitlab.yml` setting
@@ -45,7 +47,7 @@ because it is overwritten on the next `gitlab-ctl reconfigure` run.
 
 ## Adding a new setting to `gitlab.yml`
 
-First, consider not adding a setting to `gitlab.yml`. See **Settings** under [GitLab-specific concerns](https://docs.gitlab.com/ee/development/code_review.html#gitlab-specific-concerns).
+First, consider not adding a setting to `gitlab.yml`. See **Settings** under [GitLab-specific concerns](https://docs.gitlab.com/development/code_review/#gitlab-specific-concerns).
 
 Don't forget to update the following 5 files when adding a new setting:
 

@@ -2,13 +2,15 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Convert a self-compiled installation to a Linux package installation
 ---
 
-# Convert a self-compiled installation to a Linux package installation
+{{< details >}}
 
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** Self-managed
+- Tier: Free, Premium, Ultimate
+- Offering: GitLab Self-Managed
+
+{{< /details >}}
 
 If you installed GitLab by using the self-compiled installation method, you can convert your instance to a Linux
 package instance.
@@ -16,11 +18,14 @@ package instance.
 When converting a self-compiled installation:
 
 - You must convert to the exact same version of GitLab.
-- You must [configure settings in `/etc/gitlab/gitlab.rb`](../index.md#configuring) because settings in files such as
+- You must [configure settings in `/etc/gitlab/gitlab.rb`](../_index.md#configuring) because settings in files such as
   `gitlab.yml`, `puma.rb` and `smtp_settings.rb` are lost.
 
-WARNING:
+{{< alert type="warning" >}}
+
 Converting from self-compiled installations has not been tested by GitLab.
+
+{{< /alert >}}
 
 To convert your self-compiled installation to a Linux package installation:
 
@@ -33,7 +38,7 @@ To convert your self-compiled installation to a Linux package installation:
 
 1. [Install GitLab using a Linux package](https://about.gitlab.com/install/).
 1. Copy the backup file to the directory `/var/opt/gitlab/backups/` of the new server.
-1. Restore the backup in the new installation ([detailed instructions](https://docs.gitlab.com/ee/administration/backup_restore/restore_gitlab.html#restore-for-linux-package-installations)):
+1. Restore the backup in the new installation ([detailed instructions](https://docs.gitlab.com/administration/backup_restore/restore_gitlab/#restore-for-linux-package-installations)):
 
    ```shell
    # This command will overwrite the contents of your GitLab database!
@@ -90,13 +95,13 @@ To convert your self-compiled installation to a Linux package installation:
 
 ## Convert an external PostgreSQL to a Linux package installation by using a backup
 
-You can convert an [external PostgreSQL installation](https://docs.gitlab.com/ee/administration/postgresql/external.html)
+You can convert an [external PostgreSQL installation](https://docs.gitlab.com/administration/postgresql/external/)
 to a Linux package PostgreSQL installation by using a backup. You must use the same GitLab version when you do this.
 
 To convert an external PostgreSQL installation to a Linux package PostgreSQL installation by using a backup:
 
-1. [Create a backup from the non-Linux package installation](https://docs.gitlab.com/ee/administration/backup_restore/backup_gitlab.html)
-1. [Restoring the backup in the Linux package installation](https://docs.gitlab.com/ee/administration/backup_restore/restore_gitlab.html#restore-for-linux-package-installations).
+1. [Create a backup from the non-Linux package installation](https://docs.gitlab.com/administration/backup_restore/backup_gitlab/)
+1. [Restoring the backup in the Linux package installation](https://docs.gitlab.com/administration/backup_restore/restore_gitlab/#restore-for-linux-package-installations).
 1. Run the `check` task:
 
    ```shell
@@ -113,7 +118,7 @@ This assumes that `gitlab-shell` is located in `/home/git`.
 
 ## Convert an external PostgreSQL to a Linux package installation in-place
 
-You can convert an [external PostgreSQL installation](https://docs.gitlab.com/ee/administration/postgresql/external.html)
+You can convert an [external PostgreSQL installation](https://docs.gitlab.com/administration/postgresql/external/)
 to a Linux package PostgreSQL installation in-place.
 
 These instructions assume:
@@ -193,4 +198,4 @@ To convert an external PostgreSQL installation to a Linux package PostgreSQL ins
 1. If you can log into the GitLab web interface, reboot your server to make sure none of the old services interfere with
    the Linux package installation.
 1. If you are using special features such as LDAP, you must put your settings in `gitlab.rb`. For more information,
-   see the [settings documentation](../settings/index.md).
+   see the [settings documentation](../settings/_index.md).

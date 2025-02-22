@@ -2,9 +2,8 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Deprecate and remove support for a supported operating system
 ---
-
-# Deprecate and remove support for a supported operating system
 
 GitLab provides Omnibus packages for operating systems (OS) only until their end of life (EOL).
 After the EOL date of the OS, GitLab stops releasing official
@@ -15,7 +14,7 @@ packages. The following content documents how to:
 
 ## Check for upcoming EOL dates for supported OS
 
-Check [supported operating systems](https://docs.gitlab.com/ee/administration/package_information/supported_os.html)
+Check [supported operating systems](https://docs.gitlab.com/administration/package_information/supported_os/)
 to see EOL dates for supported OS.
 
 Slack reminders to check the EOL dates are sent to the Distribution team's Slack
@@ -48,7 +47,7 @@ the OS information to the [`OmnibusHelper#deprecated_os_list`](https://gitlab.co
 You must tell customer-facing teams about the deprecation and upcoming removal
 of support for the OS. Announce the deprecation in the following Slack channels:
 
-1. `#support_self_managed` - Support team catering to our self-managed customers.
+1. `#support_self_managed` - Support team catering to our GitLab Self-Managed customers.
 1. `#customer-success` - Customer Success team of our Sales division.
 
 ## Remove support for an OS

@@ -2,9 +2,8 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Repositories, branches, and CI pipelines
 ---
-
-# Repositories, branches, and CI pipelines
 
 `omnibus-gitlab` CI pipeline is a moderately complex one with pipelines split
 between all the mirrors of the project:
@@ -19,9 +18,12 @@ between all the mirrors of the project:
 
 ### Protected branches
 
-NOTE:
+{{< alert type="note" >}}
+
 Unless specified otherwise, the listed users/groups have permission to both merge, and push to
 protected branches.
+
+{{< /alert >}}
 
 1. Development repository:
    1. `master`: Maintainers, [Delivery team](https://gitlab.com/gitlab-org/delivery)
@@ -44,17 +46,23 @@ protected branches.
 1. QA mirror:
    1. `master`: Developers (Merge only), Maintainers
 
-NOTE:
+{{< alert type="note" >}}
+
 Developers get access to `master` branch in QA mirror because
 that's required to run a triggered pipeline against the branch. There is an
 [open issue](https://gitlab.com/gitlab-org/gitlab/-/issues/24585) to change this
 situation.
 
+{{< /alert >}}
+
 ### Protected Tags
 
-NOTE:
+{{< alert type="note" >}}
+
 Unless specified otherwise, the listed users/groups have permission to both merge, and push to
 protected tags.
+
+{{< /alert >}}
 
 1. Development repository:
    1. `*` : Maintainers, [Delivery team](https://gitlab.com/gitlab-org/delivery), [Release Managers](https://gitlab.com/gitlab-org/release/managers)
@@ -224,7 +232,7 @@ and tag pipelines.
 #### `<OS_NAME> specs`
 
 Jobs that actually run `rspec` via `knapsack`. Parallelized to a count of 6
-using the [`parallel` keyword](https://docs.gitlab.com/ee/ci/yaml/#parallel)
+using the [`parallel` keyword](https://docs.gitlab.com/ci/yaml/#parallel)
 
 These jobs are run only on [Development repository](https://gitlab.com/gitlab-org/omnibus-gitlab) and [Security mirror](https://gitlab.com/gitlab-org/security/omnibus-gitlab) on branch
 and tag pipelines.
@@ -346,8 +354,11 @@ to an S3 bucket in addition to making them available as artifacts.
 
 This job is run only on [Release mirror](https://dev.gitlab.org/gitlab/omnibus-gitlab) on tag pipelines.
 
-NOTE:
+{{< alert type="note" >}}
+
 Raspberry Pi jobs are run only on CE tags while SLES jobs are run only on EE tags.
+
+{{< /alert >}}
 
 ### `<OS_NAME>-staging`
 
@@ -356,8 +367,11 @@ repository in [Packagecloud instance](https://packages.gitlab.com).
 
 This job is run only on [Release mirror](https://dev.gitlab.org/gitlab/omnibus-gitlab) on tag pipelines.
 
-NOTE:
+{{< alert type="note" >}}
+
 Raspberry Pi jobs are run only on CE tags while SLES jobs are run only on EE tags.
+
+{{< /alert >}}
 
 ### `<OS_NAME>-release`
 
@@ -366,8 +380,11 @@ repository in [Packagecloud instance](https://packages.gitlab.com).
 
 This job is run only on [Release mirror](https://dev.gitlab.org/gitlab/omnibus-gitlab) on tag pipelines.
 
-NOTE:
+{{< alert type="note" >}}
+
 Raspberry Pi jobs are run only on CE tags while SLES jobs are run only on EE tags.
+
+{{< /alert >}}
 
 ### `Docker`
 

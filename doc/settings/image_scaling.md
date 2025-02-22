@@ -2,13 +2,15 @@
 stage: Data Stores
 group: Tenant Scale
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Image scaling
 ---
 
-# Image scaling
+{{< details >}}
 
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** Self-managed
+- Tier: Free, Premium, Ultimate
+- Offering: GitLab Self-Managed
+
+{{< /details >}}
 
 GitLab runs a built-in image scaler to improve site rendering performance. It is enabled by default.
 
@@ -73,5 +75,5 @@ feature toggle off:
 Feature.disable(:dynamic_image_resizing)
 ```
 
-Refer to the [Feature Flags documentation](https://docs.gitlab.com/ee/administration/feature_flags.html)
+Refer to the [Feature Flags documentation](https://docs.gitlab.com/administration/feature_flags/)
 to learn how to work with feature flags.

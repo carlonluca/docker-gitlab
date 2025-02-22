@@ -2,13 +2,15 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Configure SSL for a Linux package installation
 ---
 
-# Configure SSL for a Linux package installation
+{{< details >}}
 
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** Self-managed
+- Tier: Free, Premium, Ultimate
+- Offering: GitLab Self-Managed
+
+{{< /details >}}
 
 The Linux package supports several common use cases for SSL configuration.
 
@@ -17,28 +19,37 @@ By default, HTTPS is not enabled. To enable HTTPS, you can:
 - Use Let's Encrypt for free, automated HTTPS.
 - Manually configure HTTPS with your own certificates.
 
-NOTE:
+{{< alert type="note" >}}
+
 If you use a proxy, load balancer or some other external device to terminate SSL for the GitLab host name,
 see [External, proxy, and load balancer SSL termination](#configure-a-reverse-proxy-or-load-balancer-ssl-termination).
+
+{{< /alert >}}
 
 The following table shows which method each GitLab service supports.
 
 | Service | Manual SSL | Let's Encrypt integration |
 |-|-|-|
 | GitLab instance domain | [Yes](#configure-https-manually) | [Yes](#enable-the-lets-encrypt-integration) |
-| Container Registry | [Yes](https://docs.gitlab.com/ee/administration/packages/container_registry.html#configure-container-registry-under-its-own-domain) | [Yes](#enable-the-lets-encrypt-integration) |
-| Mattermost | [Yes](https://docs.gitlab.com/ee/integration/mattermost/index.html#running-gitlab-mattermost-with-https) | [Yes](#enable-the-lets-encrypt-integration) |
-| GitLab Pages | [Yes](https://docs.gitlab.com/ee/administration/pages/#wildcard-domains-with-tls-support) | No |
+| Container Registry | [Yes](https://docs.gitlab.com/administration/packages/container_registry/#configure-container-registry-under-its-own-domain) | [Yes](#enable-the-lets-encrypt-integration) |
+| Mattermost | [Yes](https://docs.gitlab.com/integration/mattermost/#running-gitlab-mattermost-with-https) | [Yes](#enable-the-lets-encrypt-integration) |
+| GitLab Pages | [Yes](https://docs.gitlab.com/administration/pages/#wildcard-domains-with-tls-support) | No |
 
 ## OpenSSL 3 upgrade
 
-Starting from [version 17.5](https://docs.gitlab.com/ee/update/versions/gitlab_17_changes.html#1750),
+Starting from [version 17.7](https://docs.gitlab.com/update/versions/gitlab_17_changes/#1770),
 GitLab uses OpenSSL 3. Some of the older TLS protocols and cipher suites, or
 weaker TLS certificates for external integrations may be incompatible with
 OpenSSL 3 defaults.
 
-Before upgrading to GitLab 17.5, use the [OpenSSL 3 guide](openssl_3.md) to
+Before upgrading to GitLab 17.7, use the [OpenSSL 3 guide](openssl_3.md) to
 identify and assess the compatibility of your external integrations.
+
+After upgrading to GitLab 17.7, you can verify that GitLab is using OpenSSL 3 with the following command:
+
+```shell
+/opt/gitlab/embedded/bin/openssl version
+```
 
 ## Enable the Let's Encrypt integration
 
@@ -113,10 +124,13 @@ To explicitly set the renewal times:
    sudo gitlab-ctl reconfigure
    ```
 
-NOTE:
+{{< alert type="note" >}}
+
 The certificate is renewed only if it expires in 30 days.
 For example, if you set it to renew on the 1st of every month at 00:00 and the
 certificate expires on the 31st, then the certificate will expire before it's renewed.
+
+{{< /alert >}}
 
 Automatic renewals are managed with [go-crond](https://github.com/webdevops/go-crond).
 If wanted, one can pass [CLI arguments](https://github.com/webdevops/go-crond#usage) to
@@ -228,13 +242,16 @@ include the alternative domains specified. The generated files are located at:
 
 ## Configure HTTPS manually
 
-WARNING:
+{{< alert type="warning" >}}
+
 The NGINX configuration tells browsers and clients to only communicate with your
 GitLab instance over a secure connection for the next 365 days using
 [HSTS](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security).
 See [Configure the HTTP Strict Transport Security](#configure-the-http-strict-transport-security-hsts)
 for more configuration options. If enabling HTTPS, you must provide a
 secure connection to your instance for at least the next 24 months.
+
+{{< /alert >}}
 
 To enable HTTPS:
 
@@ -328,8 +345,11 @@ traffic to HTTPS:
    sudo gitlab-ctl reconfigure
    ```
 
-NOTE:
+{{< alert type="note" >}}
+
 This behavior is enabled by default when using the [Let's Encrypt integration](#enable-the-lets-encrypt-integration).
+
+{{< /alert >}}
 
 ### Change the default HTTPS port
 
@@ -422,7 +442,7 @@ The external load balancer may need access to a GitLab endpoint
 that returns a `200` status code (for installations requiring login, the root
 page returns a `302` redirect to the login page). In that case, it's
 recommended to leverage a
-[health check endpoint](https://docs.gitlab.com/ee/administration/monitoring/health_check.html).
+[health check endpoint](https://docs.gitlab.com/administration/monitoring/health_check/).
 
 Other bundled components, like the Container Registry, GitLab Pages, or Mattermost,
 use a similar strategy for proxied SSL. Set the particular component's `*_external_url` with `https://` and
@@ -530,9 +550,12 @@ If changing the ciphers is not an option, you can disable the HTTP/2 support:
    sudo gitlab-ctl reconfigure
    ```
 
-NOTE:
+{{< alert type="note" >}}
+
 The HTTP/2 setting only works for the main GitLab application and not for the other services,
 like GitLab Pages, Container Registry, and Mattermost.
+
+{{< /alert >}}
 
 ## Enable 2-way SSL client authentication
 
@@ -562,9 +585,12 @@ enable 2-way SSL:
 
 ## Configure the HTTP Strict Transport Security (HSTS)
 
-NOTE:
+{{< alert type="note" >}}
+
 The HSTS settings only work for the main GitLab application and not for the other services,
 like GitLab Pages, Container Registry, and Mattermost.
+
+{{< /alert >}}
 
 HTTP Strict Transport Security (HSTS) is enabled by default and it informs browsers that
 they should only contact the website using HTTPS. When a browser visits a
@@ -607,11 +633,14 @@ The Linux package ships with the official
 [Mozilla](https://wiki.mozilla.org/CA/Included_Certificates) collection of trusted root
 certification authorities which are used to verify certificate authenticity.
 
-NOTE:
+{{< alert type="note" >}}
+
 For installations that use self-signed certificates, the Linux package
 provides a way to manage these certificates. For more technical details how
 this works, see the [details](#details-on-how-gitlab-and-ssl-work)
 at the bottom of this page.
+
+{{< /alert >}}
 
 To install custom public certificates:
 

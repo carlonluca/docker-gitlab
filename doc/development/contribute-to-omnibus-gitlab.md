@@ -2,9 +2,8 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Contribute to Omnibus GitLab
 ---
-
-# Contribute to Omnibus GitLab
 
 ## Common enhancement tasks
 
@@ -25,7 +24,7 @@ info: To determine the technical writer assigned to the Stage/Group associated w
 
 ## Build and test your enhancement
 
-- [Building your own package](../build/index.md)
+- [Building your own package](../build/_index.md)
 - [Building a package from a custom branch](../build/team_member_docs.md#test-an-omnibus-gitlab-project-mr)
 
 ## Submit your enhancement for review
@@ -50,10 +49,13 @@ their applicability:
 1. Tests, as explained in [Writing Tests](#write-tests)
 1. Documentation explaining the change
 1. If merge request introduces change in user facing configuration, update to [`gitlab.rb.template`](https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/files/gitlab-config-template/gitlab.rb.template)
-1. [Changelog entry](https://docs.gitlab.com/ee/development/changelog.html) to inform about the change, if necessary.
+1. [Changelog entry](https://docs.gitlab.com/development/changelog/) to inform about the change, if necessary.
 
-NOTE:
+{{< alert type="note" >}}
+
 Ensure shared runners are enabled for your fork in order for our automated tests to run:
+
+{{< /alert >}}
 
 1. Go to **Settings -> CI/CD**.
 1. Expand Runners settings.

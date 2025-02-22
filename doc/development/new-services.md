@@ -2,9 +2,8 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Adding a new Service to Omnibus GitLab
 ---
-
-# Adding a new Service to Omnibus GitLab
 
 In order to add a new service to GitLab, you should follow these steps:
 
@@ -34,7 +33,7 @@ Pick one of the existing cookbooks to configure your service within, or create a
 new cookbook if your service warrants its own.
 
 Within the cookbook there should be an `attributes/default.rb` file. This is where
-you want to define the [Default Attributes](../architecture/index.md#default-attributes)
+you want to define the [Default Attributes](../architecture/_index.md#default-attributes)
 for your service. For a service you should define an `enable` option by default.
 
 ```ruby
@@ -103,7 +102,7 @@ ee_attribute('best_service')
 
 ### Add service configuration to the settings template
 
-We maintain a [global configuration template](../architecture/index.md#global-gitlab-configuration-template)
+We maintain a [global configuration template](../architecture/_index.md#global-gitlab-configuration-template)
 where examples of how to configure the services are available, commented out.
 
 This file becomes the `/etc/gitlab/gitlab.rb` on fresh installs of the package.
@@ -126,7 +125,7 @@ when it makes the most sense.
 ## Include the service in the services list
 
 In order to allow the service to be easily enable/disabled within the recipes, it
-should be added to the [services list](../architecture/index.md#services)
+should be added to the [services list](../architecture/_index.md#services)
 and given appropriate groups.
 
 In the `files/gitlab-cookbooks/package/libraries/config/services.rb` file, add the
@@ -266,15 +265,15 @@ end
 
 ## Determine and document how log rotation will be handled
 
-In Omnibus, [log rotation](https://docs.gitlab.com/ee/administration/logs/index.html#log-rotation) for
+In Omnibus, [log rotation](https://docs.gitlab.com/administration/logs/#log-rotation) for
 a given service can be handled by `logrotate`, `svlogd`, both or neither. The new service should
-be included in the [log rotation](https://docs.gitlab.com/ee/administration/logs/index.html#log-rotation)
+be included in the [log rotation](https://docs.gitlab.com/administration/logs/#log-rotation)
 table with an indication about what is responsible for managing and rotating the logs for that
 service. When adding a service to Omnibus GitLab, you should:
 
 - Ensure that log rotation is in place for the new service.
 - Open a merge request to have the new service added to
-  [the log rotation table](https://docs.gitlab.com/ee/administration/logs/index.html#log-rotation).
+  [the log rotation table](https://docs.gitlab.com/administration/logs/#log-rotation).
 
 If a new log is added that is not using `runit` (`svlogd`), the log must be manually
 added to the logrotate configuration. The

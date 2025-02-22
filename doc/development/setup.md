@@ -2,9 +2,8 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Set up your development environment
 ---
-
-# Set up your development environment
 
 Development of the Linux package can be done using an existing package available
 from the [Downloads page](https://about.gitlab.com/install/). To know how to set up
@@ -56,9 +55,12 @@ to use a container for development.
 1. Get the GitLab CE nightly package from the [Nightly Build repository](https://packages.gitlab.com/gitlab/nightly-builds)
    and install it using the instructions given on that page.
 
-   NOTE:
-   On Ubuntu Xenial, you may have to install `tzdata`. This
+   {{< alert type="note" >}}
+
+On Ubuntu Xenial, you may have to install `tzdata`. This
    [issue is reported in #4769](https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/4679).
+
+   {{< /alert >}}
 
 1. Configure and start GitLab.
 1. Check if you can access the GitLab instance from your host browser on `<ip address of host>`.
@@ -133,7 +135,7 @@ This ensures that your new work is behaving as expected, and not breaking anythi
 
 ### Trigger QA pipeline against deployed instance
 
-If there is sustained network access to the deployed instance, you can trigger GitLab QA tests against the deployed instance using the [GitLab QA Executor](https://gitlab.com/gitlab-org/quality/gitlab-qa-executor) project. It contains CI configuration to run GitLab QA against self-managed GitLab environments with parallelization.
+If there is sustained network access to the deployed instance, you can trigger GitLab QA tests against the deployed instance using the [GitLab QA Executor](https://gitlab.com/gitlab-org/quality/gitlab-qa-executor) project. It contains CI configuration to run GitLab QA against GitLab Self-Managed environments with parallelization.
 
 ## Run specific chefspec tests
 
@@ -179,7 +181,7 @@ As root in your development server run:
 ## Use Customers Portal Staging in GitLab
 
 To connect your GitLab instance to Customers Portal Staging, you can set the following
-[custom environment variables](../settings/environment-variables.md#setting-custom-environment-variables)
+[custom environment variables](../settings/environment-variables.md)
 in `/etc/gitlab/gitlab.rb` by supplying them in a `gitlab_rails['env']` hash. Set:
 
 - `GITLAB_LICENSE_MODE` to `test`
@@ -194,8 +196,11 @@ gitlab_rails['env'] = {
 }
 ```
 
-NOTE:
-For [GitLab Geo](https://docs.gitlab.com/ee/administration/geo/), deployments using the above configuration must be added to each secondary site.
+{{< alert type="note" >}}
+
+For [GitLab Geo](https://docs.gitlab.com/administration/geo/), deployments using the above configuration must be added to each secondary site.
+
+{{< /alert >}}
 
 ## OpenShift GitLab Development Setup
 

@@ -2,13 +2,15 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Troubleshooting NGINX
 ---
 
-# Troubleshooting NGINX
+{{< details >}}
 
-DETAILS:
-**Tier:** Free, Premium, Ultimate
-**Offering:** Self-managed
+- Tier: Free, Premium, Ultimate
+- Offering: GitLab Self-Managed
+
+{{< /details >}}
 
 When [configuring NGINX](nginx.md), you might encounter the following issues.
 
@@ -17,7 +19,7 @@ When [configuring NGINX](nginx.md), you might encounter the following issues.
 The workaround is to make sure you don't have the `proxy_set_header` configuration in
 `nginx['custom_gitlab_server_config']` settings.
 Instead, use the
-[`proxy_set_headers`](ssl/index.md#configure-a-reverse-proxy-or-load-balancer-ssl-termination)
+[`proxy_set_headers`](ssl/_index.md#configure-a-reverse-proxy-or-load-balancer-ssl-termination)
 configuration in your `gitlab.rb` file.
 
 ## Error: `Received fatal alert: handshake_failure`
@@ -43,7 +45,7 @@ nginx['ssl_protocols'] = "TLSv1 TLSv1.1 TLSv1.2 TLSv1.3"
 
 ## Mismatch between private key and certificate
 
-In the [NGINX logs](https://docs.gitlab.com/ee/administration/logs/index.html#nginx-logs), you might find:
+In the [NGINX logs](https://docs.gitlab.com/administration/logs/#nginx-logs), you might find:
 
 ```plaintext
 x509 certificate routines:X509_check_private_key:key values mismatch)
@@ -71,13 +73,13 @@ To resolve this, match the correct private key with your certificate:
 
 ## `Request Entity Too Large`
 
-In the [NGINX logs](https://docs.gitlab.com/ee/administration/logs/index.html#nginx-logs), you might find:
+In the [NGINX logs](https://docs.gitlab.com/administration/logs/#nginx-logs), you might find:
 
 ```plaintext
 Request Entity Too Large
 ```
 
-This issue occurs when you have increased the [max import size](https://docs.gitlab.com/ee/administration/settings/import_and_export_settings.html#max-import-size).
+This issue occurs when you have increased the [max import size](https://docs.gitlab.com/administration/settings/import_and_export_settings/#max-import-size).
 
 To resolve this, increase the
 [client max body size](http://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size).
@@ -93,7 +95,7 @@ To increase the value of `client_max_body_size`:
    nginx['client_max_body_size'] = '250m'
    ```
 
-1. Save the file and [reconfigure GitLab](https://docs.gitlab.com/ee/administration/restart_gitlab.html#reconfigure-a-linux-package-installation).
+1. Save the file and [reconfigure GitLab](https://docs.gitlab.com/administration/restart_gitlab/#reconfigure-a-linux-package-installation).
 1. [`HUP`](https://nginx.org/en/docs/control.html) NGINX to cause it to reload with the updated
    configuration gracefully:
 
@@ -118,7 +120,7 @@ The workaround is to turn the header off by using `hide_server_tokens`:
    nginx['hide_server_tokens'] = 'on'
    ```
 
-1. Save the file and [reconfigure GitLab](https://docs.gitlab.com/ee/administration/restart_gitlab.html#reconfigure-a-linux-package-installation).
+1. Save the file and [reconfigure GitLab](https://docs.gitlab.com/administration/restart_gitlab/#reconfigure-a-linux-package-installation).
 1. [`HUP`](https://nginx.org/en/docs/control.html) NGINX to cause it to reload with the updated
    configuration gracefully:
 
@@ -153,7 +155,7 @@ To resolve it:
 ## Error: `worker_connections are not enough`
 
 You might get `502` errors from GitLab, and find the following in
-[NGINX logs](https://docs.gitlab.com/ee/administration/logs/index.html#nginx-logs):
+[NGINX logs](https://docs.gitlab.com/administration/logs/#nginx-logs):
 
 ```plaintext
 worker_connections are not enough
@@ -172,5 +174,5 @@ To resolve it, configure the NGINX worker connections to a higher value:
    10240 connections is
    [the default value](https://gitlab.com/gitlab-org/omnibus-gitlab/-/blob/374b34e2bdc4bccb73665e0dc856ae32d6082d77/files/gitlab-cookbooks/gitlab/attributes/default.rb#L883).
 
-1. Save the file and [reconfigure GitLab](https://docs.gitlab.com/ee/administration/restart_gitlab.html#reconfigure-a-linux-package-installation)
+1. Save the file and [reconfigure GitLab](https://docs.gitlab.com/administration/restart_gitlab/#reconfigure-a-linux-package-installation)
    for the changes to take effect.

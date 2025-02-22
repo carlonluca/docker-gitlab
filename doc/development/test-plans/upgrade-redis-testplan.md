@@ -2,9 +2,8 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Test plan fpr Redis component upgrade
 ---
-
-# Redis component upgrade test plan
 
 Copy the following test plan to a comment of the merge request that upgrades the component.
 
@@ -29,7 +28,7 @@ Copy the following test plan to a comment of the merge request that upgrades the
     - [ ] Checked `gitlab-kas` log for Redis errors
     - [ ] Checked `redis-exporter` logs for errors
     - [ ] Confirmed `gitlab-redis-cli` command connects to Redis
-  - [ ] Installed on [HA Sentinels](https://docs.gitlab.com/ee/administration/redis/replication_and_failover.html)
+  - [ ] Installed on [HA Sentinels](https://docs.gitlab.com/administration/redis/replication_and_failover/)
     - [ ] Signed-in
     - [ ] Imported a project (confirms Sidekiq works)
     - [ ] Checked `gitlab-kas` log for Redis errors
@@ -47,7 +46,7 @@ Copy the following test plan to a comment of the merge request that upgrades the
     - [ ] Checked `gitlab-kas log` for Redis errors
     - [ ] Checked `redis-exporter logs` for errors
     - [ ] Confirmed `gitlab-redis-cli` command connects to Redis
-  - [ ] Updated [HA Sentinel/Redis nodes](https://docs.gitlab.com/ee/update/zero_downtime.html#redis-ha-using-sentinel)
+  - [ ] Updated [HA Sentinel/Redis nodes](https://docs.gitlab.com/update/zero_downtime/#redis-ha-using-sentinel)
     - [ ] Verified that you get the message:
 
       ```plaintext

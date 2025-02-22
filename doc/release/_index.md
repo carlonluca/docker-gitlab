@@ -2,9 +2,8 @@
 stage: Systems
 group: Distribution
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+title: Omnibus GitLab release process
 ---
-
-# Omnibus GitLab release process
 
 Our main goal is to make it clear which version of GitLab is in an omnibus
 package.
@@ -115,8 +114,11 @@ the build type package will be pushed to <https://packages.gitlab.com> or to a t
    git tag -a 6.6.0+ce.0 -m 'Pin GitLab to v6.6.0'
    ```
 
-   WARNING:
+   {{< alert type="warning" >}}
+
    Do NOT use a hyphen `-` anywhere in the Omnibus GitLab tag.
+
+   {{< /alert >}}
 
    Examples of converting an upstream tag to an omnibus tag sequence:
 
