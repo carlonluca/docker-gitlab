@@ -8,6 +8,9 @@ variables:
   # hardcoding the dev registry for SLES jobs.
   DEV_BUILDER_IMAGE_REGISTRY: 'dev.gitlab.org:5005/cookbooks/gitlab-omnibus-builder'
 
+include:
+  - local: '/gitlab-ci-config/dind-config.yml'
+
 .distribution-amd64-tags:
   - distribution-runner
   - amd64
@@ -208,12 +211,7 @@ SLES-15.2-check:
 Docker:
   stage: image
   needs: []
-  variables:
-    DOCKER_DRIVER: overlay2
-    DOCKER_HOST: tcp://docker:2375
-  services:
-    - name: docker:23.0.5-dind
-      alias: localhost
+  extends: .dind
   image: "${BUILDER_IMAGE_REGISTRY}/distribution_ci_tools:latest"
   script:
     - bash scripts/ci/deploy_docker.sh

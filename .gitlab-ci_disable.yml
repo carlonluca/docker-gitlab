@@ -23,6 +23,7 @@ include:
   - local: '/gitlab-ci-config/variables.yml'
   - local: '/gitlab-ci-config/rat.yml'
   - local: '/gitlab-ci-config/dev-gitlab-org.yml'
+  - local: '/gitlab-ci-config/dind-config.yml'
   - local: '/gitlab-ci-config/gitlab-com.yml'
     rules:
       - if: '$CI_SERVER_HOST == "gitlab.com"'
@@ -43,15 +44,9 @@ default:
   - distribution-runner
   - armhf
 
-### For services that need a docker daemon
 .docker_job:
   image: "${BUILDER_IMAGE_REGISTRY}/distribution_ci_tools:${BUILDER_IMAGE_REVISION}"
-  variables:
-    DOCKER_DRIVER: overlay2
-    DOCKER_HOST: tcp://docker:2375
-  services:
-    - name: docker:23.0.5-dind
-      alias: localhost
+  extends: .dind
   tags:
     - gitlab-org-docker
 
@@ -171,7 +166,7 @@ generate-facts:
 .notify:
   before_script:
     - apk add --no-cache curl
-  image: "alpine"
+  image: ${ALPINE_IMAGE}
   stage: notification_fail
 
 notify:slack-fail:scheduled-master:
