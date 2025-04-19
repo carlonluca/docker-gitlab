@@ -90,6 +90,12 @@ production: &base
     ##   6 - Blue
     default_theme: <%= @gitlab_default_theme %> # default: 2
 
+    ## Color Modes
+    ##   1 - light mode
+    ##   2 - dark mode
+    ##   3 - auto (system)
+    default_color_mode: <%= @gitlab_default_color_mode %> # default: 1
+
     <% unless @custom_html_header_tags.nil? %>
     ## Custom html header tags
     # In some cases some custom header tags are needed
@@ -147,6 +153,9 @@ production: &base
 
     ## Print initial root password to stdout during initialization
     display_initial_root_password: <%= @display_initial_root_password %>
+
+    ## Enable or disable product usage data in the GitLab instance.
+    initial_gitlab_product_usage_data: <%= @initial_gitlab_product_usage_data %>
 
   # Allows delivery of emails using Microsoft Graph API with OAuth 2.0 client credentials flow.
   microsoft_graph_mailer:
@@ -1144,6 +1153,14 @@ production: &base
   ## Consul settings
   consul:
     api_url: "<%= @consul_api_url %>"
+
+  <%- if @oidc_provider_openid_id_token_expire_in_seconds -%>
+  ## OIDC settings
+  oidc_provider:
+    # Configure a custom duration for ID Tokens.
+    # By default, GitLab ID tokens expire after 120 seconds.
+    openid_id_token_expire_in_seconds: <%= @oidc_provider_openid_id_token_expire_in_seconds %>
+  <%- end -%>
 
   #
   # 5. Extra customization

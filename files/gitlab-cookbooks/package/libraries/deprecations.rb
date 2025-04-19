@@ -513,7 +513,7 @@ module Gitlab
       end
 
       def next_major_version
-        version_manifest = JSON.parse(File.read("/opt/gitlab/version-manifest.json"))
+        version_manifest = JSON.load_file("/opt/gitlab/version-manifest.json")
         major_version = version_manifest['build_version'].split(".")[0]
         (major_version.to_i + 1).to_s
       rescue StandardError
@@ -618,7 +618,8 @@ module Gitlab
       end
 
       def remove_git_data_dirs(incoming_version, existing_config, type, deprecated_version, removed_version)
-        return [] unless existing_config[:git_data_dirs]
+        applied_config = existing_config.dig('gitlab', 'git_data_dirs')
+        return [] if applied_config.nil? || applied_config.empty?
 
         messages = []
 

@@ -13,7 +13,7 @@
   - [Documentation process](https://docs.gitlab.com/ee/development/documentation/workflow.html).
   - [Documentation guidelines](https://docs.gitlab.com/ee/development/documentation/).
   - [Style Guide](https://docs.gitlab.com/ee/development/documentation/styleguide/).
-- [ ] When ready for review, MR is labeled ~"workflow::ready for review" per the [Distribution MR workflow](https://about.gitlab.com/handbook/engineering/development/enablement/systems/distribution/merge_requests.html)
+- [ ] When ready for review, MR is labeled ~"workflow::ready for review" per the [Distribution MR workflow](https://handbook.gitlab.com/handbook/engineering/infrastructure/core-platform/systems/distribution/merge_requests/)
 
 If you are only adding documentation, do not add any of the following labels:
 
@@ -32,7 +32,7 @@ Documentation-related MRs should be reviewed by a Technical Writer for a non-blo
 - [ ] If the content requires it, ensure the information is reviewed by a subject matter expert.
 - Technical writer review items:
   - [ ] Ensure docs metadata is present and up-to-date.
-  - [ ] Ensure the appropriate [labels](https://about.gitlab.com/handbook/product/ux/technical-writing/workflow/#labels) are added to this MR.
+  - [ ] Ensure the appropriate [labels](https://docs.gitlab.com/development/documentation/workflow/#labels) are added to this MR.
   - If relevant to this MR, ensure [content topic type](https://docs.gitlab.com/ee/development/documentation/structure.html) principles are in use, including:
     - [ ] The headings should be something you'd do a Google search for. Instead of `Default behavior`, say something like `Default behavior when you close an issue`.
     - [ ] The headings (other than the page title) should be active. Instead of `Configuring GDK`, say something like `Configure GDK`.
