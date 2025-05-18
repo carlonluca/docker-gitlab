@@ -128,7 +128,6 @@ dependency 'inspec-gem'
 dependency 'logrotate'
 dependency 'runit'
 dependency 'go-crond'
-dependency 'docker-distribution-pruner'
 
 if Build::Check.include_ee?
   dependency 'consul'
@@ -205,6 +204,9 @@ end
 
 exclude "\.git*"
 exclude "bundler\/git"
+
+# don't ship source code needed to build
+exclude 'src'
 
 # don't ship static libraries or header files
 exclude 'embedded/lib/**/*.a'

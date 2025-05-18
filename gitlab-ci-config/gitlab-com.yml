@@ -301,14 +301,27 @@ docs-lint links:
     - if: '$PIPELINE_TYPE == "DOCS_PIPELINE"'
 
 docs-lint hugo:
-  image: registry.gitlab.com/gitlab-org/technical-writing/docs-gitlab-com/docs-gitlab-com-builder:hugo-0.142.0
+  image: registry.gitlab.com/gitlab-org/technical-writing/docs-gitlab-com/docs-gitlab-com-builder:hugo-0.145.0
   stage: check
   rules:
     - if: '$PIPELINE_TYPE =~ /_TEST_PIPELINE$/'
     - if: '$PIPELINE_TYPE =~ /_MR_PIPELINE$/'
     - if: '$PIPELINE_TYPE == "DOCS_PIPELINE"'
+  variables:
+    DOCS_BRANCH: "main"
   before_script:
-    - git clone --depth 1 https://gitlab.com/gitlab-org/technical-writing/docs-gitlab-com.git
+    # Check if the job is running against a stable branch. If running against a stable branch, check out the
+    # corresponding version of the GitLab Docs project instead of using the 'main' branch.
+    - |
+      if [[ $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ [0-9]+-[0-9]+-stable ]]; then
+        MAJOR=$(echo "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" | cut -d '-' -f 1)
+        MINOR=$(echo "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" | cut -d '-' -f 2)
+        # Convert Omnibus GitLab style (17-9-stable-ee) to GitLab Docs style (17.9)
+        DOCS_BRANCH=$MAJOR.$MINOR
+        echo "Using docs-gitlab-com branch $DOCS_BRANCH instead of main"
+      fi
+    # Clone the GitLab Docs project
+    - git clone --depth 1 --filter=tree:0 --branch $DOCS_BRANCH https://gitlab.com/gitlab-org/technical-writing/docs-gitlab-com.git
     - cd docs-gitlab-com
     - make add-latest-icons
     # Copy the current project's docs to the appropriate location in the docs website
@@ -320,6 +333,38 @@ docs-lint hugo:
     # Test for invalid index pages
     # See https://gitlab.com/gitlab-org/technical-writing/docs-gitlab-com/-/blob/main/scripts/check-index-filenames.sh
     - make check-index-pages SEARCH_DIR="../doc"
+
+# Translation delivery of docs 
+# Perform linting on translated documentation Markdown files
+docs-lint-i18n content:
+  image: $DOCS_LINT_IMAGE
+  stage: check
+  cache: {}
+  needs: []
+  before_script: []
+  script:
+    # Lint prose
+    - vale --minAlertLevel error --filter='.Name matches "gitlab_docs"' doc-locale
+  rules:
+    - if: '$PIPELINE_TYPE =~ /_TEST_PIPELINE$/'
+    - if: '$PIPELINE_TYPE =~ /_MR_PIPELINE$/'
+    - if: '$PIPELINE_TYPE == "DOCS_PIPELINE"'
+    - if: '$PIPELINE_TYPE == "DOCS_LOCALIZATION_PIPELINE"'
+
+docs-lint-i18n markdown:
+  image: $DOCS_LINT_IMAGE
+  stage: check
+  cache: {}
+  needs: []
+  before_script: []
+  script:
+    # Lint Markdown
+    - markdownlint-cli2 'doc-locale/**/*.md'
+  rules:
+    - if: '$PIPELINE_TYPE =~ /_TEST_PIPELINE$/'
+    - if: '$PIPELINE_TYPE =~ /_MR_PIPELINE$/'
+    - if: '$PIPELINE_TYPE == "DOCS_PIPELINE"'
+    - if: '$PIPELINE_TYPE == "DOCS_LOCALIZATION_PIPELINE"'
 
 yard:
   extends: .gems-cache
@@ -367,7 +412,7 @@ review-docs-cleanup:
   - ./trigger-build.rb docs cleanup
 
 include:
-  - component: ${CI_SERVER_FQDN}/gitlab-org/components/danger-review/danger-review@2.0.0
+  - component: ${CI_SERVER_FQDN}/gitlab-org/components/danger-review/danger-review@2.1.0
     inputs:
       job_stage: "check"
 
@@ -507,8 +552,6 @@ qa-subset-test:
   rules:
     - if: '"$[[ inputs.skip_qa_test ]]" == "true"'
       when: never
-    - if: '$SKIP_QA_TEST == "true"' # Deprecated: It will be removed once rolling out `inputs.skip_qa_test`.
-      when: never
     - if: '$PIPELINE_TYPE =~ /TRIGGERED_CE_PIPELINE/ && $MANUAL_QA_TEST == "true"'
       when: manual
       allow_failure: true
@@ -540,8 +583,6 @@ qa-remaining-test-manual:
     QA_SUITES: "QA::EE::Scenario::Test::Integration::Elasticsearch,QA::Scenario::Test::Integration::Import,QA::Scenario::Test::Integration::Integrations,QA::Scenario::Test::Integration::OAuth,QA::Scenario::Test::Integration::Jira,QA::Scenario::Test::Integration::ServicePingDisabled,QA::Scenario::Test::Instance::LargeSetup,QA::Scenario::Test::Instance::CloudActivation"
   rules:
     - if: '"$[[ inputs.skip_qa_test ]]" == "true"'
-      when: never
-    - if: '$SKIP_QA_TEST == "true"' # Deprecated: It will be removed once rolling out `inputs.skip_qa_test`.
       when: never
     - if: '$PIPELINE_TYPE =~ /TRIGGERED_CE_PIPELINE/'
       when: manual

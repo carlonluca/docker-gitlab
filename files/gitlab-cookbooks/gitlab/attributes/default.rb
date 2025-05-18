@@ -183,6 +183,9 @@ default['gitlab']['gitlab_rails']['ci_runner_versions_reconciliation_worker_cron
 default['gitlab']['gitlab_rails']['ci_runners_stale_machines_cleanup_worker_cron'] = nil
 default['gitlab']['gitlab_rails']['ci_catalog_resources_process_sync_events_worker_cron'] = nil
 
+default['gitlab']['gitlab_rails']['signed_cookie_salt'] = nil
+default['gitlab']['gitlab_rails']['authenticated_encrypted_cookie_salt'] = nil
+
 # Consolidated object storage config
 default['gitlab']['gitlab_rails']['object_store']['enabled'] = false
 default['gitlab']['gitlab_rails']['object_store']['connection'] = {}
@@ -774,7 +777,6 @@ default['gitlab']['gitlab_shell']['audit_usernames'] = nil
 default['gitlab']['gitlab_shell']['http_settings'] = nil
 default['gitlab']['gitlab_shell']['auth_file'] = nil
 default['gitlab']['gitlab_shell']['git_trace_log_file'] = nil
-default['gitlab']['gitlab_shell']['migration'] = { enabled: true, features: [] }
 default['gitlab']['gitlab_shell']['ssl_cert_dir'] = "#{node['package']['install-dir']}/embedded/ssl/certs/"
 default['gitlab']['gitlab_shell']['lfs_pure_ssh_protocol'] = false
 default['gitlab']['gitlab_shell']['pat'] = { enabled: true, allowed_scopes: [] }

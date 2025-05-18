@@ -1029,13 +1029,13 @@ The Linux package sets no defaults for these values and instead uses the default
 provided by the PostgreSQL adapter. Override them in `gitlab.rb` using the
 parameters noted in the table below and then run `gitlab-ctl reconfigure`.
 
-| PostgreSQL parameter | `gitlab.rb` parameter |
-|-|-|
-| `keepalives` | `gitlab_rails['db_keepalives']` |
-| `keepalives_idle` | `gitlab_rails['db_keepalives_idle']` |
+| PostgreSQL parameter  | `gitlab.rb` parameter |
+|-----------------------|-----------------------|
+| `keepalives`          | `gitlab_rails['db_keepalives']` |
+| `keepalives_idle`     | `gitlab_rails['db_keepalives_idle']` |
 | `keepalives_interval` | `gitlab_rails['db_keepalives_interval']` |
-| `keepalives_count` | `gitlab_rails['db_keepalives_count']` |
-| `tcp_user_timeout` | `gitlab_rails['db_tcp_user_timeout']` |
+| `keepalives_count`    | `gitlab_rails['db_keepalives_count']` |
+| `tcp_user_timeout`    | `gitlab_rails['db_tcp_user_timeout']` |
 
 ## Automatic database reindexing
 
@@ -1311,3 +1311,11 @@ To work around this issue:
 - You can allocate more CPU resources to the database server.
 - If Sidekiq is overloaded, you might need to [add more Sidekiq processes](https://docs.gitlab.com/administration/sidekiq/extra_sidekiq_processes/#start-multiple-processes) for the `ci_cancel_redundant_pipelines` queue if your projects have a very large number of pipelines.
 - You can enable the `disable_cancel_redundant_pipelines_service` feature flag to disable this setting instance-wide and see if the CPU load goes down. This disables the feature for all projects, and can lead to increased resource use by pipelines that are no longer being cancelled automatically.
+
+### Error: `TypeError: can't quote Array`
+
+If you are using Amazon RDS, during the `gitlab::database_migrations` task, you might see the error: `TypeError: can't quote Array`.
+
+To work around this [known issue](https://gitlab.com/gitlab-org/gitlab/-/issues/356307), disable the
+[`quote_all_identifiers`](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Appendix.PostgreSQL.CommonDBATasks.Parameters.html) parameter in the RDS
+for a PostgreSQL database.

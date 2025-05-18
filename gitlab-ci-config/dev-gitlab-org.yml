@@ -78,13 +78,10 @@
     USE_SYSTEM_LIBGCRYPT: "true"
   rules:
     - !reference [.default_rules, rules]
-    - if: '$PIPELINE_TYPE == "EE_NIGHTLY_BUILD_PIPELINE"'
+    - if: '$PIPELINE_TYPE =~ /EE_(NIGHTLY|BRANCH)_BUILD_PIPELINE/'
     # Include it in TRIGGER_CACHE_UPDATE_PIPELINE pipeline cache used by
     # nightlies and triggered builds are refreshed periodically
     - if: '$PIPELINE_TYPE == "TRIGGER_CACHE_UPDATE_PIPELINE"'
-    - if: '$PIPELINE_TYPE == "EE_BRANCH_BUILD_PIPELINE"'
-      when: manual
-      allow_failure: true
 
 .arm64_branch_template:
   extends: .branch_template
@@ -98,6 +95,8 @@
   retry: 1
   rules:
     - !reference [.default_rules, rules]
+    - if: '$DISABLE_RPI_BUILDS == "true"'
+      when: never
     - if: '$PIPELINE_TYPE == "CE_BRANCH_BUILD_PIPELINE"'
     - if: '$PIPELINE_TYPE == "CE_NIGHTLY_BUILD_PIPELINE"'
     - if: '$PIPELINE_TYPE == "EE_BRANCH_BUILD_PIPELINE" && $CI_PIPELINE_SOURCE == "parent_pipeline"'
@@ -160,6 +159,8 @@
   tags: !reference [.distribution-armhf-tags]
   rules:
     - !reference [.default_rules, rules]
+    - if: '$DISABLE_RPI_BUILDS == "true"'
+      when: never
     - if: '$PIPELINE_TYPE =~ /^CE_(RC|TAG)_BUILD_PIPELINE$/'
 
 ### This stage is used for uploading packages
@@ -241,6 +242,8 @@
   rules:
     - !reference [.default_rules, rules]
     - !reference [.skip_release_jobs, rules]
+    - if: '$DISABLE_RPI_BUILDS == "true"'
+      when: never
     - if: '$PIPELINE_TYPE =~ /^CE_(RC|TAG)_BUILD_PIPELINE$/'
       when: manual
 
@@ -308,6 +311,7 @@ Ubuntu-24.04-branch:
   rules:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE =~ /(NIGHTLY|BRANCH|INTERNAL_RELEASE)_BUILD_PIPELINE$/'
+    - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/'
     - if: '$PIPELINE_TYPE == "TRIGGER_CACHE_UPDATE_PIPELINE"'
 
 Debian-11-branch:
@@ -331,9 +335,18 @@ Ubuntu-22.04-arm64-branch:
   rules:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE =~ /_(NIGHTLY|BRANCH)_BUILD_PIPELINE$/'
-    - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/'
+    - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/ && $CI_PIPELINE_SOURCE != "pipeline"'
+      changes:
+       - Gemfile
+       - Gemfile.lock
+       - config/software/**
+       - config/patches/**
+      when: always
+    - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/ && $BUILD_ON_ALL_OS == "true"'
+      when: always
       # TODO: When multi-arch images are built by default, make this an
       # automatic job
+    - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/'
       when: manual
       allow_failure: true
 Ubuntu-24.04-arm64-branch:
@@ -377,6 +390,7 @@ SLES-12.5-branch:
   rules:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE =~ /EE_(NIGHTLY|BRANCH)_BUILD_PIPELINE$/'
+    - if: '$PIPELINE_TYPE == "TRIGGER_CACHE_UPDATE_PIPELINE"'
 SLES-15.2-branch:
   image: "${DEV_BUILDER_IMAGE_REGISTRY}/sles_15sp2:${BUILDER_IMAGE_REVISION}"
   extends: .branch_template
@@ -385,6 +399,7 @@ SLES-15.2-branch:
   rules:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE =~ /EE_(NIGHTLY|BRANCH)_BUILD_PIPELINE$/'
+    - if: '$PIPELINE_TYPE == "TRIGGER_CACHE_UPDATE_PIPELINE"'
 AmazonLinux-2-fips-branch:
   image: "${BUILDER_IMAGE_REGISTRY}/amazonlinux_2_fips:${BUILDER_IMAGE_REVISION}"
   extends: .fips_branch_template
@@ -404,11 +419,17 @@ Ubuntu-20.04-fips-branch:
   extends: .fips_branch_template
   rules:
     - !reference [.default_rules, rules]
-    - if: '$PIPELINE_TYPE == "EE_NIGHTLY_BUILD_PIPELINE"'
+    - if: '$PIPELINE_TYPE =~ /EE_(NIGHTLY|BRANCH)_BUILD_PIPELINE/'
     - if: '$PIPELINE_TYPE == "INTERNAL_RELEASE_BUILD_PIPELINE"'
-    - if: '$PIPELINE_TYPE == "EE_BRANCH_BUILD_PIPELINE"'
-      when: manual
-      allow_failure: true
+    - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/ && $CI_PIPELINE_SOURCE != "pipeline"'
+      changes:
+       - Gemfile
+       - Gemfile.lock
+       - config/software/**
+       - config/patches/**
+      when: always
+    - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/ && $BUILD_ON_ALL_OS == "true"'
+      when: always
     - if: '$PIPELINE_TYPE =~ /TRIGGERED_(CE|EE)_PIPELINE/'
       when: manual
       allow_failure: true
@@ -423,7 +444,7 @@ Docker-branch:
   tags: !reference [.distribution-amd64-tags]
   cache: !reference [.branch-cache]
   needs:
-    - job: Ubuntu-22.04-branch
+    - job: Ubuntu-24.04-branch
       artifacts: false
     - job: generate-facts
       optional: true
@@ -500,6 +521,15 @@ Ubuntu-22.04:
   # Also build for auto-deploy tags
     - if: '$PIPELINE_TYPE =~ /(_RC|_TAG|AUTO_DEPLOY)_BUILD_PIPELINE$/'
 
+Ubuntu-24.04:
+  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_24.04:${BUILDER_IMAGE_REVISION}"
+  stage: package
+  extends: .tag_template
+  rules:
+    - !reference [.default_rules, rules]
+  # Also build for auto-deploy tags
+    - if: '$PIPELINE_TYPE =~ /(_RC|_TAG|AUTO_DEPLOY)_BUILD_PIPELINE$/'
+
 ## Build the docker image for QA
 ## This is necessary for the deployment
 ## pipeline so it must happen before
@@ -566,6 +596,17 @@ Ubuntu-22.04-arm64-staging:
     - !reference [.default_rules, rules]
     - if: '$PIPELINE_TYPE =~ /(_RC|_TAG|NIGHTLY)_BUILD_PIPELINE$/'
 
+Ubuntu-24.04-staging:
+  extends: .staging_upload_template
+  needs:
+    - job: Ubuntu-24.04
+      optional: true
+    - job: Ubuntu-24.04-branch
+      optional: true
+  rules:
+    - !reference [.default_rules, rules]
+    - if: '$PIPELINE_TYPE =~ /(_RC|_TAG|AUTO_DEPLOY|NIGHTLY|INTERNAL_RELEASE)_BUILD_PIPELINE$/'
+
 ### Package builds
 Debian-11:
   image: "${BUILDER_IMAGE_REGISTRY}/debian_11:${BUILDER_IMAGE_REVISION}"
@@ -579,9 +620,6 @@ Debian-12:
 Debian-12-arm64:
   image: "${BUILDER_IMAGE_REGISTRY}/debian_12_arm64:${BUILDER_IMAGE_REVISION}"
   extends: .arm64_tag_template
-Ubuntu-24.04:
-  image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_24.04:${BUILDER_IMAGE_REVISION}"
-  extends: .tag_template
 Ubuntu-20.04-arm64:
   image: "${BUILDER_IMAGE_REGISTRY}/ubuntu_20.04_arm64:${BUILDER_IMAGE_REVISION}"
   extends: .arm64_tag_template
@@ -662,6 +700,8 @@ Docker:
   needs:
     - job: Ubuntu-22.04
       artifacts: false
+    - job: Ubuntu-24.04
+      artifacts: false
     - job: generate-facts
       optional: true
       artifacts: true
@@ -699,16 +739,6 @@ Debian-12-arm64-staging:
       optional: true
     - job: Debian-12-arm64-branch
       optional: true
-Ubuntu-24.04-staging:
-  extends: .staging_upload_template
-  needs:
-    - job: Ubuntu-24.04
-      optional: true
-    - job: Ubuntu-24.04-branch
-      optional: true
-  rules:
-    - !reference [.default_rules, rules]
-    - if: '$PIPELINE_TYPE =~ /(_RC|_TAG|NIGHTLY|INTERNAL_RELEASE)_BUILD_PIPELINE$/'
 Ubuntu-20.04-arm64-staging:
   extends: .staging_upload_template
   needs:
@@ -1143,6 +1173,7 @@ check-packages-functionality:
     package_repository: "${STAGING_REPO}"
     package_repo_token: "${STAGING_REPO_TOKEN}:@"
     image_registry: "${CI_REGISTRY_IMAGE}"
+    DISABLE_RPI_BUILDS: "${DISABLE_RPI_BUILDS}"
   rules:
     - !reference [.default_rules, rules]
     - if: '$SKIP_PACKAGE_FUNCTIONALITY_CHECK'
@@ -1170,6 +1201,7 @@ check-packages-availability:
     - if: '$PIPELINE_TYPE =~ /CE_TAG_BUILD_PIPELINE$/'
       variables:
         PIPELINE_TYPE: 'CE_CHECK_PACKAGE_AVAILABILITY_PIPELINE'
+        DISABLE_RPI_BUILDS: "${DISABLE_RPI_BUILDS}"
     - if: '$PIPELINE_TYPE =~ /EE_TAG_BUILD_PIPELINE$/'
       variables:
         PIPELINE_TYPE: 'EE_CHECK_PACKAGE_AVAILABILITY_PIPELINE'

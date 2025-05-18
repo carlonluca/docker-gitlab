@@ -19,7 +19,7 @@ include_recipe 'postgresql::directory_locations'
 pg_helper = PgHelper.new(node)
 geo_pg_helper = GeoPgHelper.new(node)
 omnibus_helper = OmnibusHelper.new(node)
-postgresql_install_dir = File.join(node['package']['install-dir'], 'embedded/postgresql')
+postgresql_install_dir = pg_helper.postgresql_install_dir
 running_db_version = if Services.enabled?('geo_postgresql') && !Services.enabled?('postgresql')
                        geo_pg_helper.database_version
                      else
@@ -40,12 +40,12 @@ end
 ruby_block 'check_postgresql_version_is_deprecated' do
   block do
     LoggingHelper.warning(%q(
-      Note that PostgreSQL 14 is the minimum required PostgreSQL version in GitLab 17.0.
+      Note that PostgreSQL 16 is the minimum required PostgreSQL version in GitLab 18.0.
       To upgrade, please see: https://docs.gitlab.com/omnibus/settings/database.html#upgrade-packaged-postgresql-server
     ))
   end
 
-  not_if { node['postgresql']['version'].nil? || node['postgresql']['version'].to_f >= 13 }
+  not_if { node['postgresql']['version'].nil? || node['postgresql']['version'].to_f >= 16 }
 end
 
 ruby_block "Link postgresql bin files to the correct version" do
