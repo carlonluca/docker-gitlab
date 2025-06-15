@@ -14,6 +14,12 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 18.0.2 (2025-06-11)
+
+### Security (1 change)
+
+- [Default X-Forwarded-For to $remote_addr in GitLab NGINX config](gitlab-org/security/omnibus-gitlab@f8f944d303c06c90fdf65c53f0161714cf84a6af) ([merge request](gitlab-org/security/omnibus-gitlab!471))
+
 ## 18.0.1 (2025-05-21)
 
 No changes.
