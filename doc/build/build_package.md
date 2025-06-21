@@ -1,6 +1,6 @@
 ---
-stage: Systems
-group: Distribution
+stage: GitLab Delivery
+group: Build
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 title: Build an `omnibus-gitlab` package locally
 ---
@@ -13,7 +13,7 @@ project's [Container Registry](https://gitlab.com/gitlab-org/gitlab-omnibus-buil
 
 1. [Install Docker Engine](https://docs.docker.com/engine/install/).
    - Docker Engine is a requirement, not Docker Desktop.
-   - **Notice:** [Docker Desktop for Mac](https://docs.docker.com/desktop/install/mac-install/) requires a paid
+   - **Notice**: [Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/) requires a paid
      subscription for commercial use, in accordance with
      [Docker Subscription Service Agreement](https://www.docker.com/legal/docker-subscription-service-agreement/).
      Consider alternatives.

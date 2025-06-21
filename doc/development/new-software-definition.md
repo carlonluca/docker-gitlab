@@ -1,6 +1,6 @@
 ---
-stage: Systems
-group: Distribution
+stage: GitLab Delivery
+group: Build
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 title: Adding a new software definition
 ---
@@ -12,7 +12,7 @@ In order to add a new component to GitLab, you should follow these steps:
 
 ## Fetch and compile the software during build
 
-[Software Definitions](../architecture/_index.md#software-definitions), which
+[Software Definitions](architecture/_index.md#software-definitions), which
 can be found in `/config/software`, specify where the Linux package should fetch the
 software, how to compile it and install it to the required folder. This part of
 the project is run when we build the Linux package for GitLab.

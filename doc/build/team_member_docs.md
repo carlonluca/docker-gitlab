@@ -1,6 +1,6 @@
 ---
-stage: Systems
-group: Distribution
+stage: GitLab Delivery
+group: Build
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 title: GitLab Team member's guide to using official build infrastructure
 ---
@@ -40,14 +40,14 @@ Versions of the primary GitLab components like GitLab Rails or Gitaly are contro
 
 Check the following table for more information:
 
-| File name                             | Environment variable                 | Description |
-| ------------------------------------ | ------------------------------------ | ----------- |
+| File name                              | Environment variable                   | Description |
+|----------------------------------------|----------------------------------------|-------------|
 | `VERSION`                              | `GITLAB_VERSION`                       | Controls the Git reference of the GitLab Rails application. By default, points to the `master` branch of the GitLab-FOSS repository. If you want to use the GitLab repository, set the environment variable `ee` to true. |
 | `GITALY_SERVER_VERSION`                | `GITALY_SERVER_VERSION`                | Git reference of the [Gitaly](https://gitlab.com/gitlab-org/gitaly) repository. |
-| `GITLAB_PAGES_VERSION`                 | `GITLAB_PAGES_VERSION`                 | Git reference of the [GitLab Pages](https://gitlab.com/gitlab-org/gitlab-pages) repository.|
-| `GITLAB_SHELL_VERSION`                 | `GITLAB_SHELL_VERSION`                 | Git reference of the [GitLab Shell](https://gitlab.com/gitlab-org/gitlab-shell) repository.|
-| `GITLAB_ELASTICSEARCH_INDEXER_VERSION` | `GITLAB_ELASTICSEARCH_INDEXER_VERSION` | Git reference of the [GitLab Elasticsearch Indexer](https://gitlab.com/gitlab-org/gitlab-elasticsearch-indexer) repository. Used only in EE builds.|
-| `GITLAB_KAS_VERSION`                   | `GITLAB_KAS_VERSION`                   | Git reference of the [GitLab Kubernetes Agent Server](https://gitlab.com/gitlab-org/cluster-integration/gitlab-agent) repository.|
+| `GITLAB_PAGES_VERSION`                 | `GITLAB_PAGES_VERSION`                 | Git reference of the [GitLab Pages](https://gitlab.com/gitlab-org/gitlab-pages) repository. |
+| `GITLAB_SHELL_VERSION`                 | `GITLAB_SHELL_VERSION`                 | Git reference of the [GitLab Shell](https://gitlab.com/gitlab-org/gitlab-shell) repository. |
+| `GITLAB_ELASTICSEARCH_INDEXER_VERSION` | `GITLAB_ELASTICSEARCH_INDEXER_VERSION` | Git reference of the [GitLab Elasticsearch Indexer](https://gitlab.com/gitlab-org/gitlab-elasticsearch-indexer) repository. Used only in EE builds. |
+| `GITLAB_KAS_VERSION`                   | `GITLAB_KAS_VERSION`                   | Git reference of the [GitLab Kubernetes Agent Server](https://gitlab.com/gitlab-org/cluster-integration/gitlab-agent) repository. |
 
 If you are running the `e2e:test-on-omnibus` job from a GitLab MR, the `GITLAB_VERSION`
 environment variable is set to the commit SHA corresponding to the pipeline.
@@ -74,7 +74,7 @@ Temporarily specify a component version using any of the following methods:
   merge. We recommend you open an unresolved discussion on this diff in the
   MR so you remember to revert it.
 
-- Pass the environment variable as a [Git push option](https://docs.gitlab.com/user/project/push_options/#push-options-for-gitlab-cicd).
+- Pass the environment variable as a [Git push option](https://docs.gitlab.com/topics/git/commit/#push-options-for-gitlab-cicd).
 
   ```shell
   git push <REMOTE> -o ci.variable="<ENV_VAR>=<VALUE>"
@@ -111,8 +111,8 @@ below for details:
 
 <!-- vale gitlab_base.SubstitutionWarning = YES -->
 
-| Environment variable                          | Description |
-| --------------------------------------------- | ----------- |
+| Environment variable                            | Description |
+|-------------------------------------------------|-------------|
 | `ALTERNATIVE_PRIVATE_TOKEN`                     | An access token used if needing to pull from private repositories. |
 | `GITLAB_ALTERNATIVE_REPO`                       | Git repository location for the GitLab Rails application. |
 | `GITLAB_SHELL_ALTERNATIVE_REPO`                 | Git repository location for [GitLab Shell](https://gitlab.com/gitlab-org/gitlab-shell). |

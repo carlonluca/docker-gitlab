@@ -1,13 +1,13 @@
 ---
-stage: Systems
-group: Distribution
+stage: GitLab Delivery
+group: Self Managed
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 title: Contribute to Linux package development
 ---
 
 ## Getting started
 
-1. [Understanding the Linux package architecture](../architecture/_index.md)
+1. [Understanding the Linux package architecture](architecture/_index.md)
 1. [Setting up a local development environment](setup.md)
 
 ## How everyone can contribute

@@ -1,12 +1,12 @@
 ---
-stage: Systems
-group: Distribution
+stage: GitLab Delivery
+group: Self Managed
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 title: Database support
 ---
 
 This document provides details and examples on how to implement database support
-for a Linux package component. The [architecture blueprint](../architecture/multiple_database_support/_index.md)
+for a Linux package component. The [architecture blueprint](architecture/multiple_database_support/_index.md)
 provides the design and definitions.
 
 1. [Level 1](#level-1)
@@ -317,9 +317,12 @@ end
    as opposed to reusing the existing Rails user, the same as what Praefect
    currently does.
 
-   NOTE **Note:**
+   {{< alert type="note" >}}
+
    It is very important that we do not introduce any breaking changes to
    `gitlab.rb`. The current user settings must work without any change.
+
+   {{< /alert >}}
 
 1. Use `pgbouncer_user` custom resource from `pgbouncer` cookbook to create the
    dedicated PgBouncer user for the component. Use the attribute that is
@@ -399,10 +402,13 @@ We can currently set up PgBouncer support for decomposed Rails databases sharing
 the same user. But for Praefect or Registry, we need additional work to create
 dedicated PgBouncer users.
 
-NOTE **Note:**
+{{< alert type="note" >}}
+
 A shared user does not mean connection settings for each database must
 be the same. It only means that multiple databases use the same user for
 PgBouncer connection.
+
+{{< /alert >}}
 
 ### Delay the population of PgBouncer database configuration
 

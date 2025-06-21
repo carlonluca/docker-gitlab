@@ -1,6 +1,6 @@
 ---
-stage: Systems
-group: Distribution
+stage: GitLab Delivery
+group: Self Managed
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 title: Configuring Redis
 ---
@@ -215,7 +215,7 @@ To disable this functionality:
 
 ## Lazy freeing
 
-Redis 4 introduced [lazy freeing](http://antirez.com/news/93). This can improve performance when freeing large values.
+Redis 4 introduced [lazy freeing](https://antirez.com/news/93). This can improve performance when freeing large values.
 
 This setting defaults to `false`. To enable it, you can use:
 

@@ -1,6 +1,6 @@
 ---
-stage: Systems
-group: Distribution
+stage: GitLab Delivery
+group: Self Managed
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 title: SMTP settings
 ---
@@ -396,6 +396,44 @@ gitlab_rails['smtp_authentication'] = "login"
 gitlab_rails['smtp_enable_starttls_auto'] = false
 gitlab_rails['smtp_tls'] = true
 gitlab_rails['smtp_openssl_verify_mode'] = 'none'
+```
+
+### Prolateral outMail
+
+You can use the [outMail](https://www.prolateral.com/email-services/outmail-outgoing-smtp/outmail-outgoing-smtp-server.html) service by Prolateral.
+
+To improve delivery by authorizing outMail to send emails on behalf of your domain, you should:
+
+- Specify valid from and reply_to addresses using your GitLab domain name.
+- Set up a valid [SPF (Sender Policy Framework)](https://www.prolateral.com/help/kb/dns-engine/457-what-is-a-spf-record.html) record to include outMail.
+- Enable outMail to [DKIM (DomainKeys Identified Mail)](https://www.prolateral.com/help/kb/outmail/643-how-do-i-enable-dkim-signing-of-emails-through-outmail.html) sign your GitLab emails.
+
+As a responsible sender of emails for your domain name, you should also consider adding a
+[DMARC (Domain-based Message Authentication, Reporting, and Conformance)](https://www.prolateral.com/help/kb/outmail/647-what-is-dmarc-what-is-its-purpose-and-why-it-is-important.html) policy.
+
+To access your outMail service details, log into the Prolateral management portal, navigate to your outMail service settings, and configure GitLab with
+the appropriate values as follows:
+
+```ruby
+gitlab_rails['smtp_enable'] = true
+gitlab_rails['smtp_address'] = '<mxXXXXXX.smtp-engine.com>' # Please see your outMail service settings in the Prolateral portal
+gitlab_rails['smtp_port'] = 587 # Alternate SMTP ports are available, 25, 465, 2525, and 8025
+gitlab_rails['smtp_user_name'] = '<outmail-username>' # Please see your outMail service settings in the Prolateral portal
+gitlab_rails['smtp_password'] = '<outmail-password>'  # Please see your outMail service settings in the Prolateral portal
+gitlab_rails['smtp_domain'] = 'example.com'
+gitlab_rails['gitlab_email_from'] = 'user@example.com'
+gitlab_rails['gitlab_email_reply_to'] = 'user@example.com'
+gitlab_rails['smtp_enable_starttls_auto'] = true
+gitlab_rails['smtp_authentication'] = 'login'
+gitlab_rails['smtp_tls'] = false
+gitlab_rails['smtp_openssl_verify_mode'] = 'peer'
+```
+
+If you're using TCP port 465, change the relevant lines to the following:
+
+```ruby
+gitlab_rails['smtp_port'] = 465
+gitlab_rails['smtp_tls'] = true
 ```
 
 ### Amen.fr / Securemail.pro
@@ -1294,7 +1332,7 @@ gitlab_rails['smtp_openssl_verify_mode'] = 'none'
 
 ### Scaleway Transactional Email
 
-Read more about [Scaleway's Transactional Email](https://www.scaleway.com/en/docs/managed-services/transactional-email/how-to/generate-api-keys-for-tem-with-iam/).
+Read more about [Scaleway's Transactional Email](https://www.scaleway.com/en/docs/transactional-email/how-to/generate-api-keys-for-tem-with-iam/).
 
 ```ruby
 gitlab_rails['smtp_enable'] = true

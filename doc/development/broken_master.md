@@ -1,6 +1,6 @@
 ---
-stage: Systems
-group: Distribution
+stage: GitLab Delivery
+group: Build
 info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
 title: Handling broken master pipelines
 ---
@@ -16,7 +16,7 @@ other scheduled work as per our [development guidelines](https://handbook.gitlab
 This is a transient error due to connection issues between runner manager
 machine and `dev.gitlab.org`.
 
-1. Sign in to [runner manager machine](https://handbook.gitlab.com/handbook/engineering/infrastructure/core-platform/systems/distribution/maintenance/build-infrastructure/#runner-manager-machines).
+1. Sign in to [runner manager machine](https://handbook.gitlab.com/handbook/engineering/infrastructure-platforms/gitlab-delivery/distribution/maintenance/build-infrastructure/#runner-manager-machines).
 1. Run the following command to force a connection between runner and GitLab
 
    ```shell
