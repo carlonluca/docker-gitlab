@@ -13,7 +13,7 @@ project's [Container Registry](https://gitlab.com/gitlab-org/gitlab-omnibus-buil
 
 1. [Install Docker Engine](https://docs.docker.com/engine/install/).
    - Docker Engine is a requirement, not Docker Desktop.
-   - **Notice**: [Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/) requires a paid
+   - [Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/) requires a paid
      subscription for commercial use, in accordance with
      [Docker Subscription Service Agreement](https://www.docker.com/legal/docker-subscription-service-agreement/).
      Consider alternatives.
@@ -92,7 +92,7 @@ again:
 
 1. Fetch the assets Docker image that corresponds to the ref of GitLab or
    GitLab-FOSS you are building. For example, to pull the asset image
-   corresponding to latest master ref, run the following:
+   corresponding to the latest `master` ref, run the following:
 
    ```shell
    docker pull registry.gitlab.com/gitlab-org/gitlab/gitlab-assets-ee:master

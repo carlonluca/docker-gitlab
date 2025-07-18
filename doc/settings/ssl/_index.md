@@ -632,7 +632,7 @@ Some environments connect to external resources for various tasks and GitLab
 allows these connections to use HTTPS, and supports connections with self-signed certificates.
 GitLab has its own ca-cert bundle that you can add certs to by placing the
 individual custom certs in the `/etc/gitlab/trusted-certs` directory. They then
-get added to the bundle. They are added using openssl's `c_rehash` method, which
+get added to the bundle. They are added using the `openssl rehash` command, which
 only works on a [single certificate](#using-a-custom-certificate-chain).
 
 The Linux package ships with the official
@@ -698,7 +698,7 @@ compiled to look for certificates in `/opt/gitlab/embedded/ssl/certs`.
 
 The Linux package manages custom certificates by symlinking any certificate that
 gets added to `/etc/gitlab/trusted-certs/` to `/opt/gitlab/embedded/ssl/certs`
-using the [c_rehash](https://www.openssl.org/docs/manmaster/man1/c_rehash.html)
+using the [openssl rehash](https://docs.openssl.org/3.1/man1/openssl-rehash/)
 tool. For example, let's suppose we add `customcacert.pem` to
 `/etc/gitlab/trusted-certs/`:
 
@@ -728,7 +728,7 @@ Net::HTTP.get(URI('https://www.google.com'))
 
 This is what happens behind the scenes:
 
-1. The "require `openssl`" line causes the interpreter to load `/opt/gitlab/embedded/lib/ruby/2.3.0/x86_64-linux/openssl.so`.
+1. The `require 'openssl'` line causes the interpreter to load `/opt/gitlab/embedded/lib/ruby/2.3.0/x86_64-linux/openssl.so`.
 1. The `Net::HTTP` call then attempts to read the default certificate bundle in `/opt/gitlab/embedded/ssl/certs/cacert.pem`.
 1. SSL negotiation occurs.
 1. The server sends its SSL certificates.
@@ -738,7 +738,7 @@ This is what happens behind the scenes:
    example, if a certificate has the fingerprint `7f279c95`, OpenSSL will attempt
    to read `/opt/gitlab/embedded/ssl/certs/7f279c95.0`.
 
-Note that the OpenSSL library supports the definition of `SSL_CERT_FILE` and
+The OpenSSL library supports the definition of `SSL_CERT_FILE` and
 `SSL_CERT_DIR` environment variables. The former defines the default
 certificate bundle to load, while the latter defines a directory in which to
 search for more certificates. These variables should not be necessary if you

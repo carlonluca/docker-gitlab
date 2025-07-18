@@ -78,7 +78,7 @@ this OpenSSL version.
 
    {{< alert type="note" >}}
 
-It is recommended to use the full certificate chain in order to prevent SSL errors when clients connect. The full certificate chain order should consist of the server certificate first, followed by all intermediate certificates, with the root CA last.
+   It is recommended to use the full certificate chain in order to prevent SSL errors when clients connect. The full certificate chain order should consist of the server certificate first, followed by all intermediate certificates, with the root CA last.
 
    {{< /alert >}}
 
@@ -88,7 +88,7 @@ It is recommended to use the full certificate chain in order to prevent SSL erro
 
    {{< alert type="note" >}}
 
-If you get this error while running the system OpenSSL utility instead of the `/opt/gitlab/embedded/bin/openssl` utility, make sure you update your CA certificates at the OS level to fix it.
+   If you get this error while running the system OpenSSL utility instead of the `/opt/gitlab/embedded/bin/openssl` utility, make sure you update your CA certificates at the OS level to fix it.
 
    {{< /alert >}}
 
@@ -130,7 +130,6 @@ means there may be one of four issues:
 
 1. The file in `/etc/gitlab/trusted-certs/` is a symlink
 1. The file is not a valid PEM- or DER-encoded certificate
-1. Perl is not installed on the operating system which is needed for `c_rehash` to properly symlink certificates
 1. The certificate contains the string `TRUSTED`
 
 Test the certificate's validity using the commands below:
@@ -160,16 +159,6 @@ In either of those cases, and if your certificates begin and end with anything o
 ```
 
 Then they are not compatible with GitLab. You should separate them into the certificate components (server, intermediate, root), and convert them to the compatible PEM format.
-
-To test if `c_rehash` is not symlinking the certificate due to a missing perl interpreter:
-
-```shell
-$ /opt/gitlab/embedded/bin/c_rehash /etc/gitlab/trusted-certs
-
-bash: /opt/gitlab/embedded/bin/c_rehash: /usr/bin/perl: bad interpreter: No such file or directory
-```
-
-If you see this message, you will need to install perl with your distribution's package manager.
 
 If you inspect the certificate itself, then look for the string `TRUSTED`:
 

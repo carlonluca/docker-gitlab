@@ -175,7 +175,7 @@ _Don't forget to change `my.email@gmail.com` to your email address and `my-gmail
 
 ### Google SMTP relay
 
-You can route outgoing non-Gmail messages through Google [using Google's SMTP relay service](https://support.google.com/a/answer/2956491?hl=en).
+You can route outgoing non-Gmail messages through Google [using the Google SMTP relay service](https://support.google.com/a/answer/2956491?hl=en).
 
 ```ruby
 gitlab_rails['smtp_enable'] = true
@@ -1359,6 +1359,23 @@ gitlab_rails['smtp_password'] = "<the generated SMTP token>"
 gitlab_rails['smtp_domain'] = "<your domain>"
 gitlab_rails['gitlab_email_from'] = "<the Proton email address for which you generated the SMTP token>"
 gitlab_rails['gitlab_email_reply_to'] = "<the Proton email address for which you generated the SMTP token>"
+```
+
+### Sendamatic
+
+For more information on using Sendamatic, see [Sendamatic Docs](https://docs.sendamatic.net).
+
+```ruby
+gitlab_rails['smtp_enable'] = true
+gitlab_rails['smtp_address'] = "in.smtp.sendamatic.net"
+gitlab_rails['smtp_port'] = 587
+gitlab_rails['smtp_user_name'] = "<mail credential user>" # https://docs.sendamatic.net/mail-credentials/
+gitlab_rails['smtp_password'] = "<mail credential password>"
+gitlab_rails['smtp_domain'] = "<mail identity domain>"    # https://docs.sendamatic.net/mail-identities/
+gitlab_rails['smtp_authentication'] = "login"
+gitlab_rails['smtp_enable_starttls_auto'] = true
+gitlab_rails['gitlab_email_from'] = "example@<mail identity domain>"
+gitlab_rails['gitlab_email_reply_to'] = "example@<mail identity domain>"
 ```
 
 ### More examples are welcome
