@@ -14,6 +14,12 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 18.2.2 (2025-08-12)
+
+### Fixed (1 change)
+
+- [Fix deprecation check failing on nil values](gitlab-org/security/omnibus-gitlab@529d34fbbffca1f4877e8fb58bef3a0e1d9c3034)
+
 ## 18.2.1 (2025-07-22)
 
 No changes.
