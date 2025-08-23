@@ -1,10 +1,19 @@
 require 'chef_helper'
 
 RSpec.describe 'registry recipe' do
-  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service)).converge('gitlab::default') }
+  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service registry_database_objects)).converge('gitlab::default') }
 
   before do
     allow(Gitlab).to receive(:[]).and_call_original
+  end
+
+  it 'sets default attributes' do
+    expect(chef_run.node['registry']['auto_migrate']).to eq(true)
+    expect(chef_run.node['registry']['database']['enabled']).to eq(false)
+    expect(chef_run.node['registry']['database']['user']).to eq('registry')
+    expect(chef_run.node['registry']['database']['dbname']).to eq('registry')
+    expect(chef_run.node['registry']['database']['port']).to eq(5432)
+    expect(chef_run.node['registry']['database']['sslmode']).to eq('prefer')
   end
 
   describe 'letsencrypt' do
@@ -95,6 +104,10 @@ RSpec.describe 'registry recipe' do
 
     it_behaves_like 'renders a valid YAML file', '/var/opt/gitlab/registry/config.yml'
 
+    it 'includes the database_migrations recipe' do
+      expect(chef_run).to include_recipe('registry::database_migrations')
+    end
+
     it 'creates the registry user and group with the correct parameters' do
       expect(chef_run).to create_account('Docker registry user and group').with(username: 'registry', groupname: 'registry', shell: '/usr/sbin/nologin', home: '/var/opt/gitlab/registry')
     end
@@ -143,6 +156,32 @@ RSpec.describe 'registry recipe' do
       it 'creates registry config with middleware' do
         expect(chef_run).to render_file('/var/opt/gitlab/registry/config.yml')
           .with_content(%r(^middleware: {"storage":))
+      end
+    end
+
+    context "when GitLab-managed PostgreSQL is enabled" do
+      before { stub_gitlab_rb(postgresql: { enable: true }) }
+
+      it 'populates default registry database config' do
+        expect(chef_run).to render_file('/var/opt/gitlab/registry/config.yml')
+          .with_content('database: {"enabled":false,"user":"registry","dbname":"registry","port":5432,"sslmode":"prefer","host":"/var/opt/gitlab/postgresql"}')
+      end
+    end
+
+    context 'when registry reporting is enabled' do
+      let(:reporting_config) do
+        { "sentry" => {
+          "enabled" => true,
+          "dsn" => "https://<key>@sentry.io/<project>",
+          "environment" => "production"
+        } }
+      end
+
+      before { stub_gitlab_rb(registry: { reporting: reporting_config }) }
+
+      it 'creates registry config with reporting' do
+        expect(chef_run).to render_file('/var/opt/gitlab/registry/config.yml')
+          .with_content('reporting: {"sentry":{"enabled":true,"dsn":"https://<key>@sentry.io/<project>","environment":"production"}}')
       end
     end
 
@@ -247,6 +286,56 @@ RSpec.describe 'registry recipe' do
     end
   end
 
+  context 'registry database objects' do
+    context 'when PostgreSQL is enabled' do
+      before do
+        stub_gitlab_rb(
+          registry_external_url: 'https://registry.example.com',
+          postgresql: { enable: true }
+        )
+      end
+
+      it 'creates registry_database_objects resource with only_if condition' do
+        expect(chef_run).to create_registry_database_objects('default')
+
+        # Find the resource and verify it exists
+        resource = chef_run.find_resource(:registry_database_objects, 'default')
+        expect(resource).not_to be_nil
+
+        # Since postgresql is enabled, the resource should be created
+        expect(chef_run.node.dig('postgresql', 'enable')).to be_truthy
+      end
+
+      it 'creates postgresql_user and postgresql_database when registry_database_objects is executed' do
+        expect(chef_run).to create_postgresql_user('registry')
+        expect(chef_run).to create_postgresql_database('registry')
+      end
+    end
+
+    context 'when PostgreSQL is disabled' do
+      before do
+        stub_gitlab_rb(
+          registry_external_url: 'https://registry.example.com',
+          postgresql: { enable: false }
+        )
+      end
+
+      it 'creates registry_database_objects resource but does not execute due to only_if condition' do
+        # The resource should not be created at all when postgresql is disabled
+        # because the only_if condition prevents it from being included in the resource collection
+        expect(chef_run).not_to create_registry_database_objects('default')
+
+        # Verify postgresql is disabled in the node
+        expect(chef_run.node.dig('postgresql', 'enable')).to be_falsey
+      end
+
+      it 'does not create postgresql_user and postgresql_database when only_if condition is false' do
+        expect(chef_run).not_to create_postgresql_user('registry')
+        expect(chef_run).not_to create_postgresql_database('registry')
+      end
+    end
+  end
+
   context 'when user and group are specified' do
     before { stub_gitlab_rb(registry_external_url: 'https://registry.example.com', registry: { username: 'registryuser', group: 'registrygroup' }) }
     it 'make registry run file start registry under correct user' do
@@ -259,7 +348,7 @@ RSpec.describe 'registry recipe' do
 end
 
 RSpec.describe 'registry' do
-  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service)).converge('gitlab::default') }
+  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service registry_database_objects)).converge('gitlab::default') }
   let(:default_vars) do
     {
       'SSL_CERT_DIR' => '/opt/gitlab/embedded/ssl/certs/',
@@ -514,6 +603,71 @@ RSpec.describe 'registry' do
       end
     end
 
+    context 'when registry load balancing is enabled and configured' do
+      before do
+        stub_gitlab_rb(
+          registry: {
+            redis: {
+              loadbalancing: {
+                enabled: true,
+                addr: 'redis1.local:6379,redis2.local:6379',
+                username: 'redis',
+                password: 'redis_password',
+                mainname: 'main-redis',
+                sentinelusername: 'sentinel',
+                sentinelpassword: 'redis_sentinel_password',
+                db: 1,
+                dialtimeout: '5s',
+                readtimeout: '10s',
+                writetimeout: '15s',
+                tls: {
+                  enabled: true,
+                  insecure: true
+                },
+                pool: {
+                  size: 32,
+                  maxlifetime: '2h',
+                  idletimeout: '500s'
+                }
+              }
+            }
+          }
+        )
+      end
+
+      it 'creates registry config with specified value' do
+        expect(chef_run).to render_file('/var/opt/gitlab/registry/config.yml')
+          .with_content { |content|
+            config = YAML.safe_load(content)
+
+            expect(config['redis']).to eq({
+                                            'loadbalancing' => {
+                                              'enabled' => true,
+                                              'addr' => 'redis1.local:6379,redis2.local:6379',
+                                              'username' => 'redis',
+                                              'password' => 'redis_password',
+                                              'db' => 1,
+                                              'mainname' => 'main-redis',
+                                              'sentinelusername' => 'sentinel',
+                                              'sentinelpassword' => 'redis_sentinel_password',
+                                              'dialtimeout' => '5s',
+                                              'readtimeout' => '10s',
+                                              'writetimeout' => '15s',
+                                              'tls' => {
+                                                'enabled' => true,
+                                                'insecure' => true
+                                              },
+                                              'pool' => {
+                                                'size' => 32,
+                                                'maxlifetime' => '2h',
+                                                'idletimeout' => '500s'
+                                              },
+                                            }
+                                          })
+          }
+      end
+    end
+
     context 'when registry has custom environment variables configured' do
       before do
         stub_gitlab_rb(registry: { env: { 'HTTP_PROXY' => 'my-proxy' } })
@@ -555,7 +709,7 @@ RSpec.describe 'registry' do
 end
 
 RSpec.describe 'auto enabling registry' do
-  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service)).converge('gitlab::default') }
+  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service registry_database_objects)).converge('gitlab::default') }
   let(:registry_config) { '/var/opt/gitlab/registry/config.yml' }
   let(:nginx_config) { '/var/opt/gitlab/nginx/conf/gitlab-registry.conf' }
 

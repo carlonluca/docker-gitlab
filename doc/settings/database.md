@@ -449,6 +449,15 @@ existing installation
 
 ### Upgrade packaged PostgreSQL server
 
+{{< alert type="note" >}}
+
+If you have a Patroni cluster (PostgreSQL HA) managed by GitLab, use the following documentation instead:
+
+- [Upgrading PostgreSQL major version in a Patroni cluster](https://docs.gitlab.com/administration/postgresql/replication_and_failover/#upgrading-postgresql-major-version-in-a-patroni-cluster)
+- [Near-zero-downtime upgrade of PostgreSQL in a Patroni cluster](https://docs.gitlab.com/administration/postgresql/replication_and_failover/#near-zero-downtime-upgrade-of-postgresql-in-a-patroni-cluster)
+
+{{< /alert >}}
+
 The Linux package provides the `gitlab-ctl pg-upgrade` command to update the
 packaged PostgreSQL server to a later version (if one is included in the
 package). This updates PostgreSQL to the [default shipped version](https://docs.gitlab.com/administration/package_information/postgresql_versions/)
@@ -958,7 +967,7 @@ sure that any folders that relate to PostgreSQL are deleted and that there are n
 
 ## Provide sensitive data configuration to GitLab Rails without plain text storage
 
-For more information, see the example in [configuration documentation](../settings/configuration.md#provide-the-postgresql-user-password-to-gitlab-rails).
+For more information, see the example in [configuration documentation](configuration.md#provide-the-postgresql-user-password-to-gitlab-rails).
 
 ## Application Settings for the Database
 
@@ -1230,7 +1239,8 @@ replication user's password.
 
 1. If you paused replication in step 3,
    [resume replication on each **secondary**](https://docs.gitlab.com/administration/geo/#pausing-and-resuming-replication).
-   Then, restart `puma`, `sidekiq`, and `geo-logcursor`.
+
+1. Restart `puma`, `sidekiq`, and `geo-logcursor`.
 
    ```shell
    sudo gitlab-ctl hup puma
@@ -1238,7 +1248,7 @@ replication user's password.
    sudo gitlab-ctl restart geo-logcursor
    ```
 
-1. Navigate to `https://your_primary_server/admin/geo/nodes` and ensure that all nodes are healthy.
+1. Navigate to `https://your_primary_server/admin/geo/sites` and ensure that all Geo sites are healthy.
 
 ## Connecting to the PostgreSQL database
 

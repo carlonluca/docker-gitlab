@@ -93,8 +93,8 @@ GEM
 GEM
   remote: https://rubygems.org/
   specs:
-    acme-client (2.0.21)
-      base64 (~> 0.2.0)
+    acme-client (2.0.22)
+      base64 (~> 0.2)
       faraday (>= 1.0, < 3.0.0)
       faraday-retry (>= 1.0, < 3.0.0)
     activesupport (7.0.8.4)
@@ -267,7 +267,7 @@ GEM
       method_source (~> 1.0)
     public_suffix (5.0.5)
     racc (1.7.3)
-    rack (2.2.9)
+    rack (2.2.17)
     rainbow (3.1.1)
     remote_syslog-gitlab (0.0.2)
       em-resolv-replace
@@ -399,7 +399,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  acme-client (= 2.0.21)
+  acme-client (= 2.0.22)
   chef (= 18.3.0)!
   chef-bin (= 18.3.0)!
   chef-cli (= 5.6.14)!
@@ -413,6 +413,7 @@ DEPENDENCIES
   license_finder (= 7.2.1)
   mixlib-log (= 3.2.3)
   ohai (= 18.1.18)
+  rack (= 2.2.17)
   rainbow (= 3.1.1)
   remote_syslog-gitlab (= 0.0.2)
   rubocop-ast (= 1.21.0)
@@ -420,4 +421,4 @@ DEPENDENCIES
   unf_ext (= 0.0.9.1)
 
 BUNDLED WITH
-   2.6.9
+   2.7.1

@@ -38,8 +38,14 @@ default['registry']['debug_addr'] = nil
 default['registry']['validation_enabled'] = false
 default['registry']['autoredirect'] = false
 default['registry']['compatibility_schema1_enabled'] = false
-default['registry']['database'] = nil
+default['registry']['database']['enabled'] = false
+default['registry']['database']['user'] = "registry"
+default['registry']['database']['dbname'] = "registry"
+default['registry']['database']['port'] = 5432
+default['registry']['database']['sslmode'] = "prefer"
+default['registry']['auto_migrate'] = true
 default['registry']['gc'] = nil
+default['registry']['reporting'] = nil
 
 ####
 # Notifications
@@ -50,3 +56,13 @@ default['registry']['default_notifications_threshold'] = 5
 default['registry']['default_notifications_maxretries'] = 5
 default['registry']['default_notifications_backoff'] = "1s"
 default['registry']['default_notifications_headers'] = {}
+
+####
+# Redis
+####
+#
+default['registry']['redis'] = {
+  'loadbalancing' => {
+    'enabled' => false
+  }
+}
