@@ -14,6 +14,44 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 18.4.0 (2025-09-17)
+
+### Added (4 changes)
+
+- [Provide FIPS packages for Ubuntu 22.04](gitlab-org/omnibus-gitlab@a3d3a1e80c8e1cf22a9c78db5e71c6a2552904a3) ([merge request](gitlab-org/omnibus-gitlab!8164))
+- [Create pgbouncer user and function for registry db](gitlab-org/omnibus-gitlab@d388ddd81f3b673a3f1f6bcca7b57abd7fbaa363) ([merge request](gitlab-org/omnibus-gitlab!8679))
+- [GitLab Secret Manager: Support configuring OpenBao URL](gitlab-org/omnibus-gitlab@962c2b2e9db53f49aadc74932dbd51b2aac92cf9) ([merge request](gitlab-org/omnibus-gitlab!8680))
+- [Enable support for setting postgres `max_slot_wal_keep_size`](gitlab-org/omnibus-gitlab@ec959849563b5e4014e7cc2afc7c440e9a00015c) ([merge request](gitlab-org/omnibus-gitlab!8455))
+
+### Fixed (5 changes)
+
+- [Fix healthcheck if NGINX uses proxy protocol](gitlab-org/omnibus-gitlab@0c8a0edef66f14aee0310dfa10a382a45ab346ea) ([merge request](gitlab-org/omnibus-gitlab!8636))
+- [Fall back to c_rehash if there are multiple TLS certificates](gitlab-org/omnibus-gitlab@7c2496271afb450549edb676191ae333ad77721e) ([merge request](gitlab-org/omnibus-gitlab!8711))
+- [Fix registry matadata database password creation](gitlab-org/omnibus-gitlab@72a857dc8829278fd45efb082bf0fd11dab7437d) ([merge request](gitlab-org/omnibus-gitlab!8693))
+- [Update Mattermost to v10.10.2](gitlab-org/omnibus-gitlab@af035284d8abe7a3998c06232618360a2ec31032) ([merge request](gitlab-org/omnibus-gitlab!8675))
+- [Build gitlab-shell and gitlab-sshd in FIPS mode](gitlab-org/omnibus-gitlab@fd06f46434f1d842b91f0d97d7eb01118d292935) ([merge request](gitlab-org/omnibus-gitlab!8653))
+
+### Changed (8 changes)
+
+- [Bump rubygems to 3.7.1](gitlab-org/omnibus-gitlab@e888005431440c6cae0aade020f4ca5626766602) ([merge request](gitlab-org/omnibus-gitlab!8573))
+- [Update dependency curl to curl-8_15_0](gitlab-org/omnibus-gitlab@44a2a3cd66507dd9d8885adac99fbf80d39b7a9a) ([merge request](gitlab-org/omnibus-gitlab!8647))
+- [Adapt Puma config to support Puma 7](gitlab-org/omnibus-gitlab@4e67700c85fe508e884061e0ff42c2f2dc8ebf02) ([merge request](gitlab-org/omnibus-gitlab!8715))
+- [Update dependency container-registry to v4.27.0-gitlab](gitlab-org/omnibus-gitlab@0b4814e7610c37b1e9bec4cfba2c849a1cab901d) ([merge request](gitlab-org/omnibus-gitlab!8697))
+- [Update dependency container-registry to v4.27.0-gitlab](gitlab-org/omnibus-gitlab@ff59bfd32b7fbc39c673d1af313a4625e0319d32) ([merge request](gitlab-org/omnibus-gitlab!8689))
+- [Update dependency container-registry to v4.26.1-gitlab](gitlab-org/omnibus-gitlab@7fc1e2bd84a3e49d8eab09f413b1abda3888645d) ([merge request](gitlab-org/omnibus-gitlab!8655))
+- [Update dependency nginx-module-vts to v0.2.4](gitlab-org/omnibus-gitlab@d252971ee66e884423776c68a3af62ae9641fa45) ([merge request](gitlab-org/omnibus-gitlab!8452))
+- [Enable amcheck extension for postgres](gitlab-org/omnibus-gitlab@650078f9b655327e73c3a24f36db55aea4c90490) ([merge request](gitlab-org/omnibus-gitlab!8589))
+
+## 18.3.2 (2025-09-09)
+
+No changes.
+
+## 18.3.1 (2025-08-26)
+
+### Fixed (1 change)
+
+- [Update Mattermost to v10.10.2](gitlab-org/security/omnibus-gitlab@188ca72d1d89b17c087709c380ca212d0f656cd4)
+
 ## 18.3.0 (2025-08-20)
 
 ### Added (6 changes)
@@ -55,6 +93,24 @@ No changes.
 ### Other (1 change)
 
 - [Update pages max_uri_length to 2048 in gitlab.rb template](gitlab-org/omnibus-gitlab@577648c9b2d3e956101627df5ddad46ddaf7a3d7) ([merge request](gitlab-org/omnibus-gitlab!8626))
+
+## 18.2.6 (2025-09-09)
+
+No changes.
+
+## 18.2.5 (2025-08-26)
+
+No changes.
+
+## 18.2.4 (2025-08-18)
+
+### Changed (1 change)
+
+- [Build with Go 1.24.5](gitlab-org/omnibus-gitlab@96c74dfe2a4245c05cfebf061d0f17c0c56b01f9) ([merge request](gitlab-org/omnibus-gitlab!8658))
+
+## 18.2.3 (2025-08-18)
+
+No changes.
 
 ## 18.2.2 (2025-08-12)
 
@@ -98,6 +154,14 @@ No changes.
 ### Security (1 change)
 
 - [Update rsync from 3.2.7 to 3.4.1](gitlab-org/omnibus-gitlab@5deb671cb00cef4a22f0abd0000e2657658ecd4c)
+
+## 18.1.6 (2025-09-09)
+
+No changes.
+
+## 18.1.5 (2025-08-26)
+
+No changes.
 
 ## 18.1.4 (2025-08-12)
 

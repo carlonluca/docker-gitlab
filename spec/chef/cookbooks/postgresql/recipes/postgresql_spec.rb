@@ -11,8 +11,8 @@ RSpec.describe 'postgresql' do
 
   before do
     allow(Gitlab).to receive(:[]).and_call_original
-    allow_any_instance_of(PgHelper).to receive(:version).and_return(PGVersion.new('best_version'))
-    allow_any_instance_of(PgHelper).to receive(:database_version).and_return(PGVersion.new('best_version'))
+    allow_any_instance_of(PgHelper).to receive(:version).and_return(PGVersion.new('16.0'))
+    allow_any_instance_of(PgHelper).to receive(:database_version).and_return(PGVersion.new('16.0'))
     allow_any_instance_of(PgHelper).to receive(:running_version).and_return(PGVersion.new('best_version'))
   end
 
@@ -186,6 +186,11 @@ RSpec.describe 'postgresql' do
         expect(chef_run).to render_file(
           runtime_conf
         ).with_content(%r(^log_directory = '/var/log/gitlab/postgresql'))
+      end
+
+      it 'sets max_slot_wal_keep_size to unlimited' do
+        expect(chef_run.node['postgresql']['max_slot_wal_keep_size'])
+          .to eq(-1)
       end
 
       it 'disables hot_standby_feedback' do
@@ -444,7 +449,8 @@ RSpec.describe 'postgresql' do
                          archive_command: 'command',
                          archive_timeout: '120',
                          log_connections: 'on',
-                         log_disconnections: 'on'
+                         log_disconnections: 'on',
+                         max_slot_wal_keep_size: '2GB'
                        })
       end
 
@@ -498,6 +504,12 @@ RSpec.describe 'postgresql' do
         expect(chef_run).to render_file(
           runtime_conf
         ).with_content(/log_disconnections = on/)
+      end
+
+      it 'sets max_slot_wal_keep_size' do
+        expect(chef_run).to render_file(
+          runtime_conf
+        ).with_content(/^max_slot_wal_keep_size = 2GB/)
       end
     end
 
@@ -566,6 +578,16 @@ RSpec.describe 'postgresql' do
   end
 
   context 'when enabling extensions' do
+    it 'creates the amcheck extension when it is possible' do
+      allow_any_instance_of(PgHelper).to receive(:extension_can_be_enabled?).with('amcheck', 'gitlabhq_production').and_return(true)
+      expect(chef_run).to enable_postgresql_extension('amcheck')
+    end
+
+    it 'does not create the amcheck extension when it is possible' do
+      allow_any_instance_of(PgHelper).to receive(:extension_can_be_enabled?).with('amcheck', 'gitlabhq_production').and_return(false)
+      expect(chef_run).not_to run_execute('enable amcheck extension')
+    end
+
     it 'creates the pg_trgm extension when it is possible' do
       allow_any_instance_of(PgHelper).to receive(:extension_can_be_enabled?).with('pg_trgm', 'gitlabhq_production').and_return(true)
       expect(chef_run).to enable_postgresql_extension('pg_trgm')
@@ -702,24 +724,6 @@ RSpec.describe 'postgresql' do
   end
 end
 
-RSpec.describe 'postgresql 16' do
-  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service postgresql_config)).converge('gitlab::default') }
-  let(:postgresql_conf) { File.join(postgresql_data_dir, 'postgresql.conf') }
-  let(:runtime_conf) { '/var/opt/gitlab/postgresql/data/runtime.conf' }
-
-  before do
-    allow_any_instance_of(PgHelper).to receive(:version).and_return(PGVersion.new('16.0'))
-    allow_any_instance_of(PgHelper).to receive(:database_version).and_return(PGVersion.new('16.0'))
-  end
-
-  it 'configures wal_keep_size instead of wal_keep_segments' do
-    expect(chef_run).to render_file(runtime_conf).with_content { |content|
-      expect(content).to include("wal_keep_size")
-      expect(content).not_to include("wal_keep_segments")
-    }
-  end
-end
-
 RSpec.describe 'postgres when version mismatches occur' do
   let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service postgresql_config)).converge('gitlab::default') }
   let(:postgresql_conf) { File.join(postgresql_data_dir, 'postgresql.conf') }
@@ -844,153 +848,6 @@ RSpec.describe 'postgres when version mismatches occur' do
       expect do
         chef_run.ruby_block('Link postgresql bin files to the correct version').block.call
       end.to raise_error(RuntimeError, /Could not find PostgreSQL binaries/)
-    end
-  end
-end
-
-RSpec.describe 'postgresql::bin' do
-  let(:chef_run) { ChefSpec::SoloRunner.converge('gitlab::default') }
-  let(:gitlab_psql_rc) do
-    <<-EOF
-psql_user='gitlab-psql'
-psql_group='gitlab-psql'
-psql_host='/var/opt/gitlab/postgresql'
-psql_port='5432'
-    EOF
-  end
-
-  before do
-    allow(Gitlab). to receive(:[]).and_call_original
-  end
-
-  context 'when bundled postgresql is disabled' do
-    before do
-      stub_gitlab_rb(
-        postgresql: {
-          enable: false
-        }
-      )
-
-      allow(File).to receive(:exist?).and_call_original
-      allow(File).to receive(:exist?).with('/var/opt/gitlab/postgresql/data/PG_VERSION').and_return(false)
-
-      allow_any_instance_of(PgHelper).to receive(:database_version).and_return(nil)
-      version = double("PgHelper", major: 10, minor: 9)
-      allow_any_instance_of(PgHelper).to receive(:version).and_return(version)
-    end
-
-    it 'still includes the postgresql::bin recipe' do
-      expect(chef_run).to include_recipe('postgresql::bin')
-    end
-
-    it 'includes postgresql::directory_locations' do
-      expect(chef_run).to include_recipe('postgresql::directory_locations')
-    end
-
-    it 'creates gitlab-psql-rc' do
-      expect(chef_run).to render_file('/opt/gitlab/etc/gitlab-psql-rc')
-        .with_content(gitlab_psql_rc)
-    end
-
-    # We do expect the ruby block to run, but nothing to be found
-    it "doesn't link any files by default" do
-      expect(FileUtils).to_not receive(:ln_sf)
-    end
-
-    context "with postgresql['version'] set" do
-      before do
-        stub_gitlab_rb(
-          postgresql: {
-            enable: false,
-            version: '999'
-          }
-        )
-        allow(Dir).to receive(:glob).and_call_original
-        allow(Dir).to receive(:glob).with("/opt/gitlab/embedded/postgresql/999*").and_return(
-          %w(
-            /opt/gitlab/embedded/postgresql/999
-          )
-        )
-        allow(Dir).to receive(:glob).with("/opt/gitlab/embedded/postgresql/999/bin/*").and_return(
-          %w(
-            /opt/gitlab/embedded/postgresql/999/bin/foo_one
-            /opt/gitlab/embedded/postgresql/999/bin/foo_two
-            /opt/gitlab/embedded/postgresql/999/bin/foo_three
-          )
-        )
-      end
-
-      it "doesn't print a warning with a valid postgresql version" do
-        expect(chef_run).to_not run_ruby_block('check_postgresql_version')
-      end
-
-      it 'links the specified version' do
-        allow(FileUtils).to receive(:ln_sf).and_return(true)
-        %w(foo_one foo_two foo_three).each do |pg_bin|
-          expect(FileUtils).to receive(:ln_sf).with(
-            "/opt/gitlab/embedded/postgresql/999/bin/#{pg_bin}",
-            "/opt/gitlab/embedded/bin/#{pg_bin}"
-          )
-        end
-        chef_run.ruby_block('Link postgresql bin files to the correct version').block.call
-      end
-    end
-
-    context "with an invalid version in postgresql['version']" do
-      before do
-        stub_gitlab_rb(
-          postgresql: {
-            enable: false,
-            version: '888'
-          }
-        )
-        allow(Dir).to receive(:glob).and_call_original
-        allow(Dir).to receive(:glob).with('/opt/gitlab/embedded/postgresql/888*').and_return([])
-      end
-
-      it 'should print a warning' do
-        expect(chef_run).to run_ruby_block('check_postgresql_version')
-      end
-    end
-  end
-end
-
-RSpec.describe 'default directories' do
-  let(:chef_run) { ChefSpec::SoloRunner.converge('gitlab::default') }
-
-  before do
-    allow(Gitlab).to receive(:[]).and_call_original
-  end
-
-  context 'postgresql directory' do
-    context 'with default settings' do
-      it 'creates postgresql directory' do
-        expect(chef_run).to create_directory('/var/opt/gitlab/postgresql').with(
-          owner: 'gitlab-psql',
-          group: 'gitlab-psql',
-          mode: '2775',
-          recursive: true
-        )
-      end
-    end
-
-    context 'with custom settings' do
-      before do
-        stub_gitlab_rb(
-          postgresql: {
-            dir: '/mypgdir',
-            home: '/mypghomedir'
-          })
-      end
-
-      it 'creates postgresql directory with custom path' do
-        expect(chef_run).to create_directory('/mypgdir').with(
-          owner: 'gitlab-psql',
-          group: 'gitlab-psql',
-          mode: '2775',
-          recursive: true
-        )
-      end
     end
   end
 end
