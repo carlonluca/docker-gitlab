@@ -33,10 +33,6 @@ RUN apt-get update -q \
     && mv /tmp/locale-archive /usr/lib/locale/locale-archive \
     && rm -rf /var/lib/apt/lists/*
 
-# lcarlon: fix for https://gitlab.com/gitlab-org/gitlab/-/issues/420396
-RUN sed -i 's/validate_timeout 0\.2\.seconds/validate_timeout 10.0.seconds/' \
-    /opt/gitlab/embedded/service/gitlab-rails/app/graphql/gitlab_schema.rb
-
 # Use BusyBox
 ENV EDITOR=/bin/vi
 RUN busybox --install \
@@ -63,6 +59,10 @@ COPY assets/ /assets/
 # container to a secure value. Issue #5956
 RUN chmod -R og-w /assets RELEASE ; \
   /assets/setup
+
+# lcarlon: fix for https://gitlab.com/gitlab-org/gitlab/-/issues/420396
+RUN sed -i 's/validate_timeout 0\.2\.seconds/validate_timeout 10.0.seconds/' \
+    /opt/gitlab/embedded/service/gitlab-rails/app/graphql/gitlab_schema.rb
 
 # Allow to access embedded tools
 ENV PATH=/opt/gitlab/embedded/bin:/opt/gitlab/bin:/assets:$PATH
