@@ -60,6 +60,10 @@ COPY assets/ /assets/
 RUN chmod -R og-w /assets RELEASE ; \
   /assets/setup
 
+# lcarlon: fix for https://gitlab.com/gitlab-org/gitlab/-/issues/420396
+RUN sed -i 's/validate_timeout 0\.2\.seconds/validate_timeout 10.0.seconds/' \
+    /opt/gitlab/embedded/service/gitlab-rails/app/graphql/gitlab_schema.rb
+
 # Allow to access embedded tools
 ENV PATH=/opt/gitlab/embedded/bin:/opt/gitlab/bin:/assets:$PATH
 
