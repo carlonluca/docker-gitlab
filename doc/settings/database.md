@@ -683,6 +683,8 @@ sure that PostgreSQL is set up according to the [database requirements document]
 
 1. [Seed the database](#seed-the-database-fresh-installs-only).
 
+1. Optional. [Enable the container registry metadata database](https://docs.gitlab.com/administration/packages/container_registry_metadata_database/).
+
 ### UNIX socket configuration for non-packaged PostgreSQL
 
 If you want to use your system's PostgreSQL server (installed on the same system
@@ -1089,64 +1091,6 @@ You can change the schedule by refining the following settings:
 ### Upgrading a GitLab HA cluster
 
 To upgrade the PostgreSQL version in a Patroni cluster see [Upgrading PostgreSQL major version in a Patroni cluster](https://docs.gitlab.com/administration/postgresql/replication_and_failover/#upgrading-postgresql-major-version-in-a-patroni-cluster).
-
-### Upgrading a GitLab HA Repmgr cluster
-
-{{< alert type="note" >}}
-
-If you are upgrading to PostgreSQL 12, you need to switch from Repmgr to Patroni first see [Switching from Repmgr to Patroni](https://docs.gitlab.com/administration/postgresql/replication_and_failover/#switching-from-repmgr-to-patroni).
-
-{{< /alert >}}
-
-These instructions are provided for upgrading an older GitLab cluster to PostgreSQL 11 when using Repmgr.
-
-If [PostgreSQL is configured for high availability](https://docs.gitlab.com/administration/postgresql/),
-`pg-upgrade` should be run on all the nodes running PostgreSQL. Other nodes can be
-skipped but must be running the same GitLab version as the database nodes.
-
-Follow the steps below to upgrade the database nodes:
-
-1. Secondary nodes must be upgraded before the primary node.
-   1. On the secondary nodes, edit `/etc/gitlab/gitlab.rb` to include the following:
-
-      ```shell
-      # Replace X with the number of DB nodes + 1
-      postgresql['max_replication_slots'] = X
-      ```
-
-   1. Run `gitlab-ctl reconfigure` to update the configuration.
-   1. Run `sudo gitlab-ctl restart postgresql` to get PostgreSQL restarted with the new configuration.
-   1. On running `pg-upgrade` on a PostgreSQL secondary node, the node will be removed
-      from the cluster.
-   1. Once all the secondary nodes are upgraded using `pg-upgrade`, the user
-      will be left with a single-node cluster that has only the primary node.
-   1. `pg-upgrade`, on secondary nodes will not update the existing data to
-      match the new version, as that data will be replaced by the data from
-      the primary node. It will however move the existing data to a backup
-      location.
-1. Once all secondary nodes are upgraded, run `pg-upgrade` on the primary node.
-   1. On the primary node, edit `/etc/gitlab/gitlab.rb` to include the following:
-
-      ```shell
-      # Replace X with the number of DB nodes + 1
-      postgresql['max_replication_slots'] = X
-      ```
-
-   1. Run `gitlab-ctl reconfigure` to update the configuration.
-   1. Run `sudo gitlab-ctl restart postgresql` to get PostgreSQL restarted with the new configuration.
-   1. On a primary node, `pg-upgrade` will update the existing data to match
-      the new PostgreSQL version.
-1. Recreate the secondary nodes by running the following command on each of them
-
-   ```shell
-   gitlab-ctl repmgr standby setup MASTER_NODE_NAME
-   ```
-
-1. Check if the repmgr cluster is back to the original state
-
-   ```shell
-   gitlab-ctl repmgr cluster show
-   ```
 
 ### Troubleshooting upgrades in an HA cluster
 

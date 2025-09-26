@@ -307,12 +307,13 @@ docs-lint links:
     - if: '$PIPELINE_TYPE == "DOCS_PIPELINE"'
 
 docs-lint hugo:
-  image: registry.gitlab.com/gitlab-org/technical-writing/docs-gitlab-com/docs-gitlab-com-builder:hugo-0.145.0
+  image: registry.gitlab.com/gitlab-org/technical-writing/docs-gitlab-com/docs-gitlab-com-builder:hugo-0.148.2
   stage: check
   rules:
     - if: '$PIPELINE_TYPE =~ /_TEST_PIPELINE$/'
     - if: '$PIPELINE_TYPE =~ /_MR_PIPELINE$/'
     - if: '$PIPELINE_TYPE == "DOCS_PIPELINE"'
+    - if: '$PIPELINE_TYPE == "DOCS_LOCALIZATION_PIPELINE"'
   variables:
     DOCS_BRANCH: "main"
   before_script:
@@ -322,7 +323,7 @@ docs-lint hugo:
       if [[ $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ [0-9]+-[0-9]+-stable ]]; then
         MAJOR=$(echo "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" | cut -d '-' -f 1)
         MINOR=$(echo "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" | cut -d '-' -f 2)
-        # Convert Omnibus GitLab style (17-9-stable-ee) to GitLab Docs style (17.9)
+        # Convert Omnibus GitLab style (17-9-stable) to GitLab Docs style (17.9)
         DOCS_BRANCH=$MAJOR.$MINOR
         echo "Using docs-gitlab-com branch $DOCS_BRANCH instead of main"
       fi
@@ -330,15 +331,13 @@ docs-lint hugo:
     - git clone --depth 1 --filter=tree:0 --branch $DOCS_BRANCH https://gitlab.com/gitlab-org/technical-writing/docs-gitlab-com.git
     - cd docs-gitlab-com
     - make add-latest-icons
-    # Copy the current project's docs to the appropriate location in the docs website
-    - mkdir content/omnibus
-    - cp -r ../doc/* content/omnibus/
   script:
     # Test that Hugo will build
-    - hugo --gc --printPathWarnings --panicOnWarning
+    - hugo --gc --printPathWarnings --panicOnWarning --environment test
     # Test for invalid index pages
     # See https://gitlab.com/gitlab-org/technical-writing/docs-gitlab-com/-/blob/main/scripts/check-index-filenames.sh
     - make check-index-pages SEARCH_DIR="../doc"
+    - make check-index-pages SEARCH_DIR="../doc-locale"
 
 # Translation delivery of docs
 # Perform linting on translated documentation Markdown files
@@ -767,7 +766,7 @@ pages:
 
 .build-package-on-all-os-vars:
   extends: .base-trigger-job-variables
-  SKIP_JOB_REGEX: '/Ubuntu-24.04|Ubuntu-22.04|Ubuntu-20.04-fips|Docker|QA/'
+  SKIP_JOB_REGEX: '/Ubuntu-24.04|Ubuntu-22.04-(arm|branch)|Ubuntu-20.04-fips|Docker|QA/'
   PIPELINE_TYPE: "${EDITION}_BRANCH_BUILD_PIPELINE"
   CACHE_EDITION: ${EDITION}
   ee: ${ee}

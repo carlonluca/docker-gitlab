@@ -14,6 +14,6 @@
 # limitations under the License.
 #
 
-include_recipe 'gitlab::config'
+include_recipe 'package::config'
 
 include_recipe 'letsencrypt::enable' if node['gitlab']['nginx']['enable'] && node['letsencrypt']['enable']
