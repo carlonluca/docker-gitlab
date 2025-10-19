@@ -20,6 +20,7 @@ RUN apt-get update -q \
       locales \
       openssh-server \
       tzdata \
+      tzdata-legacy \
       wget \
       vim \
       nano \

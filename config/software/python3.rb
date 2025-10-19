@@ -23,7 +23,7 @@ name 'python3'
 # files/gitlab-cookbooks/gitlab/attributes/default.rb
 # spec/chef/recipes/gitaly_spec.rb
 # spec/chef/recipes/gitlab-rails_spec.rb
-default_version '3.9.23'
+default_version '3.9.24'
 
 dependency 'libedit'
 dependency 'ncurses'
@@ -40,7 +40,7 @@ license_file 'LICENSE'
 skip_transitive_dependency_licensing true
 
 source url: "https://www.python.org/ftp/python/#{version}/Python-#{version}.tgz",
-       sha256: '9a69aad184dc1d06f6819930741da3a328d34875a41f8ba33875774dbfc51b51'
+       sha256: '9a32cfc683aecaadbd9ed891ac2af9451ff37f48a00a2d8e1f4ecd9c2a1ffdcb'
 
 relative_path "Python-#{version}"
 
@@ -59,7 +59,7 @@ build do
   # linked to system `nsl` and `tirpc` libraries and thus fails omnibus
   # healthcheck in Debian 11 and Ubuntu 22.04.
   patch source: 'skip-nis-build.patch' if
-    (ohai['platform_family'] =~ /^debian/ && (ohai['platform_version'] =~ /^11/ || ohai['platform_version'] =~ /^12/)) ||
+    (ohai['platform_family'] =~ /^debian/ && ohai['platform_version'] =~ /^1[123]/) ||
       (ohai['platform'] =~ /^ubuntu/ && ohai['platform_version'] =~ /^22/)
 
   with_openssl = ''

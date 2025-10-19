@@ -56,6 +56,7 @@ dependency 'unzip'
 dependency 'gpgme'
 dependency 'graphicsmagick'
 dependency 'exiftool'
+dependency 'cosign'
 
 if EE
   dependency 'pgbouncer'
@@ -341,4 +342,6 @@ build do
 
   command "#{install_dir}/embedded/bin/ruby #{install_dir}/embedded/bin/gitlab-gem-license-generator"
   delete "#{install_dir}/embedded/bin/gitlab-gem-license-generator"
+
+  delete "#{install_dir}/embedded/service/gitlab-rails/ee/frontend_islands/apps/duo_next/node_modules" if EE
 end

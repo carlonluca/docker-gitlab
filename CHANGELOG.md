@@ -14,6 +14,29 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 18.5.0 (2025-10-15)
+
+### Added (1 change)
+
+- [Provide packages for Debian 13](gitlab-org/omnibus-gitlab@9785430e59653631c50a6e32037b20cd517e7da6) ([merge request](gitlab-org/omnibus-gitlab!8718))
+
+### Fixed (2 changes)
+
+- [Use 0755 permissions for all supervise directories](gitlab-org/omnibus-gitlab@1f0f28658bdafa72c527ef2576463b23ff369d65) by @hristiyan.ivanov ([merge request](gitlab-org/omnibus-gitlab!8748))
+- [Install tzdata-legacy in Dockerfile](gitlab-org/omnibus-gitlab@3b0447c5fcb98a523b06af3e9c336b7e20766797) ([merge request](gitlab-org/omnibus-gitlab!8759))
+
+### Changed (5 changes)
+
+- [Bump container-registry to v4.28.0-gitlab](gitlab-org/omnibus-gitlab@e21a72bcbea4293623bf59eacf81b7c89333e3d7) ([merge request](gitlab-org/omnibus-gitlab!8746))
+- [Update dependency python/cpython to v3.9.24](gitlab-org/omnibus-gitlab@3bc7932c050701cee06477a9c23cc0399471b06d) ([merge request](gitlab-org/omnibus-gitlab!8781))
+- [Add cosign binary to gitab-rails](gitlab-org/omnibus-gitlab@eae5bfabc4eda99bfb64871fa7874500b4faad3d) ([merge request](gitlab-org/omnibus-gitlab!8724))
+- [Update unzip to 6.0.29](gitlab-org/omnibus-gitlab@6b909786557569c5db689333b368e7474e2b35f8) ([merge request](gitlab-org/omnibus-gitlab!8745))
+- [Refactor post-installation messages](gitlab-org/omnibus-gitlab@e8e97b038f51e04e88e528008d9a7cf1d8cae88e) ([merge request](gitlab-org/omnibus-gitlab!8737))
+
+### Security (1 change)
+
+- [Update PostgreSQL 16.8 to 16.10](gitlab-org/omnibus-gitlab@6cf1dc30f8259915730ecfb89f10eae33811d566)
+
 ## 18.4.2 (2025-10-08)
 
 No changes.
@@ -51,6 +74,21 @@ No changes.
 - [Update dependency container-registry to v4.26.1-gitlab](gitlab-org/omnibus-gitlab@7fc1e2bd84a3e49d8eab09f413b1abda3888645d) ([merge request](gitlab-org/omnibus-gitlab!8655))
 - [Update dependency nginx-module-vts to v0.2.4](gitlab-org/omnibus-gitlab@d252971ee66e884423776c68a3af62ae9641fa45) ([merge request](gitlab-org/omnibus-gitlab!8452))
 - [Enable amcheck extension for postgres](gitlab-org/omnibus-gitlab@650078f9b655327e73c3a24f36db55aea4c90490) ([merge request](gitlab-org/omnibus-gitlab!8589))
+
+## 18.3.4 (2025-10-08)
+
+No changes.
+
+## 18.3.3 (2025-09-25)
+
+### Fixed (2 changes)
+
+- [Fall back to c_rehash if there are multiple TLS certificates](gitlab-org/security/omnibus-gitlab@0d4b40e179e32828778766863ec09e77245317c9)
+- [Fix registry matadata database password creation](gitlab-org/security/omnibus-gitlab@30d46185d64b36abb660c102f0983bbff9bc39b7)
+
+### Security (1 change)
+
+- [Update PostgreSQL 16.8 to 16.10](gitlab-org/security/omnibus-gitlab@1bf9b6b14b863d064dfc124d6d86f88ae327c695) ([merge request](gitlab-org/security/omnibus-gitlab!487))
 
 ## 18.3.2 (2025-09-09)
 
@@ -103,6 +141,20 @@ No changes.
 ### Other (1 change)
 
 - [Update pages max_uri_length to 2048 in gitlab.rb template](gitlab-org/omnibus-gitlab@577648c9b2d3e956101627df5ddad46ddaf7a3d7) ([merge request](gitlab-org/omnibus-gitlab!8626))
+
+## 18.2.8 (2025-10-08)
+
+No changes.
+
+## 18.2.7 (2025-09-25)
+
+### Fixed (1 change)
+
+- [Fall back to c_rehash if there are multiple TLS certificates](gitlab-org/security/omnibus-gitlab@75f07890195b30377a9e20832c97deee6357af00)
+
+### Security (1 change)
+
+- [Update PostgreSQL 16.8 to 16.10](gitlab-org/security/omnibus-gitlab@a49f37531d0ab44e06d25c1c16bffa6ece3b5d5c) ([merge request](gitlab-org/security/omnibus-gitlab!486))
 
 ## 18.2.6 (2025-09-09)
 
