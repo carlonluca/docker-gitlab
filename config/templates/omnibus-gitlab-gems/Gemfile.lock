@@ -152,7 +152,7 @@ GEM
     erubi (1.12.0)
     erubis (2.7.0)
     eventmachine (1.2.7)
-    eventmachine-tail (0.6.5)
+    eventmachine-tail (0.6.6)
       eventmachine
     faraday (2.8.1)
       base64
@@ -267,7 +267,7 @@ GEM
       method_source (~> 1.0)
     public_suffix (5.0.5)
     racc (1.7.3)
-    rack (2.2.17)
+    rack (2.2.20)
     rainbow (3.1.1)
     remote_syslog-gitlab (0.0.2)
       em-resolv-replace
@@ -281,7 +281,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
-    rexml (3.4.0)
+    rexml (3.4.4)
     rspec (3.12.0)
       rspec-core (~> 3.12.0)
       rspec-expectations (~> 3.12.0)
@@ -413,7 +413,7 @@ DEPENDENCIES
   license_finder (= 7.2.1)
   mixlib-log (= 3.2.3)
   ohai (= 18.1.18)
-  rack (= 2.2.17)
+  rack (= 2.2.20)
   rainbow (= 3.1.1)
   remote_syslog-gitlab (= 0.0.2)
   rubocop-ast (= 1.21.0)
