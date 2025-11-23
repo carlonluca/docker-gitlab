@@ -123,25 +123,15 @@ than [GitLab Community Edition (CE)](https://about.gitlab.com/install/?version=c
 increase compute and memory requirements.
 
 When memory consumption is the primary concern, install GitLab CE. You can
-always [upgrade to GitLab EE](https://docs.gitlab.com/update/package/convert_to_ee/) later.
+always [upgrade to GitLab EE](https://docs.gitlab.com/update/convert_to_ee/package/) later.
 
 ## Optimize Puma
 
-{{< alert type="warning" >}}
+By default, GitLab runs with a configuration designed to handle many concurrent connections.
 
-This is an experimental [Alpha feature](https://docs.gitlab.com/policy/development_stages_support/#alpha-features) and subject to change without notice. The feature
-is not ready for production use. If you want to use this feature, we recommend testing
-with non-production data first. See the [known issues](https://docs.gitlab.com/administration/operations/puma/#puma-single-mode-known-issues)
-for additional details.
-
-{{< /alert >}}
-
-GitLab by default runs with a configuration that is designed to handle many concurrent connections.
-
-For small installations, which do not require high throughput,
-consider [disabling](https://docs.gitlab.com/administration/operations/puma/#memory-constrained-environments)
-Puma [Clustered mode](https://github.com/puma/puma#clustered-mode).
-As the result, only a single Puma process would serve the application.
+For small installations that do not require high throughput,
+[disable Puma Clustered mode](https://docs.gitlab.com/administration/operations/puma/#disable-puma-clustered-mode-in-memory-constrained-environments).
+This configuration runs only a single Puma process to serve the application.
 
 In `/etc/gitlab/gitlab.rb`:
 
@@ -149,7 +139,7 @@ In `/etc/gitlab/gitlab.rb`:
 puma['worker_processes'] = 0
 ```
 
-We observed 100-400MB of memory usage reduction configuring Puma this way.
+We observed 100-400 MB of memory usage reduction with this optimization.
 
 ## Optimize Sidekiq
 
@@ -241,10 +231,10 @@ We observed much more stable memory usage during the execution of the applicatio
 GitLab uses internal data structures to measure different aspects of itself.
 These features are no longer needed if monitoring is disabled.
 
-To disable these features you need to go to Admin Area of GitLab
+To disable these features, go to the **Admin** area of GitLab
 and disable the Prometheus Metrics feature:
 
-1. On the left sidebar, at the bottom, select **Admin Area**.
+1. On the left sidebar, at the bottom, select **Admin**. If you've [turned on the new navigation](https://docs.gitlab.com/user/interface_redesign/#turn-new-navigation-on-or-off), in the upper-right corner, select **Admin**.
 1. Select **Settings > Metrics and profiling**.
 1. Expand **Metrics - Prometheus**.
 1. Disable **Enable Prometheus Metrics**.

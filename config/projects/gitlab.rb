@@ -23,6 +23,7 @@ require "#{Omnibus::Config.project_root}/lib/gitlab/util"
 require "#{Omnibus::Config.project_root}/lib/gitlab/ohai_helper.rb"
 require "#{Omnibus::Config.project_root}/lib/gitlab/openssl_helper"
 require "#{Omnibus::Config.project_root}/files/gitlab-cookbooks/package/libraries/helpers/selinux_distro_helper.rb"
+require "#{Omnibus::Config.project_root}/lib/gitlab/build/ubt.rb"
 
 gitlab_package_name = Build::Info::Package.name
 gitlab_package_file = File.join(Omnibus::Config.project_dir, 'gitlab', "#{gitlab_package_name}.rb")
@@ -100,8 +101,9 @@ end
 
 # FIPS requires system OpenSSL packages to run
 if Build::Check.use_system_ssl?
-  if amazon? && OhaiHelper.get_amazon_version == 2
+  if OhaiHelper.amazon_linux_2?
     runtime_dependency 'openssl-perl'
+    runtime_dependency 'openssl11'
   else
     runtime_dependency 'openssl'
   end
@@ -294,6 +296,8 @@ exclude 'embedded/lib/ruby/gems/*/gems/*pg_query-*/ext'
 exclude 'embedded/lib/python*/**/*.exe'
 # Exclude whl files from Python libraries.
 exclude 'embedded/lib/python*/**/*.whl'
+# Exclude setuptools from Python libraries. Only used for psycopg build.
+exclude 'embedded/lib/python*/site-packages/setuptools'
 
 # Enable signing packages
 package :rpm do

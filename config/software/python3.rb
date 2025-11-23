@@ -21,8 +21,8 @@ name 'python3'
 # files/gitlab-config-template/gitlab.rb.template
 # files/gitlab-cookbooks/gitaly/recipes/enable.rb
 # files/gitlab-cookbooks/gitlab/attributes/default.rb
-# spec/chef/recipes/gitaly_spec.rb
-# spec/chef/recipes/gitlab-rails_spec.rb
+# spec/chef/cookbooks/gitaly/recipes/gitaly_spec.rb
+# spec/chef/cookbooks/gitlab/recipes/gitlab-rails_spec.rb
 default_version '3.9.24'
 
 dependency 'libedit'
@@ -62,17 +62,17 @@ build do
     (ohai['platform_family'] =~ /^debian/ && ohai['platform_version'] =~ /^1[123]/) ||
       (ohai['platform'] =~ /^ubuntu/ && ohai['platform_version'] =~ /^22/)
 
-  with_openssl = ''
+  openssl_dir = Build::Check.use_system_ssl? ? "/usr" : "#{install_dir}/embedded"
   if (ohai['platform'] =~ /^amzn/ || ohai['platform'] =~ /^amazon/) && (ohai['platform_version'] == "2023")
     patch source: 'custom-openssl.patch'
-    with_openssl = "--with-openssl=/usr/local/openssl"
+    openssl_dir = "/usr/local/openssl"
   end
 
   command ['./configure',
            "--prefix=#{install_dir}/embedded",
            '--enable-shared',
            '--with-readline=editline',
-           with_openssl,
+           "--with-openssl=#{openssl_dir}",
            '--with-dbmliborder='].join(' '), env: env
   make env: env
   make 'install', env: env

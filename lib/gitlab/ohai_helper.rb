@@ -99,6 +99,8 @@ class OhaiHelper
         '8'
       when /^9\./
         '9'
+      when /^10\./
+        '10'
       end
     end
 
@@ -117,6 +119,12 @@ class OhaiHelper
       when /^11\./
         '11.4'
       end
+    end
+
+    # TODO: Remove once Amazon Linux 2 is end-of-life. Until that happens,
+    # this combination happens so often it makes sense to make a shorthand.
+    def amazon_linux_2?
+      os_platform == 'amazon' && get_amazon_version == '2'
     end
 
     def get_amazon_version
@@ -163,6 +171,10 @@ class OhaiHelper
       else
         ohai['platform']
       end
+    end
+
+    def arch
+      ohai['kernel']['machine']
     end
 
     def armhf?

@@ -240,6 +240,32 @@ Trigger:ee-package:
       when: manual
       variables: !reference [.ee-trigger-job-variables]
 
+###########################
+#     UBT pipelines       #
+###########################
+      
+Trigger:ce-package-ubt:
+  variables:
+    UBT_TEST_BUILD: "true"
+    # Make sure we don't collide with production CE cache
+    CACHE_KEY_SUFFIX: "${CACHE_KEY_SUFFIX}-ubt"
+  extends: .ce-trigger-job
+
+Trigger:ee-package-ubt:
+  variables:
+    UBT_TEST_BUILD: "true"
+    # Make sure we don't collide with production EE cache
+    CACHE_KEY_SUFFIX: "${CACHE_KEY_SUFFIX}-ubt"
+  extends: .ce-trigger-job
+  rules:
+    - if: '$PIPELINE_TYPE =~ /_BRANCH_TEST_PIPELINE$/'
+      when: manual
+      variables: !reference [.ee-trigger-job-variables]
+    - if: '$PIPELINE_TYPE =~ /_MR_PIPELINE$/'
+      when: manual
+      variables: !reference [.ee-trigger-job-variables]
+
+
 rubocop:
   extends: .gems-cache
   stage: check
@@ -461,6 +487,7 @@ danger-review:
 
 AlmaLinux 8 knapsack: !reference [.knapsack]
 AlmaLinux 9 knapsack: !reference [.knapsack]
+AlmaLinux 10 knapsack: !reference [.knapsack]
 Debian 11 knapsack: !reference [.knapsack]
 Debian 12 knapsack: !reference [.knapsack]
 Debian 13 knapsack: !reference [.knapsack]
@@ -534,6 +561,12 @@ AlmaLinux 9 specs :
   parallel: 6
   needs:
   - AlmaLinux 9 knapsack
+AlmaLinux 10 specs :
+  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/almalinux_10-ruby:${BUILDER_IMAGE_REVISION}"
+  extends: .chef_spec_template
+  parallel: 6
+  needs:
+  - AlmaLinux 10 knapsack
 OpenSUSE 15.6 specs :
   image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/opensuse_15.6-ruby:${BUILDER_IMAGE_REVISION}"
   extends: .chef_spec_template
@@ -649,8 +682,6 @@ letsencrypt-test:
   stage: qa
   script:
     - echo "${CI_REGISTRY_PASSWORD}" | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
-    - curl -L "https://github.com/docker/compose/releases/download/1.29.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    - chmod +x /usr/local/bin/docker-compose
     - bundle exec rake qa:test_letsencrypt
   rules:
     - if: '$TOP_UPSTREAM_SOURCE_PROJECT == "gitlab-org/gitlab"'
@@ -797,6 +828,7 @@ pages:
   PIPELINE_TYPE: "${EDITION}_BRANCH_BUILD_PIPELINE"
   CACHE_EDITION: ${EDITION}
   ee: ${ee}
+  UBT_TEST_BUILD: ${UBT_TEST_BUILD}
 
 build-package-on-all-os:
   stage: package

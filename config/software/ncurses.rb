@@ -51,16 +51,19 @@ build do
 
   update_config_guess
 
+  prefix = "#{install_dir}/embedded"
+
   configure_command = [
     './configure',
-    "--prefix=#{install_dir}/embedded",
+    "--prefix=#{prefix}",
     '--enable-overwrite',
     '--with-shared',
     '--with-termlib',
     '--without-ada',
     '--without-cxx-binding',
     '--without-debug',
-    '--without-manpages'
+    '--without-manpages',
+    '--enable-pc-files'
   ]
 
   command configure_command.join(' '), env: env
@@ -79,6 +82,33 @@ build do
   # binaries, which doesn't happen to be a problem since we don't
   # utilize the ncurses binaries in private-chef (or oss chef)
   make "-j #{workers} install", env: env
+
+  # some software tries to find if ncurses is installed by
+  # including "ncurses/curses.h". This will not find this library's
+  # include files but can potentially detect system installed ncurses.
+  # The below symlinks offer the same locations for such scripts.
+  ncurses_headers = [
+    'curses.h',
+    'ncurses.h',
+    'unctrl.h',
+    'ncurses_dll.h',
+    'term.h',
+    'termcap.h',
+    'tic.h',
+    'term_entry.h',
+    'nc_tparm.h',
+    'panel.h',
+    'eti.h',
+    'menu.h',
+    'form.h'
+  ]
+  %w[ncurses ncursesw].each do |target_dir|
+    mkdir "#{prefix}/include/#{target_dir}"
+    ncurses_headers.each do |header|
+      link "#{prefix}/include/#{header}",
+           "#{prefix}/include/#{target_dir}/#{header}"
+    end
+  end
 end
 
 project.exclude "embedded/bin/ncurses6-config"

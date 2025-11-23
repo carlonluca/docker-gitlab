@@ -270,7 +270,7 @@ Run `sudo gitlab-ctl reconfigure` for the change to take effect.
 ## Error: `FATAL: remaining connection slots are reserved for non-replication superuser connections`
 
 PostgreSQL has a setting for the maximum number of the concurrent connections
-to the database server. If you see this error, it means that your GitLab instance is trying to exceed
+to the database server. The default limit is 400. If you see this error, it means that your GitLab instance is trying to exceed
 this limit on the number of concurrent connections.
 
 To check maximum connections and available connections:
@@ -306,6 +306,12 @@ To fix this problem, you have two options:
 
      ```shell
      sudo gitlab-ctl reconfigure
+     ```
+
+  1. Restart GitLab:
+
+     ```shell
+     sudo gitlab-ctl restart
      ```
 
 - Or, you can consider [using PgBouncer](https://docs.gitlab.com/administration/postgresql/pgbouncer/) which is a connection pooler for PostgreSQL.
@@ -542,7 +548,7 @@ You can increase the default timeout value by setting the value in `/etc/gitlab/
 gitlab_workhorse['proxy_headers_timeout'] = "2m0s"
 ```
 
-Save the file and [reconfigure GitLab](https://docs.gitlab.com/administration/restart_gitlab/#omnibus-gitlab-reconfigure) for the changes to take effect.
+Save the file and [reconfigure GitLab](https://docs.gitlab.com/administration/restart_gitlab/#reconfigure-a-linux-package-installation) for the changes to take effect.
 
 ## The change you wanted was rejected
 
@@ -564,7 +570,7 @@ how to override the default headers.
 
 ## Extension missing `pg_trgm`
 
-[GitLab requires](https://docs.gitlab.com/install/requirements/#postgresql-requirements)
+[GitLab requires](https://docs.gitlab.com/install/postgresql_extensions/)
 the PostgreSQL extension `pg_trgm`.
 If you are using a Linux package with the bundled database, the extension
 should be automatically enabled when you upgrade.
