@@ -14,6 +14,37 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 18.7.0 (2025-12-17)
+
+### Added (7 changes)
+
+- [Make it possible to disable OpenSSH server in Docker image](gitlab-org/omnibus-gitlab@8c26acb5d4abc6d8428fc3656190284777c43a5e) by @TobiX ([merge request](gitlab-org/omnibus-gitlab!8780))
+- [Enable HTTPS scheme for KAS TLS upstream](gitlab-org/omnibus-gitlab@fdbb12b5dba7a993416b901988a7c9a6bb135a43) ([merge request](gitlab-org/omnibus-gitlab!8942))
+- [Add new Geo setting to gitlab.yml](gitlab-org/omnibus-gitlab@39b0b5788633ac6a93ba8eb7a0129ac52d163f90) ([merge request](gitlab-org/omnibus-gitlab!8910))
+- [Enable gRPC ingress on KAS](gitlab-org/omnibus-gitlab@cfd0253cab56fd3ad8d97d627763e81f1b37854c) ([merge request](gitlab-org/omnibus-gitlab!8857))
+- [Add support for registry database prefer mode](gitlab-org/omnibus-gitlab@38e09490b53d990073a2dca82fdb84cdf0742602) ([merge request](gitlab-org/omnibus-gitlab!8874))
+- [Add nginx['default_server_enabled'] configuration parameter](gitlab-org/omnibus-gitlab@264daf9214aa2661d17ef25dd730e1ad0513c7b9) ([merge request](gitlab-org/omnibus-gitlab!8912))
+- [Use chpst to force regstry user on migrations](gitlab-org/omnibus-gitlab@8b216c5a84f55890fa2182d3b85332ec87d77555) ([merge request](gitlab-org/omnibus-gitlab!8812))
+
+### Fixed (3 changes)
+
+- [Fail reconfigure if SELinux commands cannot be run](gitlab-org/omnibus-gitlab@c2edc03543ebce0a673deee4da51c3dc140137fe) ([merge request](gitlab-org/omnibus-gitlab!8955))
+- [Fix builds in JiHu build system](gitlab-org/omnibus-gitlab@1fcc36c368fed4eddf60f50fe74d9cf8d30fddd1) by @zhanghaiwei55 ([merge request](gitlab-org/omnibus-gitlab!8931))
+- [Fix RHEL 10 not working with SELinux](gitlab-org/omnibus-gitlab@d1234bda253e7e079dba5a3356d3af892b964fde) ([merge request](gitlab-org/omnibus-gitlab!8954))
+
+### Changed (5 changes)
+
+- [Revert update to sshd_config mandating stronger algorithms](gitlab-org/omnibus-gitlab@e80206ee7469a30e474e61641deccfa87bbaa3a4) ([merge request](gitlab-org/omnibus-gitlab!8937))
+- [Update cacerts to 2025-11-04](gitlab-org/omnibus-gitlab@77e385b96617d7059dd6f1e4afaddc9d1672d47f) ([merge request](gitlab-org/omnibus-gitlab!8897))
+- [Update dependency container-registry to v4.32.0-gitlab](gitlab-org/omnibus-gitlab@d34f5287aefcde014dae99c0111f010ed1b18b41) ([merge request](gitlab-org/omnibus-gitlab!8925))
+- [Bump Rack to 2.2.21](gitlab-org/omnibus-gitlab@6869638b67ab2d9f6228460e4408d0def438f952) ([merge request](gitlab-org/omnibus-gitlab!8886))
+- [Update dependency Image::ExifTool to v13](gitlab-org/omnibus-gitlab@9628bb8365060e9a32c6ca09427735fd8bd9b682) ([merge request](gitlab-org/omnibus-gitlab!8848))
+
+### Security (2 changes)
+
+- [Mattermost Security Updates November 21, 2025](gitlab-org/omnibus-gitlab@f2992d6bee98355878a08c7fb00b4600c121d68c) by @Normo ([merge request](gitlab-org/omnibus-gitlab!8956))
+- [Filter all token query parameters in nginx access logs](gitlab-org/omnibus-gitlab@3dab3a55e4de1755711819a10190528f3ad7686d)
+
 ## 18.6.2 (2025-12-10)
 
 ### Fixed (1 change)
@@ -72,6 +103,24 @@ No changes.
 
 - [Update libxslt from 1.1.41 to 1.1.43](gitlab-org/omnibus-gitlab@5f3194f33a7303543d9e48e5791d7f7f284929f3)
 
+## 18.5.4 (2025-12-10)
+
+No changes.
+
+## 18.5.3 (2025-11-25)
+
+### Added (1 change)
+
+- [Add nginx['default_server_enabled'] configuration parameter](gitlab-org/security/omnibus-gitlab@6328224e052b3170b8df0c1db49696b015a6aa72)
+
+### Fixed (1 change)
+
+- [Merge branch 'fix-registry-commands-permission-for-non-docker' into 'master'](gitlab-org/security/omnibus-gitlab@2f38ba3b1e81db46cb4b3beaba1a800a0c033a92)
+
+### Security (1 change)
+
+- [Filter all token query parameters in nginx access logs](gitlab-org/security/omnibus-gitlab@7672960f9c54c8892e37d4a7659563046ec41255) ([merge request](gitlab-org/security/omnibus-gitlab!497))
+
 ## 18.5.2 (2025-11-11)
 
 ### Fixed (1 change)
@@ -113,6 +162,20 @@ No changes.
 ### Security (1 change)
 
 - [Update PostgreSQL 16.8 to 16.10](gitlab-org/omnibus-gitlab@6cf1dc30f8259915730ecfb89f10eae33811d566)
+
+## 18.4.6 (2025-12-10)
+
+No changes.
+
+## 18.4.5 (2025-11-25)
+
+### Fixed (1 change)
+
+- [Merge branch 'fix-registry-commands-permission-for-non-docker' into 'master'](gitlab-org/security/omnibus-gitlab@96a196873a53a3e192ae650128de174acec9bfd2)
+
+### Security (1 change)
+
+- [Filter all token query parameters in nginx access logs](gitlab-org/security/omnibus-gitlab@f671d8897de06c22d97edfd849f9b7c81b678058) ([merge request](gitlab-org/security/omnibus-gitlab!498))
 
 ## 18.4.4 (2025-11-11)
 
