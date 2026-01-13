@@ -14,6 +14,12 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 18.7.1 (2026-01-07)
+
+### Security (1 change)
+
+- [Update libpng version to 1.6.51](gitlab-org/security/omnibus-gitlab@bc1bb97c674965d3d1582f9313d446f8c4ab194d) ([merge request](gitlab-org/security/omnibus-gitlab!505))
+
 ## 18.7.0 (2025-12-17)
 
 ### Added (7 changes)
