@@ -14,6 +14,26 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 18.8.0 (2026-01-14)
+
+### Added (2 changes)
+
+- [Enable support for EC (Elliptic Curve) certificates](gitlab-org/omnibus-gitlab@c6af4e3e711cc0262e68aa775e50237e75327db8) by @hristiyan.ivanov ([merge request](gitlab-org/omnibus-gitlab!8871))
+- [Add support for Sentinel TLS](gitlab-org/omnibus-gitlab@c38552e14868965b0beb4113f667a5fdf2b1cd04) ([merge request](gitlab-org/omnibus-gitlab!9011))
+
+### Fixed (1 change)
+
+- [Make show-config command use recipe from gitlab-base cookbook](gitlab-org/omnibus-gitlab@e51e4d08e01372f2b8ab31b55b195e1060dd7281) ([merge request](gitlab-org/omnibus-gitlab!8825))
+
+### Changed (2 changes)
+
+- [Bump PostgreSQL to version 16.11](gitlab-org/omnibus-gitlab@92afade4b6ae8e294abe9e5138a6fb0d8b7a8748) ([merge request](gitlab-org/omnibus-gitlab!8982))
+- [Update dependency container-registry to v4.33.0-gitlab](gitlab-org/omnibus-gitlab@2c69b0aad61b4376100ca062d4818110e02fe22b) ([merge request](gitlab-org/omnibus-gitlab!9006))
+
+### Security (1 change)
+
+- [Update libpng version to 1.6.51](gitlab-org/omnibus-gitlab@b254195b909ca79070bfca50fa501ecaa8ad4f37)
+
 ## 18.7.1 (2026-01-07)
 
 ### Security (1 change)
@@ -50,6 +70,13 @@ No changes.
 
 - [Mattermost Security Updates November 21, 2025](gitlab-org/omnibus-gitlab@f2992d6bee98355878a08c7fb00b4600c121d68c) by @Normo ([merge request](gitlab-org/omnibus-gitlab!8956))
 - [Filter all token query parameters in nginx access logs](gitlab-org/omnibus-gitlab@3dab3a55e4de1755711819a10190528f3ad7686d)
+
+## 18.6.3 (2026-01-07)
+
+### Security (2 changes)
+
+- [Update libpng version to 1.6.51](gitlab-org/security/omnibus-gitlab@59ab1b7a5759fac4f0730dfa7a4297235c10fc7d) ([merge request](gitlab-org/security/omnibus-gitlab!502))
+- [Mattermost Security Updates November 21, 2025](gitlab-org/security/omnibus-gitlab@48c388bf5390e47ca3be57e37aadc33f18cddbe7)
 
 ## 18.6.2 (2025-12-10)
 
@@ -108,6 +135,12 @@ No changes.
 ### Security (1 change)
 
 - [Update libxslt from 1.1.41 to 1.1.43](gitlab-org/omnibus-gitlab@5f3194f33a7303543d9e48e5791d7f7f284929f3)
+
+## 18.5.5 (2026-01-07)
+
+### Security (1 change)
+
+- [Update libpng version to 1.6.51](gitlab-org/security/omnibus-gitlab@8580c6394cd93434c71e2bd75d2efdf0a36b8ce4) ([merge request](gitlab-org/security/omnibus-gitlab!503))
 
 ## 18.5.4 (2025-12-10)
 

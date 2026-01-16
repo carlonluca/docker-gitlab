@@ -245,7 +245,13 @@ RSpec.describe 'gitlab::gitlab-rails' do
           hash_including(
             redis_url: URI('unix:///var/opt/gitlab/redis/redis.socket'),
             redis_sentinels: [],
-            redis_enable_client: true
+            redis_enable_client: true,
+            redis_ssl: false,
+            redis_tls_ca_cert_dir: "/opt/gitlab/embedded/ssl/certs/",
+            redis_tls_ca_cert_file: "/opt/gitlab/embedded/ssl/certs/cacert.pem",
+            redis_tls_client_cert_file: nil,
+            redis_tls_client_key_file: nil,
+            redis_extra_config_command: nil
           )
         )
 
@@ -254,6 +260,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
           expect(content).not_to match(/connect_timeout:/)
           expect(content).not_to match(/read_timeout:/)
           expect(content).not_to match(/write_timeout:/)
+          expect(content).not_to match(/ssl_params:/)
         }
       end
 
@@ -313,7 +320,13 @@ RSpec.describe 'gitlab::gitlab-rails' do
           hash_including(
             redis_url: URI('redis://:my%20pass@redis.example.com:8888/2'),
             redis_sentinels: [],
-            redis_enable_client: false
+            redis_enable_client: false,
+            redis_ssl: false,
+            redis_tls_ca_cert_dir: "/opt/gitlab/embedded/ssl/certs/",
+            redis_tls_ca_cert_file: "/opt/gitlab/embedded/ssl/certs/cacert.pem",
+            redis_tls_client_cert_file: nil,
+            redis_tls_client_key_file: nil,
+            redis_extra_config_command: nil
           )
         )
 
@@ -439,6 +452,32 @@ RSpec.describe 'gitlab::gitlab-rails' do
             expect(cable_yml).to eq(expected_cable_output)
           end
 
+          context 'with Sentinel SSL enabled' do
+            before do
+              stub_gitlab_rb(
+                redis: {
+                  enable: true,
+                  master_name: 'gitlab-redis',
+                  master_password: 'toomanysecrets'
+                },
+                gitlab_rails: {
+                  redis_sentinels_password: 'global sentinel pass',
+                  redis_sentinels_ssl: true,
+                  redis_sentinels: [
+                    { host: '10.0.0.2', port: 26379 },
+                    { host: '10.0.0.3', port: 26379 },
+                    { host: '10.0.0.4', port: 26379 },
+                  ]
+                }
+              )
+            end
+
+            it 'populates resque.yml and cable.yml with ssl: true' do
+              expect(resque_yml[:production][:sentinels]).to all(include(ssl: true))
+              expect(cable_yml[:production][:sentinels]).to all(include(ssl: true))
+            end
+          end
+
           context 'with ActionCable Redis Sentinels defined' do
             let(:expected_output) do
               {
@@ -516,7 +555,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
         )
       end
 
-      it 'renders configuration with tls settings' do
+      it 'renders configuration with TLS settings' do
         expected_output = {
           ca_file: "/tmp/ca.crt",
           ca_path: "/tmp/certs",
@@ -525,6 +564,206 @@ RSpec.describe 'gitlab::gitlab-rails' do
         }
 
         expect(resque_yml[:production][:ssl_params]).to eq(expected_output)
+      end
+
+      it 'renders cable.yml with TLS settings' do
+        cable_yml_template = chef_run.template('/var/opt/gitlab/gitlab-rails/etc/cable.yml')
+        cable_yml_file_content = ChefSpec::Renderer.new(chef_run, cable_yml_template).content
+        cable_yml = YAML.safe_load(cable_yml_file_content, aliases: true, symbolize_names: true)
+
+        expected_output = {
+          ca_file: "/tmp/ca.crt",
+          ca_path: "/tmp/certs",
+          cert_file: "/tmp/self_signed.crt",
+          key_file: "/tmp/self_signed.key"
+        }
+
+        expect(cable_yml[:production][:ssl_params]).to eq(expected_output)
+      end
+
+      context 'with ActionCable-specific TLS settings' do
+        before do
+          stub_gitlab_rb(
+            gitlab_rails: {
+              redis_actioncable_instance: "rediss://redis.actioncable.example.com:6380/0",
+              redis_actioncable_ssl: true,
+              redis_actioncable_tls_ca_cert_dir: '/etc/gitlab/actioncable-certs',
+              redis_actioncable_tls_ca_cert_file: '/etc/gitlab/actioncable-certs/ca.crt',
+              redis_actioncable_tls_client_cert_file: '/etc/gitlab/actioncable-certs/client.crt',
+              redis_actioncable_tls_client_key_file: '/etc/gitlab/actioncable-certs/client.key'
+            }
+          )
+        end
+
+        it 'creates cable.yml with ActionCable-specific TLS settings' do
+          expect(chef_run).to create_templatesymlink('Create a cable.yml and create a symlink to Rails root').with_variables(
+            hash_including(
+              redis_url: "rediss://redis.actioncable.example.com:6380/0",
+              redis_ssl: true,
+              redis_tls_ca_cert_dir: '/etc/gitlab/actioncable-certs',
+              redis_tls_ca_cert_file: '/etc/gitlab/actioncable-certs/ca.crt',
+              redis_tls_client_cert_file: '/etc/gitlab/actioncable-certs/client.crt',
+              redis_tls_client_key_file: '/etc/gitlab/actioncable-certs/client.key'
+            )
+          )
+        end
+
+        it 'renders cable.yml with ActionCable-specific TLS parameters' do
+          cable_yml_template = chef_run.template('/var/opt/gitlab/gitlab-rails/etc/cable.yml')
+          cable_yml_file_content = ChefSpec::Renderer.new(chef_run, cable_yml_template).content
+          cable_yml = YAML.safe_load(cable_yml_file_content, aliases: true, symbolize_names: true)
+
+          expected_output = {
+            ca_file: "/etc/gitlab/actioncable-certs/ca.crt",
+            ca_path: "/etc/gitlab/actioncable-certs",
+            cert_file: "/etc/gitlab/actioncable-certs/client.crt",
+            key_file: "/etc/gitlab/actioncable-certs/client.key"
+          }
+
+          expect(cable_yml[:production][:url]).to eq("rediss://redis.actioncable.example.com:6380/0")
+          expect(cable_yml[:production][:ssl_params]).to eq(expected_output)
+        end
+      end
+
+      context 'with ActionCable-specific TLS settings overriding global settings' do
+        before do
+          stub_gitlab_rb(
+            gitlab_rails: {
+              redis_host: 'redis.global.example.com',
+              redis_port: 6379,
+              redis_ssl: true,
+              redis_tls_ca_cert_dir: '/etc/gitlab/global-certs',
+              redis_tls_ca_cert_file: '/etc/gitlab/global-certs/ca.crt',
+              redis_tls_client_cert_file: '/etc/gitlab/global-certs/client.crt',
+              redis_tls_client_key_file: '/etc/gitlab/global-certs/client.key',
+              redis_actioncable_instance: "rediss://redis.actioncable.example.com:6380/0",
+              redis_actioncable_ssl: true,
+              redis_actioncable_tls_ca_cert_dir: '/etc/gitlab/actioncable-certs',
+              redis_actioncable_tls_ca_cert_file: '/etc/gitlab/actioncable-certs/ca.crt',
+              redis_actioncable_tls_client_cert_file: '/etc/gitlab/actioncable-certs/client.crt',
+              redis_actioncable_tls_client_key_file: '/etc/gitlab/actioncable-certs/client.key'
+            }
+          )
+        end
+
+        it 'uses ActionCable-specific TLS settings in cable.yml' do
+          cable_yml_template = chef_run.template('/var/opt/gitlab/gitlab-rails/etc/cable.yml')
+          cable_yml_file_content = ChefSpec::Renderer.new(chef_run, cable_yml_template).content
+          cable_yml = YAML.safe_load(cable_yml_file_content, aliases: true, symbolize_names: true)
+
+          # Verify ActionCable-specific settings are used, not global settings
+          expect(cable_yml[:production][:url]).to eq("rediss://redis.actioncable.example.com:6380/0")
+          expect(cable_yml[:production][:ssl_params][:ca_path]).to eq('/etc/gitlab/actioncable-certs')
+          expect(cable_yml[:production][:ssl_params][:ca_file]).to eq('/etc/gitlab/actioncable-certs/ca.crt')
+          expect(cable_yml[:production][:ssl_params][:cert_file]).to eq('/etc/gitlab/actioncable-certs/client.crt')
+          expect(cable_yml[:production][:ssl_params][:key_file]).to eq('/etc/gitlab/actioncable-certs/client.key')
+        end
+
+        it 'uses global TLS settings in resque.yml' do
+          # Verify global settings are still used for resque
+          expect(resque_yml[:production][:ssl_params][:ca_path]).to eq('/etc/gitlab/global-certs')
+          expect(resque_yml[:production][:ssl_params][:ca_file]).to eq('/etc/gitlab/global-certs/ca.crt')
+          expect(resque_yml[:production][:ssl_params][:cert_file]).to eq('/etc/gitlab/global-certs/client.crt')
+          expect(resque_yml[:production][:ssl_params][:key_file]).to eq('/etc/gitlab/global-certs/client.key')
+        end
+      end
+
+      context 'with ActionCable falling back to global TLS settings' do
+        before do
+          stub_gitlab_rb(
+            gitlab_rails: {
+              redis_host: 'redis.global.example.com',
+              redis_port: 6379,
+              redis_ssl: true,
+              redis_tls_ca_cert_dir: '/etc/gitlab/global-certs',
+              redis_tls_ca_cert_file: '/etc/gitlab/global-certs/ca.crt',
+              redis_tls_client_cert_file: '/etc/gitlab/global-certs/client.crt',
+              redis_tls_client_key_file: '/etc/gitlab/global-certs/client.key'
+              # Note: No redis_actioncable_instance or ActionCable-specific TLS settings
+            }
+          )
+        end
+
+        it 'creates cable.yml with global Redis settings when ActionCable-specific settings are not configured' do
+          expect(chef_run).to create_templatesymlink('Create a cable.yml and create a symlink to Rails root').with_variables(
+            hash_including(
+              redis_url: URI('rediss://redis.global.example.com/'),
+              redis_ssl: true,
+              redis_tls_ca_cert_dir: '/etc/gitlab/global-certs',
+              redis_tls_ca_cert_file: '/etc/gitlab/global-certs/ca.crt',
+              redis_tls_client_cert_file: '/etc/gitlab/global-certs/client.crt',
+              redis_tls_client_key_file: '/etc/gitlab/global-certs/client.key',
+              redis_sentinels: [],
+              redis_sentinels_password: nil,
+              redis_enable_client: true,
+              redis_extra_config_command: nil
+            )
+          )
+        end
+
+        it 'renders cable.yml with global TLS settings as fallback' do
+          cable_yml_template = chef_run.template('/var/opt/gitlab/gitlab-rails/etc/cable.yml')
+          cable_yml_file_content = ChefSpec::Renderer.new(chef_run, cable_yml_template).content
+          cable_yml = YAML.safe_load(cable_yml_file_content, aliases: true, symbolize_names: true)
+
+          # Verify global settings are used as fallback
+          expect(cable_yml[:production][:ssl_params][:ca_path]).to eq('/etc/gitlab/global-certs')
+          expect(cable_yml[:production][:ssl_params][:ca_file]).to eq('/etc/gitlab/global-certs/ca.crt')
+          expect(cable_yml[:production][:ssl_params][:cert_file]).to eq('/etc/gitlab/global-certs/client.crt')
+          expect(cable_yml[:production][:ssl_params][:key_file]).to eq('/etc/gitlab/global-certs/client.key')
+        end
+
+        it 'uses same TLS settings in both cable.yml and resque.yml' do
+          cable_yml_template = chef_run.template('/var/opt/gitlab/gitlab-rails/etc/cable.yml')
+          cable_yml_file_content = ChefSpec::Renderer.new(chef_run, cable_yml_template).content
+          cable_yml = YAML.safe_load(cable_yml_file_content, aliases: true, symbolize_names: true)
+
+          # Verify both use the same global settings
+          expect(cable_yml[:production][:ssl_params]).to eq(resque_yml[:production][:ssl_params])
+        end
+      end
+
+      context 'with Redis Sentinels and TLS' do
+        before do
+          stub_gitlab_rb(
+            gitlab_rails: {
+              redis_ssl: true,
+              redis_tls_ca_cert_dir: '/tmp/certs',
+              redis_tls_ca_cert_file: '/tmp/ca.crt',
+              redis_tls_client_cert_file: '/tmp/self_signed.crt',
+              redis_tls_client_key_file: '/tmp/self_signed.key',
+              redis_sentinels: [
+                { host: '10.0.0.1', port: 26379 },
+                { host: '10.0.0.2', port: 26379 },
+                { host: '10.0.0.3', port: 26379 }
+              ],
+              redis_sentinels_password: 'sentinel-password',
+              redis_sentinels_ssl: false
+            },
+            redis: {
+              master_name: 'gitlab-redis',
+              master_password: 'redis-password'
+            }
+          )
+        end
+
+        it 'renders resque.yml with ssl: true for Redis connection' do
+          expect(resque_yml[:production][:ssl]).to eq(true)
+          expect(resque_yml[:production][:ssl_params]).not_to be_nil
+        end
+
+        it 'renders cable.yml with ssl: true for Redis connection' do
+          cable_yml_template = chef_run.template('/var/opt/gitlab/gitlab-rails/etc/cable.yml')
+          cable_yml_file_content = ChefSpec::Renderer.new(chef_run, cable_yml_template).content
+          cable_yml = YAML.safe_load(cable_yml_file_content, aliases: true, symbolize_names: true)
+
+          expect(cable_yml[:production][:ssl]).to eq(true)
+        end
+
+        it 'renders sentinels without ssl when redis_sentinels_ssl is false' do
+          expect(resque_yml[:production][:sentinels]).not_to be_nil
+          expect(resque_yml[:production][:sentinels].all? { |s| s[:ssl].nil? }).to eq(true)
+        end
       end
     end
 
@@ -655,6 +894,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
               redis_url: nil,
               redis_sentinels: [],
               redis_sentinels_password: nil,
+              redis_sentinels_ssl: false,
               redis_enable_client: false,
               cluster_nodes: [{ "host" => instance, "port" => "1234" }, { "host" => instance, "port" => "3456" }],
               cluster_username: instance,
@@ -699,6 +939,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
               redis_url: "redis://:fakepass@fake.redis.#{instance}.com:8888/2",
               redis_sentinels: [{ "host" => instance, "port" => "1234" }, { "host" => instance, "port" => "3456" }],
               redis_sentinels_password: nil,
+              redis_sentinels_ssl: false,
               redis_enable_client: false,
               cluster_nodes: [],
               cluster_username: nil,
@@ -743,6 +984,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
                 redis_url: "redis://:fakepass@fake.redis.#{instance}.com:8888/2",
                 redis_sentinels: [{ "host" => instance, "port" => "1234" }, { "host" => instance, "port" => "3456" }],
                 redis_sentinels_password: 'sentinelpass',
+                redis_sentinels_ssl: false,
                 redis_enable_client: false,
                 cluster_nodes: [],
                 cluster_username: nil,
