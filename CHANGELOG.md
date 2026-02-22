@@ -14,6 +14,16 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 18.8.4 (2026-02-09)
+
+### Changed (1 change)
+
+- [Bump builder to use Go 1.24.12](gitlab-org/security/omnibus-gitlab@c7d33bfe681446c17c7eb59fa7f41f949ad16ead)
+
+### Security (1 change)
+
+- [Mattermost Security Updates January 15, 2026](gitlab-org/security/omnibus-gitlab@83daeb979ebb753e4b52299fb4ea09e30dcd3603)
+
 ## 18.8.3 (2026-02-04)
 
 No changes.
