@@ -58,9 +58,6 @@ build do
   make "world -j #{workers}", env: env
   make 'install-world-bin', env: env
 
-  libpq = 'libpq.so.5'
-  link "#{prefix}/lib/#{libpq}", "#{install_dir}/embedded/lib/#{libpq}"
-
   # NOTE: There are several dependencies which require these files in these
   # locations and have dependency on `postgresql_new`. So when this block is
   # changed to be in the `postgresql` software definition for default PG

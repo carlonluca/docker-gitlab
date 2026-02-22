@@ -93,7 +93,7 @@ GEM
 GEM
   remote: https://rubygems.org/
   specs:
-    acme-client (2.0.26)
+    acme-client (2.0.28)
       base64 (~> 0.2)
       faraday (>= 1.0, < 3.0.0)
       faraday-retry (>= 1.0, < 3.0.0)
@@ -168,8 +168,9 @@ GEM
     ffi (1.17.2)
     ffi-libarchive (1.1.14)
       ffi (~> 1.0)
-    ffi-yajl (2.6.0)
-      libyajl2 (>= 1.2)
+    ffi-yajl (2.7.6)
+      libyajl2 (>= 2.1)
+      yajl
     file-tail (1.2.0)
       tins (~> 1.0)
     fuzzyurl (0.9.0)
@@ -394,12 +395,13 @@ GEM
     wmi-lite (1.0.7)
     xml-simple (1.1.9)
       rexml
+    yajl (0.3.4)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  acme-client (= 2.0.26)
+  acme-client (= 2.0.28)
   chef (= 18.3.0)!
   chef-bin (= 18.3.0)!
   chef-cli (= 5.6.14)!

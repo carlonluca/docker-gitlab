@@ -14,6 +14,43 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 18.9.0 (2026-02-18)
+
+### Added (4 changes)
+
+- [Add PostgreSQL 17 as an opt-in for fresh installs](gitlab-org/omnibus-gitlab@40dd84d7ce5b58cce1ea841af32af9a60667a438) ([merge request](gitlab-org/omnibus-gitlab!9069))
+- [Add support for Valkey backend in Redis and Sentinel configurations](gitlab-org/omnibus-gitlab@d0e9adfb5aea1ad82042766fbc064982c2b88085) ([merge request](gitlab-org/omnibus-gitlab!9113))
+- [Automatically scrape pgbouncer-exporter Prometheus metrics](gitlab-org/omnibus-gitlab@6f21f1d168e654500a3e88391d89310d01554e8a) ([merge request](gitlab-org/omnibus-gitlab!9049))
+- [Add nginx log_escaping option with default value](gitlab-org/omnibus-gitlab@3bc485b061b43e2f18dc1a44efedf896c9a62e84) by @kivarum ([merge request](gitlab-org/omnibus-gitlab!8650))
+
+### Fixed (2 changes)
+
+- [Install gitlab-exporter with Ruby platform on older systems](gitlab-org/omnibus-gitlab@bc75251643cc70219b13ce05ed3bb0fffc7c6b2d) ([merge request](gitlab-org/omnibus-gitlab!9058))
+- [Make Workhorse Redis configuration use shared state Redis fallback](gitlab-org/omnibus-gitlab@a6cbeab740463d49db32fbeda64edc7e7ea87337) ([merge request](gitlab-org/omnibus-gitlab!9076))
+
+### Changed (12 changes)
+
+- [Bump Builders to 5.50.0 for Go 1.25.7](gitlab-org/omnibus-gitlab@a5d308c1e38a56434a92c18ff904580975b9a2c5) ([merge request](gitlab-org/omnibus-gitlab!9131))
+- [Bump nginx to version 1.29.4](gitlab-org/omnibus-gitlab@e1b39a9feeeff0116aa68156fac0eda8d53d14dd) ([merge request](gitlab-org/omnibus-gitlab!9057))
+- [Bump PCRE2 to version 10.47](gitlab-org/omnibus-gitlab@c3c408dda1caf2593202ea27a62b844e8e081b2d) ([merge request](gitlab-org/omnibus-gitlab!9063))
+- [Update dependency container-registry to v4.36.0-gitlab](gitlab-org/omnibus-gitlab@75ecd96945352f56accedd9d79dcea889d988718) ([merge request](gitlab-org/omnibus-gitlab!9065))
+- [Update builder to use Go 1.24.12](gitlab-org/omnibus-gitlab@f99d44b543f2951f499c8703e85ca93f1e2e3907) ([merge request](gitlab-org/omnibus-gitlab!9044))
+- [Update gitlabsos digest to 3064095](gitlab-org/omnibus-gitlab@7b05e5dcb4c9e4182db21a98d2c05612888307af) ([merge request](gitlab-org/omnibus-gitlab!8670))
+- [Update dependency libarchive/libarchive to v3.8.3](gitlab-org/omnibus-gitlab@95e654f23f2688733ce5283d602149316210c65c) ([merge request](gitlab-org/omnibus-gitlab!8899))
+- [Update dependency container-registry to v4.34.0-gitlab](gitlab-org/omnibus-gitlab@d0e4cd55ae01ac4cf5b0a7a399668553a9976df0) ([merge request](gitlab-org/omnibus-gitlab!9032))
+- [Update dependency libxml2 to v2.15.1](gitlab-org/omnibus-gitlab@fa01e2c3b59a8701a0521767140862d592fb3377) ([merge request](gitlab-org/omnibus-gitlab!8709))
+- [Update ffi-yajl to v2.7.6](gitlab-org/omnibus-gitlab@23070f82ef315ea3464449b86f31c089061e8535) ([merge request](gitlab-org/omnibus-gitlab!9016))
+- [Update dependency Image::ExifTool to v13.44](gitlab-org/omnibus-gitlab@9b3b087ccc4996983028030d60989ac8fa851779) ([merge request](gitlab-org/omnibus-gitlab!8981))
+- [Update dependency acme-client to v2.0.28](gitlab-org/omnibus-gitlab@bca1d2c9f30460b353aeb6ac69bccc671e4850b3) ([merge request](gitlab-org/omnibus-gitlab!8873))
+
+### Removed (1 change)
+
+- [Remove secret and config for Suggested Reviewers](gitlab-org/omnibus-gitlab@7761a73672c6a9eb6a1493a90312c4a17378e781) ([merge request](gitlab-org/omnibus-gitlab!8909))
+
+### Security (1 change)
+
+- [Mattermost Security Updates January 15, 2026](gitlab-org/omnibus-gitlab@0b48af1e6492d3f178e74e3e878302ee3faa9081) by @Normo ([merge request](gitlab-org/omnibus-gitlab!9083))
+
 ## 18.8.4 (2026-02-09)
 
 ### Changed (1 change)
@@ -56,6 +93,22 @@ No changes.
 
 - [Update libpng version to 1.6.51](gitlab-org/omnibus-gitlab@b254195b909ca79070bfca50fa501ecaa8ad4f37)
 
+## 18.7.4 (2026-02-09)
+
+### Security (1 change)
+
+- [Mattermost Security Updates January 15, 2026](gitlab-org/security/omnibus-gitlab@d009987ce6ba179a171ed29e8380021c92a7dcd0)
+
+## 18.7.3 (2026-02-04)
+
+### Changed (1 change)
+
+- [Bump PostgreSQL to version 16.11](gitlab-org/omnibus-gitlab@c60349d5992e60f4e41312ec6ffaf4d1342378cb) ([merge request](gitlab-org/omnibus-gitlab!9081))
+
+## 18.7.2 (2026-01-20)
+
+No changes.
+
 ## 18.7.1 (2026-01-07)
 
 ### Security (1 change)
@@ -92,6 +145,22 @@ No changes.
 
 - [Mattermost Security Updates November 21, 2025](gitlab-org/omnibus-gitlab@f2992d6bee98355878a08c7fb00b4600c121d68c) by @Normo ([merge request](gitlab-org/omnibus-gitlab!8956))
 - [Filter all token query parameters in nginx access logs](gitlab-org/omnibus-gitlab@3dab3a55e4de1755711819a10190528f3ad7686d)
+
+## 18.6.6 (2026-02-09)
+
+### Security (1 change)
+
+- [Mattermost Security Updates January 15, 2026](gitlab-org/security/omnibus-gitlab@48e6fdee86991eb5f51479b0967a9b2bedf74d60)
+
+## 18.6.5 (2026-02-04)
+
+### Changed (1 change)
+
+- [Bump PostgreSQL to version 16.11](gitlab-org/omnibus-gitlab@3a74ae607a8b87fb45089305d88d92541cdfdd49) ([merge request](gitlab-org/omnibus-gitlab!9082))
+
+## 18.6.4 (2026-01-20)
+
+No changes.
 
 ## 18.6.3 (2026-01-07)
 

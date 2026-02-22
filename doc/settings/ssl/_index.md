@@ -1,7 +1,7 @@
 ---
 stage: GitLab Delivery
 group: Operate
-info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see <https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments>
 title: Configure SSL for a Linux package installation
 ---
 
@@ -540,7 +540,7 @@ you have a very specific custom setup.
 
 For more information on why you would want to have the HTTP/2 protocol enabled,
 check out the
-[NGINX HTTP/2 whitepaper](https://assets.wp.nginx.com/wp-content/uploads/2015/09/NGINX_HTTP2_White_Paper_v4.pdf?_ga=1.127086286.212780517.1454411744).
+[NGINX HTTP/2 whitepaper](https://cdn.awstatic.com/pub/NGINX_HTTP2_White_Paper_v4.pdf).
 
 If changing the ciphers is not an option, you can disable the HTTP/2 support:
 

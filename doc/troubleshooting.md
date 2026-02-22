@@ -1,7 +1,7 @@
 ---
 stage: GitLab Delivery
 group: Build, Operate
-info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see <https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments>
 title: Troubleshooting Linux package installation
 ---
 
@@ -521,6 +521,45 @@ PassThroughPattern: (packages\.gitlab\.com|packages-gitlab-com\.s3\.amazonaws\.c
 ```
 
 Read more about `apt-cacher-ng` and the reasons why this change is needed [on the packagecloud blog](https://blog.packagecloud.io/using-apt-cacher-ng-with-ssl-tls/).
+
+## Mirroring packages for multiple distributions using apt-mirror fails
+
+GitLab CE and GitLab EE deb packages share the same version strings across
+distributions, but have different content within them. Under the Debian
+repository format, they are treated as [Duplicate Packages](https://wiki.debian.org/DebianRepository/Format#Duplicate_Packages).
+This means a single deb repository cannot safely serve multiple distributions,
+because one distribution's package metadata can overwrite another.
+
+We publish each distribution under a dedicated path. However, there are URL
+redirections in place which redirect requests to
+`https://packages.gitlab.com/gitlab/gitlab-ce/<operating_system>` URL to the correct
+distribution
+`https://packages.gitlab.com/gitlab/gitlab-ce/<operating_system>/<distribution>`
+depending on the distribution the host is using so that users can keep using
+the same URL for different distributions.
+
+However, this technique won't work when mirroring tools like `apt-mirror` are
+used to mirror multiple distributions from the same host, so they may fetch
+metadata or packages for the wrong distro.
+
+Make the distribution explicit by adding it to the URL path. For example, for Jammy:
+
+```plaintext
+deb https://packages.gitlab.com/gitlab/gitlab-ce/ubuntu/jammy jammy main
+deb https://packages.gitlab.com/gitlab/gitlab-ee/ubuntu/jammy jammy main
+deb https://packages.gitlab.com/gitlab/gitlab-fips/ubuntu/jammy jammy main
+```
+
+With this format, the key locations are:
+
+- `InRelease` is at `https://packages.gitlab.com/gitlab/gitlab-ce/ubuntu/jammy/dists/jammy/InRelease`.
+- `Packages.gz` is at `https://packages.gitlab.com/gitlab/gitlab-ce/ubuntu/jammy/dists/jammy/main/binary-amd64/Packages.gz`.
+- Package files are at `https://packages.gitlab.com/gitlab/gitlab-ce/ubuntu/jammy/pool/main/g/gitlab-ce/gitlab-ce_18.5.0-ce.0_amd64.deb`.
+
+### `gitlab-runner`
+
+The configuration for `gitlab-runner` packages is different because the same package
+is used across distributions. The URL can remain: `https://packages.gitlab.com/runner/gitlab-runner`.
 
 ## Using self signed certificate or custom certificate authorities
 
@@ -1062,6 +1101,16 @@ To resolve this issue, you have three options:
 - If you cannot allowlist by domain, add the [CloudFront IP address ranges](https://d7uri8nf7uskq.cloudfront.net/tools/list-cloudfront-ips) to your firewall settings. You must
   keep this list synced with your firewall settings because they can change.
 - Manually download the package file and upload it to your server.
+
+## Error: `503 Service Unavailable` for package storage operations
+
+Some package storage components are served through Google Cloud Storage (GCS). These components require outbound HTTPS access to the GCS endpoint in addition to the public APT repository endpoint. If `apt update` fails with a `503 Service Unavailable` error, access to `storage.googleapis.com/packages-ops` is blocked.
+
+To resolve this error, make sure your firewall rules allow outbound HTTPS (port `443`) connections to:
+
+- `packages.gitlab.com`
+- `storage.googleapis.com`
+- `packages-ops` bucket on Google Cloud Storage
 
 ## Check if `net.core.somaxconn` is set too low
 

@@ -1,7 +1,7 @@
 ---
 stage: GitLab Delivery
 group: Build
-info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see <https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments>
 title: Test plan for `libpng` component upgrade
 ---
 
@@ -15,10 +15,13 @@ Copy the following test plan to a comment of the merge request that upgrades the
 - [ ] Checked the library version:
   - [ ] Install `binutils`.
   - [ ] Check output and ensure the updated version is installed.
+
     ```shell
     strings /opt/gitlab/embedded/lib/libpng16.so.16|grep "libpng version"
     ```
+
 - [ ] Check that graphicsMagick can use `libpng` with a PNG:
+
   ```shell
   # get a suitable PNG to manipulate
   cp \
@@ -29,7 +32,7 @@ Copy the following test plan to a comment of the merge request that upgrades the
     -rotate 180 \
     -fill white \
     /tmp/date.png
-  
+
   ; echo $?
   ```
 

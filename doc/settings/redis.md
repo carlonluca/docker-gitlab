@@ -1,7 +1,7 @@
 ---
 stage: GitLab Delivery
 group: Operate
-info: To determine the technical writer assigned to the Stage/Group associated with this page, see https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments
+info: To determine the technical writer assigned to the Stage/Group associated with this page, see <https://handbook.gitlab.com/handbook/product/ux/technical-writing/#assignments>
 title: Configuring Redis
 ---
 
@@ -252,6 +252,63 @@ gitlab_rails['redis_write_timeout'] = 1
 ## Provide sensitive configuration to Redis clients without plain text storage
 
 For more information, see the example in [configuration documentation](configuration.md#provide-redis-password-to-redis-server-and-client-components).
+
+## Using Valkey instead of Redis
+
+{{< details >}}
+
+- Status: Beta
+
+{{< /details >}}
+
+{{< history >}}
+
+- [Introduced] in GitLab 18.9 as a [beta](https://docs.gitlab.com/policy/development_stages_support/#beta).
+
+{{< /history >}}
+
+[Valkey](https://valkey.io/) is a Redis-compatible key-value store that can be used as a drop-in replacement for Redis.
+Valkey is compatible with Redis OSS 7.2 and all earlier open source Redis versions.
+
+Using Valkey instead of Redis is a [beta](https://docs.gitlab.com/policy/development_stages_support/#beta) feature.
+
+When using Valkey:
+
+- The service name remains `redis`. Use `gitlab-ctl restart redis` to manage the service, not `gitlab-ctl restart valkey`.
+- Log files are written to `/var/log/gitlab/redis/`, not a separate `valkey` directory.
+- The data directory remains `/var/opt/gitlab/redis/`.
+- The configuration file remains `redis.conf`.
+- `gitlab-ctl` toolings still use `redis-cli` for Redis interactions.
+- When using `valkey-cli` for troubleshooting, use the same socket, host, and port as you would with `redis-cli`:
+
+  ```shell
+  sudo /opt/gitlab/embedded/bin/valkey-cli -s /var/opt/gitlab/redis/redis.socket
+  ```
+
+For more information about migrating from Redis to Valkey, see the
+[Valkey migration documentation](https://valkey.io/topics/migration/).
+
+### Switch to Valkey
+
+To use Valkey instead of Redis:
+
+1. Edit `/etc/gitlab/gitlab.rb`:
+
+   ```ruby
+   redis['backend'] = 'valkey'
+   ```
+
+1. Reconfigure GitLab for the changes to take effect:
+
+   ```shell
+   sudo gitlab-ctl reconfigure
+   ```
+
+When `redis['backend']` is set to `valkey`:
+
+- The Redis service uses `valkey-server` instead of `redis-server`.
+- The Sentinel service uses `valkey-sentinel` instead of `redis-sentinel`.
+- All other Redis settings (ports, passwords, paths, etc.) remain the same.
 
 ## Troubleshooting
 

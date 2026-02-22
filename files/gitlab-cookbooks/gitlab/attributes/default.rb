@@ -60,7 +60,7 @@ default['gitlab']['gitlab_rails']['env'] = {
   # Charlock Holmes and libicu will report U_FILE_ACCESS_ERROR if this is not set to the right path
   # See https://gitlab.com/gitlab-org/gitlab-foss/issues/17415#note_13868167
   'ICU_DATA' => "#{node['package']['install-dir']}/embedded/share/icu/current",
-  'PYTHONPATH' => "#{node['package']['install-dir']}/embedded/lib/python3.9/site-packages",
+  'PYTHONPATH' => "#{node['package']['install-dir']}/embedded/lib/python3.12/site-packages",
   # Prevent ExecJS from complaining that Node is not installed in production
   'EXECJS_RUNTIME' => 'Disabled',
   # Prevent excessive system calls: #3530,
@@ -470,6 +470,9 @@ default['gitlab']['gitlab_rails']['redis_enable_client'] = true
 default['gitlab']['gitlab_rails']['redis_sentinels'] = []
 default['gitlab']['gitlab_rails']['redis_sentinels_password'] = nil
 default['gitlab']['gitlab_rails']['redis_sentinels_ssl'] = false
+default['gitlab']['gitlab_rails']['redis_sentinels_tls_ca_cert_file'] = nil
+default['gitlab']['gitlab_rails']['redis_sentinels_tls_client_cert_file'] = nil
+default['gitlab']['gitlab_rails']['redis_sentinels_tls_client_key_file'] = nil
 default['gitlab']['gitlab_rails']['redis_sentinel_master'] = nil
 default['gitlab']['gitlab_rails']['redis_sentinel_master_ip'] = nil
 default['gitlab']['gitlab_rails']['redis_sentinel_master_port'] = nil
@@ -533,6 +536,9 @@ default['gitlab']['gitlab_rails']['redis_actioncable_instance'] = nil
 default['gitlab']['gitlab_rails']['redis_actioncable_sentinels'] = []
 default['gitlab']['gitlab_rails']['redis_actioncable_sentinels_password'] = nil
 default['gitlab']['gitlab_rails']['redis_actioncable_sentinels_ssl'] = false
+default['gitlab']['gitlab_rails']['redis_actioncable_sentinels_tls_ca_cert_file'] = nil
+default['gitlab']['gitlab_rails']['redis_actioncable_sentinels_tls_client_cert_file'] = nil
+default['gitlab']['gitlab_rails']['redis_actioncable_sentinels_tls_client_key_file'] = nil
 default['gitlab']['gitlab_rails']['redis_actioncable_username'] = nil
 default['gitlab']['gitlab_rails']['redis_actioncable_password'] = nil
 default['gitlab']['gitlab_rails']['redis_actioncable_encrypted_settings_file'] = nil
@@ -893,9 +899,17 @@ default['gitlab']['gitlab_workhorse']['redis_cluster_nodes'] = []
 default['gitlab']['gitlab_workhorse']['redis_sentinels'] = []
 default['gitlab']['gitlab_workhorse']['redis_sentinels_password'] = nil
 default['gitlab']['gitlab_workhorse']['redis_sentinels_ssl'] = false
+default['gitlab']['gitlab_workhorse']['redis_sentinels_tls_ca_cert_file'] = nil
+default['gitlab']['gitlab_workhorse']['redis_sentinels_tls_client_cert_file'] = nil
+default['gitlab']['gitlab_workhorse']['redis_sentinels_tls_client_key_file'] = nil
 default['gitlab']['gitlab_workhorse']['redis_sentinel_master'] = nil
 default['gitlab']['gitlab_workhorse']['redis_sentinel_master_ip'] = nil
 default['gitlab']['gitlab_workhorse']['redis_sentinel_master_port'] = nil
+
+# Redis client TLS settings
+default['gitlab']['gitlab_workhorse']['redis_tls_ca_cert_file'] = nil
+default['gitlab']['gitlab_workhorse']['redis_tls_client_cert_file'] = nil
+default['gitlab']['gitlab_workhorse']['redis_tls_client_key_file'] = nil
 
 default['gitlab']['gitlab_workhorse']['extra_config_command'] = nil
 
@@ -922,6 +936,7 @@ default['gitlab']['nginx']['error_log_level'] = "error"
 default['gitlab']['nginx']['worker_processes'] = [1, node.dig('cpu', 'total').to_i, node.dig('cpu', 'real').to_i].max
 default['gitlab']['nginx']['worker_connections'] = 10240
 default['gitlab']['nginx']['log_format'] = '$remote_addr - $remote_user [$time_local] "$request_method $filtered_request_uri $server_protocol" $status $body_bytes_sent "$filtered_http_referer" "$http_user_agent" $gzip_ratio' #  NGINX 'combined' format without query strings
+default['gitlab']['nginx']['log_format_escape'] = 'default'
 default['gitlab']['nginx']['sendfile'] = 'on'
 default['gitlab']['nginx']['tcp_nopush'] = 'on'
 default['gitlab']['nginx']['tcp_nodelay'] = 'on'

@@ -43,25 +43,21 @@ module GitlabWorkhorse
     end
 
     def parse_redis_settings
-      gitlab_workhorse_redis_configured = Gitlab['gitlab_workhorse'].key?('redis_socket') ||
-        Gitlab['gitlab_workhorse'].key?('redis_host')
-
-      rails_workhorse_redis_configured =
-        Gitlab['gitlab_rails']['redis_workhorse_instance'] ||
-        (Gitlab['gitlab_rails']['redis_workhorse_sentinels'] &&
-         !Gitlab['gitlab_rails']['redis_workhorse_sentinels'].empty?)
-
-      if gitlab_workhorse_redis_configured
+      if gitlab_workhorse_redis_configured?
         # Parse settings from `redis['master_*']` first.
         parse_redis_master_settings
         # If gitlab_workhorse settings are specified, populate
         # gitlab_rails['redis_workhorse_*'] settings from it.
         update_separate_redis_instance_settings
-      elsif rails_workhorse_redis_configured
+      elsif rails_workhorse_redis_configured?
         # If user has specified a separate Redis host for Workhorse via
         # `gitlab_rails['redis_workhorse_*']` settings, copy them to
         # `gitlab_workhorse['redis_*']`.
         parse_separate_redis_instance_settings
+        parse_redis_master_settings
+      elsif shared_state_redis_configured?
+        # If no Workhorse-specific Redis is configured, attempt the shared state Redis instance/Sentinels
+        parse_shared_state_redis_instance_settings
         parse_redis_master_settings
       else
         # If user hasn't specified any separate Redis settings for Workhorse,
@@ -69,6 +65,11 @@ module GitlabWorkhorse
         parse_global_rails_redis_settings
         parse_redis_master_settings
       end
+
+      # Always populate Sentinel TLS settings from global settings if not already set
+      populate_sentinel_tls_settings_from_global
+      # Always populate Redis client TLS settings from global settings if not already set
+      populate_redis_tls_settings_from_global
     end
 
     # rubocop:disable Metrics/CyclomaticComplexity
@@ -116,30 +117,77 @@ module GitlabWorkhorse
       Gitlab['gitlab_rails']['redis_workhorse_sentinels_ssl'] ||= Gitlab['gitlab_rails']['redis_sentinels_ssl']
     end
 
+    def populate_sentinel_tls_settings_from_global
+      # Populate Sentinel TLS certificate settings from global settings if not already set
+      %w[sentinels_tls_ca_cert_file sentinels_tls_client_cert_file sentinels_tls_client_key_file].each do |setting|
+        Gitlab['gitlab_workhorse']["redis_#{setting}"] ||= Gitlab['gitlab_rails']["redis_#{setting}"]
+      end
+    end
+
+    def populate_redis_tls_settings_from_global
+      # Populate Redis client TLS certificate settings from global settings if not already set
+      %w[tls_ca_cert_file tls_client_cert_file tls_client_key_file].each do |setting|
+        Gitlab['gitlab_workhorse']["redis_#{setting}"] ||= Gitlab['gitlab_rails']["redis_#{setting}"]
+      end
+    end
+
     def parse_separate_redis_instance_settings
       # If an individual Redis instance is specified for Workhorse, figure out
       # host, port, password, etc. from it
-      if Gitlab['gitlab_rails']['redis_workhorse_instance']
-        uri = URI(Gitlab['gitlab_rails']['redis_workhorse_instance'])
+      parse_redis_instance_uri(Gitlab['gitlab_rails']['redis_workhorse_instance'], 'redis_workhorse')
+      copy_redis_settings('redis_workhorse')
+    end
+
+    def parse_shared_state_redis_instance_settings
+      # If a shared state Redis instance is specified, figure out
+      # host, port, password, etc. from it
+      parse_redis_instance_uri(Gitlab['gitlab_rails']['redis_shared_state_instance'], 'redis_shared_state')
+      copy_redis_settings('redis_shared_state')
+    end
+
+    def copy_redis_settings(source_prefix)
+      %w[username password cluster_nodes sentinels sentinel_master sentinels_password sentinels_ssl sentinels_tls_ca_cert_file sentinels_tls_client_cert_file sentinels_tls_client_key_file].each do |setting|
+        Gitlab['gitlab_workhorse']["redis_#{setting}"] ||= Gitlab['gitlab_rails']["#{source_prefix}_#{setting}"]
+      end
+    end
+
+    def parse_redis_instance_uri(instance_uri, instance_type = nil)
+      return unless instance_uri
+
+      # Supports three input formats:
+      # 1. Unix socket path: /path/to/socket
+      # 2. Bare hostname or host:port: hostname or hostname:6380
+      # 3. Full URL: redis://hostname:port or unix:///path/to/socket
+      if instance_uri.start_with?('/')
+        # Unix socket path: use directly
+        Gitlab['gitlab_workhorse']['redis_socket'] = instance_uri
+      else
+        uri = URI(instance_uri)
+        # If scheme is not a known Redis scheme, treat it as a bare hostname and re-parse
+        uri = URI("redis://#{instance_uri}") unless %w[redis rediss unix].include?(uri.scheme)
 
         Gitlab['gitlab_workhorse']['redis_ssl'] = uri.scheme == 'rediss' unless Gitlab['gitlab_workhorse'].key?('redis_ssl')
         if uri.scheme == 'unix'
           Gitlab['gitlab_workhorse']['redis_socket'] = uri.path
         else
-          Gitlab['gitlab_workhorse']['redis_host'] ||= if uri.path.start_with?('/')
-                                                         uri.host
-                                                       else
-                                                         uri.path
-                                                       end
+          Gitlab['gitlab_workhorse']['redis_host'] ||= uri.host
           Gitlab['gitlab_workhorse']['redis_port'] ||= uri.port
-          Gitlab['gitlab_workhorse']['redis_password'] ||= uri.password
-          Gitlab['gitlab_workhorse']['redis_database'] ||= uri.path.delete_prefix('/') if uri.path.start_with?('/')
+          parse_redis_instance_password(uri, instance_type)
+          Gitlab['gitlab_workhorse']['redis_database'] ||= uri.path.delete_prefix('/') if uri.path&.start_with?('/')
         end
       end
+    end
 
-      %w[username password cluster_nodes sentinels sentinel_master sentinels_password sentinels_ssl].each do |setting|
-        Gitlab['gitlab_workhorse']["redis_#{setting}"] ||= Gitlab['gitlab_rails']["redis_workhorse_#{setting}"]
-      end
+    def parse_redis_instance_password(uri, instance_type)
+      # The password in the URI is always the Redis password, not the Sentinel password.
+      # The hostname in the URI is the Redis master name when Sentinels are configured.
+      Gitlab['gitlab_workhorse']['redis_password'] ||= uri.password
+
+      # When Sentinels are configured, use the hostname as the sentinel master name
+      sentinels_key = "#{instance_type}_sentinels"
+      sentinels = Gitlab['gitlab_rails'][sentinels_key]
+
+      Gitlab['gitlab_workhorse']['redis_sentinel_master'] ||= uri.host if sentinels && !sentinels.empty?
     end
 
     def parse_redis_master_settings
@@ -165,6 +213,23 @@ module GitlabWorkhorse
       auth_backend = Gitlab['gitlab_workhorse']['auth_backend']
 
       !auth_backend&.empty?
+    end
+
+    def gitlab_workhorse_redis_configured?
+      Gitlab['gitlab_workhorse'].key?('redis_socket') ||
+        Gitlab['gitlab_workhorse'].key?('redis_host')
+    end
+
+    def rails_workhorse_redis_configured?
+      Gitlab['gitlab_rails']['redis_workhorse_instance'] ||
+        (Gitlab['gitlab_rails']['redis_workhorse_sentinels'] &&
+         !Gitlab['gitlab_rails']['redis_workhorse_sentinels'].empty?)
+    end
+
+    def shared_state_redis_configured?
+      Gitlab['gitlab_rails']['redis_shared_state_instance'] ||
+        (Gitlab['gitlab_rails']['redis_shared_state_sentinels'] &&
+         !Gitlab['gitlab_rails']['redis_shared_state_sentinels'].empty?)
     end
   end
 end
