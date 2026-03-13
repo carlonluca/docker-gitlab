@@ -14,6 +14,16 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 18.9.2 (2026-03-10)
+
+### Fixed (1 change)
+
+- [Simplify pg-upgrade initdb by removing locale parameters](gitlab-org/security/omnibus-gitlab@8c8f657456b5a87fc907459cc44befb0065f1061)
+
+### Security (1 change)
+
+- [Mattermost Security Updates February 18, 2026](gitlab-org/security/omnibus-gitlab@0473e6a186a1ecb5ab960de9532b5a5760b83076)
+
 ## 18.9.1 (2026-02-24)
 
 No changes.
