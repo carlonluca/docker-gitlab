@@ -17,13 +17,15 @@ different OS packages we offer.
 
 The instance uses various cryptographic methods to ensure the integrity of these packages.
 
-## Package repository metadata signing keys
+## Package repository metadata signing key
 
 The APT and YUM repositories on the Packagecloud instance use a GPG key to
 sign their metadata. This key is automatically installed by the repository setup
 script specified in the installation instructions.
 
-### Current signing key
+### Current repository signing key
+
+The following key is used to sign the repository metadata.
 
 | Key attribute | Value |
 |:--------------|:------|
@@ -31,139 +33,108 @@ script specified in the installation instructions.
 | EMail         | `packages@gitlab.com` |
 | Comment       | `package repository signing key` |
 | Fingerprint   | `F640 3F65 44A3 8863 DAA0 B6E0 3F01 618A 5131 2F3F` |
-| Expiry        | `2026-02-27` |
+| Expiry        | `2028-02-06` |
+| Download location | `https://packages.gitlab.com/gpg.key` |
 
-This key is active from **2020-04-06**.
+- Active from **2020-04-06**.
+- Expiry was extended from **2024-03-01** to **2026-02-27**.
+- Expiry was extended from **2026-02-27** to **2028-02-06**.
 
-The key's expiry was extended from **2024-03-01** to **2026-02-27**. If you encounter an expiration of `2024-03-01`,
-follow the instructions below.
+If you get an error that the key has expired, you must
+[fetch the latest repository signing key](#fetch-the-latest-repository-signing-key).
+
+### Fetch the latest repository signing key
+
+To fetch the latest repository signing key:
 
 {{< tabs >}}
 
-{{< tab title="Debian-based distributions" >}}
+{{< tab title="Debian/Ubuntu/Raspbian" >}}
 
-Packagecloud made used `apt-key`, which [is deprecated](https://blog.packagecloud.io/secure-solutions-for-apt-key-add-deprecated-messages/).
-Manually installed or configured repositories from some distributions, such as [TurnKey Linux](https://www.turnkeylinux.org/),
-are already using the `signed-by` support in Debian package source lists.
-
-1. Determine if you're using `apt-key` or `signed-by`:
+1. Download the key:
 
    ```shell
-   grep 'deb \[signed-by=' /etc/apt/sources.list.d/gitlab_gitlab-?e.list
+   sudo mkdir -p /etc/apt/keyrings
+   sudo curl --fail --silent --show-error \
+        --output /etc/apt/keyrings/gitlab-keyring.asc \
+        --url "https://packages.gitlab.com/gpg.key"
    ```
 
-   If this command:
+1. Update your repository source file to reference the key. Edit `/etc/apt/sources.list.d/gitlab_gitlab-ee.list` (or `gitlab_gitlab-ce.list`),
+   and add `[signed-by=/etc/apt/keyrings/gitlab-keyring.asc]` after `deb`:
 
-   - Returns any lines, you're using `signed-by`, which takes precedence over `apt-key`.
-   - No lines, you're using `apt-key`.
-
-1. If using `signed-by`, run this script as root to update the public keys for GitLab repositories:
-
-   ```shell
-   awk '/deb \[signed-by=/{
-         pubkey = $2;
-         sub(/\[signed-by=/, "", pubkey);
-         sub(/\]$/, "", pubkey);
-         print pubkey
-       }' /etc/apt/sources.list.d/gitlab_gitlab-?e.list | \
-     while read line; do
-       curl -s "https://packages.gitlab.com/gpg.key" | gpg --dearmor > $line
-     done
+   ```plaintext
+   deb [signed-by=/etc/apt/keyrings/gitlab-keyring.asc] https://packages.gitlab.com/gitlab/gitlab-ee/<os>/ <codename> main
+   deb-src [signed-by=/etc/apt/keyrings/gitlab-keyring.asc] https://packages.gitlab.com/gitlab/gitlab-ee/<os>/ <codename> main
    ```
 
-1. If using `apt-key`, run this script as root to update the public keys for GitLab repositories:
-
-   ```shell
-   apt-key del 3F01618A51312F3F
-   curl -s "https://packages.gitlab.com/gpg.key" | apt-key add -
-   apt-key list 3F01618A51312F3F
-   ```
+> [!note]
+> The usage of `apt-key` [was deprecated](https://blog.packagecloud.io/secure-solutions-for-apt-key-add-deprecated-messages/)
+> and removed in Debian 13.
+>
+> If using `apt-key` and cannot migrate to the `signed-by` method
+> (you're using `apt-key` if your sources list file does not contain `signed-by`),
+> run the following as root to update the public keys for GitLab repositories:
+>
+> ```shell
+> curl -s "https://packages.gitlab.com/gpg.key" | apt-key add -
+> apt-key list 3F01618A51312F3F
+> ```
 
 {{< /tab >}}
 
-{{< tab title="RPM-based distributions" >}}
+{{< tab title="CentOS/OpenSUSE/SLES" >}}
 
-YUM and DNF have small differences, but the underlying configuration is identical:
-
-1. Remove any existing key from the repository keyrings:
+1. [Verify `repo_gpgcheck` is active](#verify-if-signature-check-is-active).
+1. Get the list of currently installed keys and remove them:
 
    ```shell
-   for pubring in /var/cache/dnf/*gitlab*/pubring
-   do
-     gpg --homedir $pubring --delete-key F6403F6544A38863DAA0B6E03F01618A51312F3F
-   done
+   rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n' | grep -i gitlab | xargs sudo rpm -e
    ```
 
-1. Update the repository data and cache, which asks you to confirm keys:
+1. Purge dnf cache:
 
    ```shell
-   dnf check-update
+   sudo rm -rf /var/cache/dnf
+   ```
+
+1. [Add the GitLab package repository again](https://docs.gitlab.com/install/package/almalinux/#add-the-gitlab-package-repository).
+1. Rebuild the cache:
+
+   ```shell
+   sudo dnf makecache
    ```
 
 {{< /tab >}}
 
 {{< /tabs >}}
 
-### Fetch latest signing key
+### Previous repository signing keys
 
-To fetch the latest repository signing key:
-
-1. Download the key:
-
-   ```shell
-   curl "https://packages.gitlab.com/gpg.key" -o /tmp/omnibus_gitlab_gpg.key
-   ```
-
-1. Import the key:
-
-   {{< tabs >}}
-
-   {{< tab title="Debian/Ubuntu/Raspbian" >}}
-
-   ```shell
-   sudo apt-key add /tmp/omnibus_gitlab_gpg.key
-   ```
-
-   {{< /tab >}}
-
-   {{< tab title="CentOS/OpenSUSE/SLES" >}}
-
-   ```shell
-   sudo rpm --import /tmp/omnibus_gitlab_gpg.key
-   ```
-
-      {{< /tab >}}
-
-   {{< /tabs >}}
-
-1. Make sure that the new key has the necessary permissions to be properly recognized by your OS, which should be `644`.
-   You can set the permissions by running:
-
-   ```shell
-   chmod 644 <keyfile>
-   ```
-
-### Previous key
+The following keys were used to sign the repository metadata and are now expired.
 
 | Sl. No. | Key ID                                               | Expiry date |
 |:--------|:-----------------------------------------------------|:------------|
 | 1       | `1A4C 919D B987 D435 9396  38B9 1421 9A96 E15E 78F4` | `2020-04-15` |
 
-## Package signatures
+## Package signature verification
 
-This section provides methods for verifying the signatures of GitLab-produced packages, both manually and automatically
+You can verify the signatures of GitLab-produced packages, both manually and automatically
 where supported.
 
-### Details of current package signing key
+### Current package signing key
+
+The following key is used to sign the repository metadata.
 
 | Key attribute | Value |
 |---------------|-------|
 | Name          | `GitLab, Inc.` |
 | EMail         | `support@gitlab.com` |
 | Fingerprint   | `98BF DB87 FCF1 0076 416C 1E0B AD99 7ACC 82DD 593D` |
-| Expiry        | `2026-02-14` |
+| Expiry        | `2028-02-16` |
+| Download location | `https://packages.gitlab.com/gitlab/gitlab-ee/gpgkey/gitlab-gitlab-ee-CB947AD886C8E8FD.pub.gpg` |
 
-#### Older package signing keys
+### Previous package signing keys
 
 | Sl. No. | Key ID                                              | Revocation date | Expiry date  | Download location |
 |---------|-----------------------------------------------------|-----------------|--------------|-------------------|
@@ -180,7 +151,7 @@ To verify a package on an RPM based distribution, ensure that the GitLab, Inc. p
 keychain. For example:
 
 ```shell
-rpm -q gpg-pubkey-82dd593d-67aefdd8 --qf '%{name}-%{version}-%{release} --> %{summary}'
+rpm -q gpg-pubkey-98bfdb87fcf10076416c1e0bad997acc82dd593d-67aefdd8 --qf '%{name}-%{version}-%{release} --> %{summary}'
 ```
 
 This command produces either:
@@ -198,11 +169,13 @@ rpm --import https://packages.gitlab.com/gitlab/gitlab-ee/gpgkey/gitlab-gitlab-e
 
 To check if package signature checking is active on an existing install, compare the content of the repository file:
 
-1. Check if the repository file exist: `file /etc/yum.repos.d/gitlab_gitlab-ce.repo`.
-1. Check that signature checking is active: `grep gpgcheck /etc/yum.repos.d/gitlab_gitlab-ce.repo`. This command should
+1. Check if the repository file exist: `file /etc/yum.repos.d/gitlab_gitlab-*.repo`.
+1. Check that signature checking is active: `grep gpgcheck /etc/yum.repos.d/gitlab_gitlab-*.repo`. This command should
    output:
 
    ```plaintext
+   repo_gpgcheck=1
+   gpgcheck=1
    repo_gpgcheck=1
    gpgcheck=1
    ```
@@ -212,9 +185,11 @@ To check if package signature checking is active on an existing install, compare
    ```plaintext
    repo_gpgcheck=1
    pkg_gpgcheck=1
+   repo_gpgcheck=1
+   pkg_gpgcheck=1
    ```
 
-If the file does not exist, you don't have the repository installed. If the file exists, but the output shows
+If the file do not exist, you don't have the repository installed. If the file exists, but the output shows
 `gpgpcheck=0`, then you must edit that value to enable it.
 
 #### Verify a Linux package `rpm` file
@@ -230,7 +205,7 @@ rpm --checksig gitlab-xxx.rpm
 The Debian package format does not officially contain a method for signing packages. We implemented the `debsig`
 standard, which is well documented but not enabled by default on most distributions.
 
-You can verify Linux package `deb` file by either:
+You can verify a Linux package `deb` file by either:
 
 - Using `debsig-verify` after configuring the necessary `debsigs` policy and keyring.
 - Manually checking the contained `_gpgorigin` file with GnuPG.
@@ -244,12 +219,12 @@ for configuration. To use this script, you need to download the public key and t
 curl -JLO "https://packages.gitlab.com/gitlab/gitlab-ee/gpgkey/gitlab-gitlab-ee-CB947AD886C8E8FD.pub.gpg"
 curl -JLO "https://gitlab.com/gitlab-org/omnibus-gitlab/raw/master/scripts/gitlab-debsigs.sh"
 chmod +x gitlab-debsigs.sh
-sudo ./gitlab-debsigs.sh gitlab-gitlab-ee-CB947AD886C8E8FD.pub.gpg
+sudo ./gitlab-debsigs.sh CB947AD886C8E8FD.pub.gpg
 ```
 
 #### Verify with `debsig-verify`
 
-To use of `debsig-verify`:
+To use `debsig-verify`:
 
 1. [Configure `debsigs`](#configure-debsigs).
 1. Install the `debsig-verify` package.
@@ -261,13 +236,13 @@ To use of `debsig-verify`:
 
 #### Verify with GnuPG
 
-If you don't want to install dependencies installed by `debsig-verify`, you can use GnuPG instead:
+If you don't want to install the dependencies installed by `debsig-verify`, you can use GnuPG instead:
 
 1. Download and import the package signing public key:
 
    ```shell
    curl -JLO "https://packages.gitlab.com/gitlab/gitlab-ee/gpgkey/gitlab-gitlab-ee-CB947AD886C8E8FD.pub.gpg"
-   gpg --import gitlab-gitlab-ee-CB947AD886C8E8FD.pub.gpg
+   gpg --import CB947AD886C8E8FD.pub.gpg
    ```
 
 1. Extract the signature file `_gpgorigin`:
@@ -285,11 +260,11 @@ If you don't want to install dependencies installed by `debsig-verify`, you can 
    The output of this command should appear like this:
 
    ```shell
-   gpg: Signature made Tue Aug 01 22:21:11 2017 UTC
-   gpg:                using RSA key DBEF89774DDB9EB37D9FC3A03CFCF9BAF27EAB47
+   gpg: Signature made Wed Feb 18 18:07:22 2026 UTC
+   gpg:                using RSA key 98BFDB87FCF10076416C1E0BAD997ACC82DD593D
    gpg:                issuer "support@gitlab.com"
    gpg: Good signature from "GitLab, Inc. <support@gitlab.com>" [unknown]
-   Primary key fingerprint: DBEF 8977 4DDB 9EB3 7D9F  C3A0 3CFC F9BA F27E AB47
+   Primary key fingerprint: 98BF DB87 FCF1 0076 416C  1E0B AD99 7ACC 82DD 593D
    ```
 
 If the verification fails with `gpg: BAD signature from "GitLab, Inc. <support@gitlab.com>" [unknown]`, ensure:

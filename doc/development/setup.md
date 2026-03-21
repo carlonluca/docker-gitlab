@@ -17,7 +17,6 @@ to use a container for development.
 ## Set up a container
 
 1. Install Docker for your OS as per the [official Docker installation docs](https://docs.docker.com/get-started/get-docker/).
-
 1. Pull the GitLab CE nightly image:
 
    ```shell
@@ -200,11 +199,8 @@ gitlab_rails['env'] = {
 
 Run `gitlab-ctl reconfigure` to apply.
 
-{{< alert type="note" >}}
-
-For [GitLab Geo](https://docs.gitlab.com/administration/geo/), deployments using the above configuration must be added to each secondary site.
-
-{{< /alert >}}
+> [!note]
+> For [GitLab Geo](https://docs.gitlab.com/administration/geo/), deployments using the above configuration must be added to each secondary site.
 
 ## OpenShift GitLab Development Setup
 

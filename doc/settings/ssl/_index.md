@@ -19,12 +19,9 @@ By default, HTTPS is not enabled. To enable HTTPS, you can:
 - Use Let's Encrypt for free, automated HTTPS.
 - Manually configure HTTPS with your own certificates.
 
-{{< alert type="note" >}}
-
-If you use a proxy, load balancer or some other external device to terminate SSL for the GitLab host name,
-see [External, proxy, and load balancer SSL termination](#configure-a-reverse-proxy-or-load-balancer-ssl-termination).
-
-{{< /alert >}}
+> [!note]
+> If you use a proxy, load balancer or some other external device to terminate SSL for the GitLab host name,
+> see [External, proxy, and load balancer SSL termination](#configure-a-reverse-proxy-or-load-balancer-ssl-termination).
 
 The following table shows which method each GitLab service supports.
 
@@ -33,7 +30,7 @@ The following table shows which method each GitLab service supports.
 | GitLab instance domain | [Yes](#configure-https-manually)                                                                                             | [Yes](#enable-the-lets-encrypt-integration) |
 | Container Registry     | [Yes](https://docs.gitlab.com/administration/packages/container_registry/#configure-container-registry-under-its-own-domain) | [Yes](#enable-the-lets-encrypt-integration) |
 | Mattermost             | [Yes](https://docs.gitlab.com/integration/mattermost/#running-gitlab-mattermost-with-https)                                  | [Yes](#enable-the-lets-encrypt-integration) |
-| GitLab Pages           | [Yes](https://docs.gitlab.com/administration/pages/#wildcard-domains-with-tls-support)                                       | No                        |
+| GitLab Pages           | [Yes](https://docs.gitlab.com/administration/pages/#wildcard-domains-with-tls-support)                                       | [Yes](#enable-the-lets-encrypt-integration)                        |
 
 ## OpenSSL 3 upgrade
 
@@ -80,6 +77,10 @@ To enable Let's Encrypt:
 
    ## Mattermost (optional), must use https protocol
    mattermost_external_url "https://mattermost.example.com"
+
+   ## GitLab Pages (optional), must use https protocol
+   pages_external_url "https://pages.example.com"
+   gitlab_pages['namespace_in_path'] = true      # Required to enable single-domain sites
    ```
 
    - Certificates expire every 90 days. Email addresses you specify for `contact_emails` receive an
@@ -351,11 +352,8 @@ traffic to HTTPS:
    sudo gitlab-ctl reconfigure
    ```
 
-{{< alert type="note" >}}
-
-This behavior is enabled by default when using the [Let's Encrypt integration](#enable-the-lets-encrypt-integration).
-
-{{< /alert >}}
+> [!note]
+> This behavior is enabled by default when using the [Let's Encrypt integration](#enable-the-lets-encrypt-integration).
 
 ### Change the default HTTPS port
 
@@ -556,12 +554,9 @@ If changing the ciphers is not an option, you can disable the HTTP/2 support:
    sudo gitlab-ctl reconfigure
    ```
 
-{{< alert type="note" >}}
-
-The HTTP/2 setting only works for the main GitLab application and not for the other services,
-like GitLab Pages, Container Registry, and Mattermost.
-
-{{< /alert >}}
+> [!note]
+> The HTTP/2 setting only works for the main GitLab application and not for the other services,
+> like GitLab Pages, Container Registry, and Mattermost.
 
 ## Enable 2-way SSL client authentication
 
@@ -591,12 +586,9 @@ enable 2-way SSL:
 
 ## Configure the HTTP Strict Transport Security (HSTS)
 
-{{< alert type="note" >}}
-
-The HSTS settings only work for the main GitLab application and not for the other services,
-like GitLab Pages, Container Registry, and Mattermost.
-
-{{< /alert >}}
+> [!note]
+> The HSTS settings only work for the main GitLab application and not for the other services,
+> like GitLab Pages, Container Registry, and Mattermost.
 
 HTTP Strict Transport Security (HSTS) is enabled by default and it informs browsers that
 they should only contact the website using HTTPS. When a browser visits a

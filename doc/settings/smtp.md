@@ -1432,9 +1432,9 @@ OpenSSL::SSL::SSLError (SSL_connect returned=1 errno=0 state=error: wrong versio
 This error is usually due to incorrect settings:
 
 - If your SMTP provider is using port 25 or 587, SMTP connections start
-**unencrypted** but can be upgraded via
-[STARTTLS](https://en.wikipedia.org/wiki/Opportunistic_TLS). Be sure the
-following settings are set:
+  **unencrypted** but can be upgraded via
+  [STARTTLS](https://en.wikipedia.org/wiki/Opportunistic_TLS). Be sure the
+  following settings are set:
 
   ```ruby
   gitlab_rails['smtp_enable_starttls_auto'] = true
@@ -1443,7 +1443,7 @@ following settings are set:
   ```
 
 - If your SMTP provider is using port 465, SMTP connections start
-**encrypted** over TLS. Ensure the following line is present:
+  **encrypted** over TLS. Ensure the following line is present:
 
   ```ruby
   gitlab_rails['smtp_tls'] = true
@@ -1466,11 +1466,8 @@ For more details, review the [example configuration](https://docs.gitlab.com/adm
 
 ### Email not sent
 
-{{< alert type="warning" >}}
-
-Any command that changes data directly could be damaging if not run correctly, or under the right conditions. We highly recommend running them in a test environment with a backup of the instance ready to be restored, just in case.
-
-{{< /alert >}}
+> [!warning]
+> Any command that changes data directly could be damaging if not run correctly, or under the right conditions. We highly recommend running them in a test environment with a backup of the instance ready to be restored, just in case.
 
 If you have correctly configured an email server, but email is not sent:
 
@@ -1515,11 +1512,8 @@ This error occurs when both `gitlab_rails['smtp_enable_starttls_auto']` and `git
 
 ## Disable all outgoing email
 
-{{< alert type="note" >}}
-
-This will disable **all** outgoing email from your GitLab instance, including but not limited to notification emails, direct mentions, and password reset emails.
-
-{{< /alert >}}
+> [!note]
+> This will disable **all** outgoing email from your GitLab instance, including but not limited to notification emails, direct mentions, and password reset emails.
 
 In order to disable **all** outgoing email, you can edit or add the following line to `/etc/gitlab/gitlab.rb`:
 

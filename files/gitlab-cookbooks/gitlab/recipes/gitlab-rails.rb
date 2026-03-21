@@ -25,6 +25,12 @@ redis_helper = RedisHelper::GitlabRails.new(node)
 logfiles_helper = LogfilesHelper.new(node)
 logging_settings = logfiles_helper.logging_settings('gitlab-rails')
 
+gitaly_client_max_backoff = node['gitlab']['gitlab_rails']['gitaly_client_max_backoff'] ||
+  node['gitlab']['gitaly_client']['max_backoff']
+
+gitaly_client_max_attempts = node['gitlab']['gitlab_rails']['gitaly_client_max_attempts'] ||
+  node['gitlab']['gitaly_client']['max_attempts']
+
 gitlab_rails_source_dir = "/opt/gitlab/embedded/service/gitlab-rails"
 gitlab_rails_dir = node['gitlab']['gitlab_rails']['dir']
 gitlab_rails_etc_dir = File.join(gitlab_rails_dir, "etc")
@@ -344,6 +350,9 @@ RedisHelper::GitlabRails::REDIS_INSTANCES.each do |instance|
   sentinels_password = node['gitlab']['gitlab_rails']["redis_#{instance}_sentinels_password"]
   sentinels_ssl = node['gitlab']['gitlab_rails']["redis_#{instance}_sentinels_ssl"]
   clusters = node['gitlab']['gitlab_rails']["redis_#{instance}_cluster_nodes"]
+  sentinels_tls_ca_cert_file = node['gitlab']['gitlab_rails']["redis_#{instance}_sentinels_tls_ca_cert_file"]
+  sentinels_tls_client_cert_file = node['gitlab']['gitlab_rails']["redis_#{instance}_sentinels_tls_client_cert_file"]
+  sentinels_tls_client_key_file = node['gitlab']['gitlab_rails']["redis_#{instance}_sentinels_tls_client_key_file"]
   username = node['gitlab']['gitlab_rails']["redis_#{instance}_username"]
   password = node['gitlab']['gitlab_rails']["redis_#{instance}_password"]
   redis_ssl = node['gitlab']['gitlab_rails']["redis_#{instance}_ssl"]
@@ -370,6 +379,9 @@ RedisHelper::GitlabRails::REDIS_INSTANCES.each do |instance|
       redis_sentinels: sentinels,
       redis_sentinels_password: sentinels_password,
       redis_sentinels_ssl: sentinels_ssl,
+      redis_sentinels_tls_ca_cert_file: sentinels_tls_ca_cert_file,
+      redis_sentinels_tls_client_cert_file: sentinels_tls_client_cert_file,
+      redis_sentinels_tls_client_key_file: sentinels_tls_client_key_file,
       redis_enable_client: redis_enable_client,
       cluster_nodes: clusters,
       cluster_username: username,
@@ -447,7 +459,9 @@ templatesymlink "Create a gitlab.yml and create a symlink to Rails root" do
       prometheus_server_address: node['gitlab']['gitlab_rails']['prometheus_address'] || node['monitoring']['prometheus']['listen_address'],
       consul_api_url: node['consul']['enable'] ? consul_helper.api_url : nil,
       mailroom_internal_api_url: mailroom_helper.internal_api_url,
-      has_jh_cookbook: has_jh_cookbook
+      has_jh_cookbook: has_jh_cookbook,
+      gitaly_max_attempts: gitaly_client_max_attempts,
+      gitaly_max_backoff: gitaly_client_max_backoff
     )
   )
   dependent_services.each { |svc| notifies :restart, svc }
