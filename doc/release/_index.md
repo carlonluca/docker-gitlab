@@ -114,11 +114,8 @@ the build type package will be pushed to <https://packages.gitlab.com> or to a t
    git tag -a 6.6.0+ce.0 -m 'Pin GitLab to v6.6.0'
    ```
 
-   {{< alert type="warning" >}}
-
-   Do NOT use a hyphen `-` anywhere in the `omnibus-gitlab` tag.
-
-   {{< /alert >}}
+   > [!warning]
+   > Do NOT use a hyphen `-` anywhere in the `omnibus-gitlab` tag.
 
    Examples of converting an upstream tag to an `omnibus-gitlab` tag sequence:
 
@@ -140,7 +137,7 @@ the build type package will be pushed to <https://packages.gitlab.com> or to a t
 ### Publishing the packages
 
 You can track the progress of package building on `https://dev.gitlab.org/gitlab/omnibus-gitlab/builds`.
-They are pushed to [Packagecloud repositories](https://packages.gitlab.com/gitlab/) automatically after
+They are pushed to our [`packages.gitlab.com` repositories](https://packages.gitlab.com/gitlab/) automatically after
 successful builds.
 
 ### Updating cloud images

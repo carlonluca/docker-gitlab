@@ -44,10 +44,12 @@ module Gitlab
   role('pages').use { PagesRole }
   role('spamcheck').use { SpamcheckRole }
   role('gitaly').use { GitalyRole }
+  role('backup', manage_services: false).use { BackupRole }
 
   ## Attributes directly on the node
   attribute('package').use { Package }
   attribute('registry',     priority: 19).use { Registry } # After LetsEncrypt, but before Postgresql
+  attribute('oak',          priority: 19).use { Oak }
   attribute('redis',        priority: 20).use { Redis }
   attribute('postgresql',   priority: 20).use { Postgresql }
   attribute('gitlab_kas',   priority: 20).use { GitlabKas }
@@ -91,7 +93,7 @@ module Gitlab
     ee_attribute('sentinel').use { Sentinel }
 
     # Base GitLab attributes
-    attribute('gitlab_sshd',      priority: 5)
+    attribute('gitlab_sshd',      priority: 5).use { GitlabSshd }
     attribute('gitaly_client',    priority: 5)
     attribute('gitlab_shell',     priority: 10).use { GitlabShell } # Parse shell before rails for data dir settings
     attribute('gitlab_rails',     priority: 15).use { GitlabRails } # Parse rails first as others may depend on it

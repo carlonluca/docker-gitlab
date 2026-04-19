@@ -16,7 +16,8 @@
 #
 
 name 'postgresql'
-default_version '16.11'
+default_version '16.13'
+major_version = default_version.split('.')[0]
 
 license 'PostgreSQL'
 license_file 'COPYRIGHT'
@@ -31,41 +32,35 @@ dependency 'ncurses'
 dependency 'libossp-uuid'
 dependency 'config_guess'
 
-version '16.11' do
-  source sha256: '6deb08c23d03d77d8f8bd1c14049eeef64aef8968fd8891df2dfc0b42f178eac'
-end
+if Build::Check.use_ubt? && !Build::Check.use_system_ssl?
+  # TODO: We're using OhaiHelper to detect current platform, however since components are pre-compiled by UBT we *may* run ARM build on X86 nodes
+  source Build::UBT.source_args("postgresql-all", "#{default_version}-3ubt", "767155d794e277df7931b97f5ecc066d650d87ec74990383d7f7df39b486147e", OhaiHelper.arch)
+  build(&Build::UBT.install)
+else
+  version default_version do
+    source sha256: 'dc2ddbbd245c0265a689408e3d2f2f3f9ba2da96bd19318214b313cdd9797287'
+  end
 
-major_version = '16'
+  source url: "https://ftp.postgresql.org/pub/source/v#{version}/postgresql-#{version}.tar.bz2"
 
-source url: "https://ftp.postgresql.org/pub/source/v#{version}/postgresql-#{version}.tar.bz2"
+  relative_path "postgresql-#{version}"
 
-relative_path "postgresql-#{version}"
+  build do
+    env = with_standard_compiler_flags(with_embedded_path)
 
-build do
-  env = with_standard_compiler_flags(with_embedded_path)
+    env['CFLAGS'] << ' -fno-omit-frame-pointer'
 
-  env['CFLAGS'] << ' -fno-omit-frame-pointer'
+    prefix = "#{install_dir}/embedded/postgresql/#{major_version}"
+    update_config_guess(target: 'config')
 
-  prefix = "#{install_dir}/embedded/postgresql/#{major_version}"
-  update_config_guess(target: 'config')
+    command './configure' \
+            " --prefix=#{prefix}" \
+            ' --with-libedit-preferred' \
+            ' --with-openssl' \
+            ' --with-uuid=ossp', env: env
 
-  command './configure' \
-          " --prefix=#{prefix}" \
-          ' --with-libedit-preferred' \
-          ' --with-openssl' \
-          ' --with-uuid=ossp', env: env
-
-  make "world -j #{workers}", env: env
-  make 'install-world-bin', env: env
-
-  # NOTE: There are several dependencies which require these files in these
-  # locations and have dependency on `postgresql_new`. So when this block is
-  # changed to be in the `postgresql` software definition for default PG
-  # version changes, change those dependencies to `postgresql`.
-  block 'link bin files' do
-    Dir.glob("#{prefix}/bin/*").each do |bin_file|
-      link bin_file, "#{install_dir}/embedded/bin/#{File.basename(bin_file)}"
-    end
+    make "world -j #{workers}", env: env
+    make 'install-world-bin', env: env
   end
 end
 

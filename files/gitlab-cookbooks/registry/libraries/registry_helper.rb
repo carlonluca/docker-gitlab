@@ -2,7 +2,8 @@ class RegistryHelper < BaseHelper
   attr_reader :node
 
   def redis_enabled?
-    !!node.dig('registry', 'redis', 'loadbalancing', 'enabled')
+    redis = node.dig('registry', 'redis') || {}
+    redis.any? { |_k, v| v.is_a?(Hash) && v['enabled'] }
   end
 
   def public_attributes
@@ -28,9 +29,8 @@ class RegistryHelper < BaseHelper
   # 4. PostgreSQL is ready
   def should_run_migrations?
     registry_pg_helper = RegistryPgHelper.new(node)
-    database_enabled = node.dig('registry', 'database', 'enabled')
 
-    ['prefer', 'true', true].include?(database_enabled) &&
+    registry_pg_helper.database_enabled? &&
       node['registry']['auto_migrate'] &&
       registry_pg_helper.is_ready?
   end

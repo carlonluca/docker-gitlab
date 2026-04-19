@@ -20,7 +20,7 @@ require "#{Omnibus::Config.project_root}/lib/gitlab/version"
 require "#{Omnibus::Config.project_root}/lib/gitlab/prometheus_helper"
 
 name 'alertmanager'
-version = Gitlab::Version.new('alertmanager', '0.28.1')
+version = Gitlab::Version.new('alertmanager', '0.31.1')
 default_version version.print
 
 license 'APACHE-2.0'
@@ -29,27 +29,33 @@ license_file 'NOTICE'
 
 skip_transitive_dependency_licensing true
 
-source git: version.remote
+if Build::Check.use_ubt?
+  ubt_version = version.print(false)
+  source Build::UBT.source_args(name, "#{ubt_version}-1ubt", "e24b0cee204c13138708b7db34e00d8e9c859112b250d742a7634c8e76421de9", OhaiHelper.arch)
+  build(&Build::UBT.install)
+else
+  source git: version.remote
 
-go_source = 'github.com/prometheus/alertmanager'
-relative_path "src/#{go_source}"
+  go_source = 'github.com/prometheus/alertmanager'
+  relative_path "src/#{go_source}"
 
-build do
-  env = {
-    'GOPATH' => "#{Omnibus::Config.source_dir}/alertmanager",
-    'GO111MODULE' => 'on',
-    'GOTOOLCHAIN' => 'local',
-  }
-  exporter_source_dir = "#{Omnibus::Config.source_dir}/alertmanager"
-  cwd = "#{exporter_source_dir}/src/#{go_source}"
+  build do
+    env = {
+      'GOPATH' => "#{Omnibus::Config.source_dir}/alertmanager",
+      'GO111MODULE' => 'on',
+      'GOTOOLCHAIN' => 'local',
+    }
+    exporter_source_dir = "#{Omnibus::Config.source_dir}/alertmanager"
+    cwd = "#{exporter_source_dir}/src/#{go_source}"
 
-  prom_version = Prometheus::VersionFlags.new(version)
+    prom_version = Prometheus::VersionFlags.new(version)
 
-  command "go build -ldflags '#{prom_version.print_ldflags}' ./cmd/alertmanager", env: env, cwd: cwd
+    command "go build -ldflags '#{prom_version.print_ldflags}' ./cmd/alertmanager", env: env, cwd: cwd
 
-  mkdir "#{install_dir}/embedded/bin/"
-  copy 'alertmanager', "#{install_dir}/embedded/bin/"
+    mkdir "#{install_dir}/embedded/bin/"
+    copy 'alertmanager', "#{install_dir}/embedded/bin/"
 
-  command "license_finder report --enabled-package-managers godep gomodules --decisions-file=#{Omnibus::Config.project_root}/support/dependency_decisions.yml --format=json --columns name version licenses texts notice --save=license.json"
-  copy "license.json", "#{install_dir}/licenses/alertmanager.json"
+    command "license_finder report --enabled-package-managers godep gomodules --decisions-file=#{Omnibus::Config.project_root}/support/dependency_decisions.yml --format=json --columns name version licenses texts notice --save=license.json"
+    copy "license.json", "#{install_dir}/licenses/alertmanager.json"
+  end
 end

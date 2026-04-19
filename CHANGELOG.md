@@ -14,6 +14,51 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 18.11.0 (2026-04-15)
+
+### Added (3 changes)
+
+- [Support `trusted_user_ca_keys` configuration for gitlab-sshd](gitlab-org/omnibus-gitlab@b77ed37260c0e04dde2201c46f575dc2316a0630) ([merge request](gitlab-org/omnibus-gitlab!9265))
+- [Add bash completion for gitlab-ctl](gitlab-org/omnibus-gitlab@20703dc08adebaba725126b5d818e3430a8417a7) ([merge request](gitlab-org/omnibus-gitlab!8096))
+- [Expose server_rejoin_age_max as a configurable Consul server attribute](gitlab-org/omnibus-gitlab@07a251b76b7e4facf92c628ad4d437906456035f) ([merge request](gitlab-org/omnibus-gitlab!9256))
+
+### Fixed (2 changes)
+
+- [fix: Set sv timeout when restarting Gitaly](gitlab-org/omnibus-gitlab@7cf97b7f6bf37be398b1bd0f3a8d19304a769c21) ([merge request](gitlab-org/omnibus-gitlab!9192))
+- [Ensure postgresql_new is included in GitLab CE](gitlab-org/omnibus-gitlab@6b9d3738cb22952cb53b9bafdcd5ff19807fd9e5) ([merge request](gitlab-org/omnibus-gitlab!9299))
+
+### Changed (12 changes)
+
+- [Update gitlab-ruby-shadow to v2.6.0](gitlab-org/omnibus-gitlab@942c861ba163e00ad906b4a74c086900ed81b4b3) ([merge request](gitlab-org/omnibus-gitlab!9177))
+- [Bump postgres-exporter to v0.19.1](gitlab-org/omnibus-gitlab@ed7d2fd148fd7c9d00e3b48aabb83592d190d16b) ([merge request](gitlab-org/omnibus-gitlab!8191))
+- [Auto upgrade single node installs to PostgreSQL 17](gitlab-org/omnibus-gitlab@28f87a8a8298a604fd2822c93c9cfde1bb281443) ([merge request](gitlab-org/omnibus-gitlab!9287))
+- [Default to PostgreSQL 17 for fresh installs](gitlab-org/omnibus-gitlab@b4bdd91e72c04fd26f3e92b2026e2eb6681e85df) ([merge request](gitlab-org/omnibus-gitlab!9286))
+- [Bump OpenSSL to version 3.6.1](gitlab-org/omnibus-gitlab@6e386f9f6f05834516bb5a7ccff86c3207317f03) ([merge request](gitlab-org/omnibus-gitlab!9062))
+- [Update dependency acme-client to v2.0.30](gitlab-org/omnibus-gitlab@6c8096cf8ca5af7bd8f5222869953966a417b056) ([merge request](gitlab-org/omnibus-gitlab!9050))
+- [Update dependency alertmanager to v0.31.1](gitlab-org/omnibus-gitlab@2ec0c311dd78412824508c4d3120830e2bbc0dde) ([merge request](gitlab-org/omnibus-gitlab!8834))
+- [Update gitlabsos digest to dfa21a7](gitlab-org/omnibus-gitlab@6a843be699e0f851d44669d3460c46ea1df1cfb2) ([merge request](gitlab-org/omnibus-gitlab!9188))
+- [Update gitlab_kas_nginx['k8s_proxy_*'] defaults](gitlab-org/omnibus-gitlab@ce1dd6d5802fc8cafa1af1ed2fe474edcab27190) by @kivarum ([merge request](gitlab-org/omnibus-gitlab!9154))
+- [Backup/restore credentials for registry database](gitlab-org/omnibus-gitlab@9b5ac6eb58ad82b50f80bd4d343c1959138d8a5f) ([merge request](gitlab-org/omnibus-gitlab!9005))
+- [Update dependency container-registry to v4.39.0-gitlab](gitlab-org/omnibus-gitlab@6d929a8bf5b3483fa8f178f53824c72362eadd89) ([merge request](gitlab-org/omnibus-gitlab!9221))
+- [Update dependency libxml2 to v2.15.2](gitlab-org/omnibus-gitlab@1cf19d2dffebc6742cf66f374ec1991ec553f5ff) ([merge request](gitlab-org/omnibus-gitlab!9180))
+
+### Deprecated (1 change)
+
+- [Add Amazon Linux 2 to deprecated OS warning](gitlab-org/omnibus-gitlab@f631c7b5ac459af7231eb28fb4fa8efe7c07eb55) ([merge request](gitlab-org/omnibus-gitlab!9307))
+
+### Removed (1 change)
+
+- [Remove Mattermost for SLES-12.5](gitlab-org/omnibus-gitlab@8ca269e507fd281dd84d9ec4f67e6464b43c8366) ([merge request](gitlab-org/omnibus-gitlab!9313))
+
+### Security (2 changes)
+
+- [Bump rack version to 2.2.23](gitlab-org/omnibus-gitlab@1779091205ba97f5f12b026acd5a87af7cc5aa59) ([merge request](gitlab-org/omnibus-gitlab!9276))
+- [Mattermost Security Updates March 16, 2026](gitlab-org/omnibus-gitlab@854c97f0f51228e4b8380379d7de99925e654c8c) by @Normo ([merge request](gitlab-org/omnibus-gitlab!9251))
+
+### Other (1 change)
+
+- [Add Knowledge Graph Go module to license allowlist](gitlab-org/omnibus-gitlab@5b926604bd8492c3d5e7393e0080de3fabfd44ba) ([merge request](gitlab-org/omnibus-gitlab!9278))
+
 ## 18.10.3 (2026-04-07)
 
 No changes.
@@ -53,6 +98,20 @@ No changes.
 
 - [Mattermost Security Updates February 23, 2026](gitlab-org/omnibus-gitlab@06bdb8a7037d64db1b24338ce6dae3925a10007a) by @Normo ([merge request](gitlab-org/omnibus-gitlab!9189))
 - [Mattermost Security Updates February 13, 2026](gitlab-org/omnibus-gitlab@43ad3263651d869efea332e255365b61b391970b) by @Normo ([merge request](gitlab-org/omnibus-gitlab!9139))
+
+## 18.9.5 (2026-04-07)
+
+No changes.
+
+## 18.9.4 (2026-03-31)
+
+No changes.
+
+## 18.9.3 (2026-03-24)
+
+### Security (1 change)
+
+- [Mattermost Security Updates February 23, 2026](gitlab-org/security/omnibus-gitlab@77cf83510d038ebffbb81d71be5c259c8dd0aa78)
 
 ## 18.9.2 (2026-03-10)
 
@@ -104,6 +163,20 @@ No changes.
 ### Security (1 change)
 
 - [Mattermost Security Updates January 15, 2026](gitlab-org/omnibus-gitlab@0b48af1e6492d3f178e74e3e878302ee3faa9081) by @Normo ([merge request](gitlab-org/omnibus-gitlab!9083))
+
+## 18.8.9 (2026-04-07)
+
+No changes.
+
+## 18.8.8 (2026-03-31)
+
+No changes.
+
+## 18.8.7 (2026-03-24)
+
+### Security (1 change)
+
+- [Mattermost Security Updates February 23, 2026](gitlab-org/security/omnibus-gitlab@3a365695a71d01bbfeb17b5c7ecf58bd73f18476)
 
 ## 18.8.6 (2026-03-10)
 

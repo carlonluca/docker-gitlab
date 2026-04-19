@@ -334,10 +334,10 @@
 - - :license
   - "github.com/hashicorp/memberlist"
   - MPL2
-  - :who: Andrew Patterson
+  - :who: Adam Chu
     :why: https://github.com/hashicorp/memberlist/blob/master/LICENSE
-    :versions: [ v0.5.1 ]
-    :when: 2025-01-23 11:30:00.000000000 Z
+    :versions: [ v0.5.4 ]
+    :when: 2026-02-20 10:05:00.000000000 Z
 - - :license
   - "gitlab.com/gitlab-org/modelops/applied-ml/code-suggestions/ai-assist/clients/gopb"
   - MIT
@@ -386,3 +386,9 @@
   - :who: Sam Joan Roque-Worcel
     :why: https://github.com/in-toto/in-toto-golang/blob/master/LICENSE
     :when: 2025-10-01 19:43:55.000000000 Z
+- - :license
+  - "gitlab.com/gitlab-org/orbit/knowledge-graph/clients/gkgpb"
+  - MIT
+  - :who: Angelo Rivera
+    :why: https://gitlab.com/gitlab-org/orbit/knowledge-graph/-/blob/main/clients/gkgpb/LICENSE
+    :when: 2026-04-02 15:00:00.000000000 Z

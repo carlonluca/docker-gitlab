@@ -389,6 +389,15 @@ default['gitlab']['gitlab_rails']['backup_multipart_chunk_size'] = nil
 default['gitlab']['gitlab_rails']['backup_encryption'] = nil
 default['gitlab']['gitlab_rails']['backup_encryption_key'] = nil
 default['gitlab']['gitlab_rails']['backup_storage_class'] = nil
+default['gitlab']['gitlab_rails']['backup_role'] = false
+default['gitlab']['gitlab_rails']['backup_registry_user'] = "registry_backup"
+default['gitlab']['gitlab_rails']['backup_registry_password'] = nil
+default['gitlab']['gitlab_rails']['restore_registry_user'] = "registry_restore"
+default['gitlab']['gitlab_rails']['restore_registry_password'] = nil
+default['gitlab']['gitlab_rails']['backup_registry']['database_connection'] = {
+  'port' => 5432,
+  'dbname' => "registry"
+}
 
 # Path to the GitLab Shell installation
 # defaults to /opt/gitlab/embedded/service/gitlab-shell/. The install-dir path is set at build time
@@ -865,6 +874,7 @@ default['gitlab']['gitlab_sshd']['host_keys_dir'] = '/var/opt/gitlab/gitlab-sshd
 default['gitlab']['gitlab_sshd']['host_keys_glob'] = 'ssh_host_*_key'
 default['gitlab']['gitlab_sshd']['host_certs_dir'] = '/var/opt/gitlab/gitlab-sshd'
 default['gitlab']['gitlab_sshd']['host_certs_glob'] = 'ssh_host_*-cert.pub'
+default['gitlab']['gitlab_sshd']['trusted_user_ca_keys'] = nil
 
 ####
 # Web server
@@ -1162,6 +1172,10 @@ default['gitlab']['gitlab_kas_nginx']['proxy_set_headers'] = {
   "X-Scheme" => "$scheme",
   "X-Original-Forwarded-For" => "$http_x_forwarded_for"
 }
+default['gitlab']['gitlab_kas_nginx']['k8s_proxy_connect_timeout'] = "5"
+default['gitlab']['gitlab_kas_nginx']['k8s_proxy_send_timeout'] = "60"
+default['gitlab']['gitlab_kas_nginx']['k8s_proxy_read_timeout'] = "7200"
+default['gitlab']['gitlab_kas_nginx']['k8s_proxy_max_temp_file_size'] = "1024m"
 
 ####
 # Storage check
