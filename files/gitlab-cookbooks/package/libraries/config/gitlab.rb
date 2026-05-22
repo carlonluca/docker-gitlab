@@ -42,7 +42,6 @@ module Gitlab
   role('pgbouncer').use { PgbouncerRole }
   role('consul').use { ConsulRole }
   role('pages').use { PagesRole }
-  role('spamcheck').use { SpamcheckRole }
   role('gitaly').use { GitalyRole }
   role('backup', manage_services: false).use { BackupRole }
 
@@ -58,12 +57,12 @@ module Gitlab
   attribute('repmgr')
   attribute('repmgrd')
   attribute('consul').use { Consul }
-  attribute('spamcheck')
+  attribute('spamcheck') # Remove at the next upgrade stop. Retained to enable the deprecation notice in 19.0.
   attribute('patroni').use { Patroni }
   attribute('gitaly').use { Gitaly }
   attribute('praefect')
-  attribute('mattermost',   priority: 30).use { GitlabMattermost } # Mattermost checks if GitLab is enabled on the same box
-  attribute('letsencrypt',  priority: 17).use { LetsEncrypt } # After GitlabRails, but before Registry and Mattermost
+  attribute('mattermost')
+  attribute('letsencrypt', priority: 17).use { LetsEncrypt } # After GitlabRails, but before Registry
   attribute('crond')
   attribute('logrotate')
 

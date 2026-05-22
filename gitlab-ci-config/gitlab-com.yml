@@ -347,6 +347,7 @@ docs-lint links:
 docs-lint hugo:
   image: registry.gitlab.com/gitlab-org/technical-writing/docs-gitlab-com/docs-gitlab-com-builder:hugo-0.150.1
   stage: check
+  retry: 1
   rules:
     - if: '$PIPELINE_TYPE =~ /_TEST_PIPELINE$/'
     - if: '$PIPELINE_TYPE =~ /_MR_PIPELINE$/'
@@ -521,15 +522,13 @@ AlmaLinux 10 knapsack: !reference [.knapsack]
 Debian 11 knapsack: !reference [.knapsack]
 Debian 12 knapsack: !reference [.knapsack]
 Debian 13 knapsack: !reference [.knapsack]
-OpenSUSE 15.6 knapsack: !reference [.knapsack]
-Ubuntu 20.04 knapsack: !reference [.knapsack]
 Ubuntu 22.04 knapsack: !reference [.knapsack]
 Ubuntu 24.04 knapsack: !reference [.knapsack]
 AmazonLinux 2 knapsack: !reference [.knapsack]
 AmazonLinux 2023 knapsack: !reference [.knapsack]
 
 build library specs:
-  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/ubuntu_20.04-ruby:${BUILDER_IMAGE_REVISION}"
+  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/ubuntu_22.04-ruby:${BUILDER_IMAGE_REVISION}"
   extends: .spec_template
   needs:
     - rubocop
@@ -543,12 +542,6 @@ build library specs:
         coverage_format: cobertura
         path: coverage/coverage.xml
 
-Ubuntu 20.04 specs :
-  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/ubuntu_20.04-ruby:${BUILDER_IMAGE_REVISION}"
-  extends: .chef_spec_template
-  parallel: 6
-  needs:
-  - Ubuntu 20.04 knapsack
 Ubuntu 22.04 specs:
   image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/ubuntu_22.04-ruby:${BUILDER_IMAGE_REVISION}"
   extends: .chef_spec_template
@@ -597,12 +590,6 @@ AlmaLinux 10 specs :
   parallel: 6
   needs:
   - AlmaLinux 10 knapsack
-OpenSUSE 15.6 specs :
-  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/opensuse_15.6-ruby:${BUILDER_IMAGE_REVISION}"
-  extends: .chef_spec_template
-  parallel: 6
-  needs:
-    - OpenSUSE 15.6 knapsack
 AmazonLinux 2 specs :
   image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/amazonlinux_2-ruby:${BUILDER_IMAGE_REVISION}"
   extends: .chef_spec_template
@@ -654,7 +641,7 @@ qa-subset-test:
   variables:
     QA_OMNIBUS_MR_TESTS: "only-smoke"
     QA_RUN_TYPE: ${CI_JOB_NAME}
-    QA_SUITES: "QA::Scenario::Test::Integration::GitalyCluster,QA::Scenario::Test::Integration::InstanceSAML,QA::Scenario::Test::Integration::LDAPNoServer,QA::Scenario::Test::Integration::LDAPNoTLS,QA::Scenario::Test::Integration::LDAPTLS,QA::Scenario::Test::Integration::Mattermost,QA::Scenario::Test::Integration::Mtls,QA::Scenario::Test::Integration::ObjectStorageGcs,QA::Scenario::Test::Integration::RegistryTLS,QA::Scenario::Test::Integration::RegistryWithCDN,QA::Scenario::Test::Integration::SMTP,QA::Scenario::Test::Integration::Registry,QA::Scenario::Test::Instance::ObjectStorage,QA::Scenario::Test::Instance::RepositoryStorage,QA::Scenario::Test::Instance::GitlabPages,QA::Scenario::Test::Instance::Metrics,QA::EE::Scenario::Test::Integration::GroupSAML,QA::Scenario::Test::Instance::Smoke"
+    QA_SUITES: "QA::Scenario::Test::Integration::GitalyCluster,QA::Scenario::Test::Integration::InstanceSAML,QA::Scenario::Test::Integration::LDAPNoServer,QA::Scenario::Test::Integration::LDAPNoTLS,QA::Scenario::Test::Integration::LDAPTLS,QA::Scenario::Test::Integration::Mtls,QA::Scenario::Test::Integration::ObjectStorageGcs,QA::Scenario::Test::Integration::RegistryTLS,QA::Scenario::Test::Integration::RegistryWithCDN,QA::Scenario::Test::Integration::SMTP,QA::Scenario::Test::Integration::Registry,QA::Scenario::Test::Instance::ObjectStorage,QA::Scenario::Test::Instance::RepositoryStorage,QA::Scenario::Test::Instance::GitlabPages,QA::Scenario::Test::Instance::Metrics,QA::EE::Scenario::Test::Integration::GroupSAML,QA::Scenario::Test::Instance::Smoke"
   rules:
     - if: '"$[[ inputs.skip_qa_test ]]" == "true"'
       when: never
@@ -721,6 +708,22 @@ letsencrypt-test:
     - job: Docker-branch
       artifacts: false
 
+OAK:smoke-test:
+  extends: .docker_job
+  stage: qa
+  script:
+    - echo "${CI_REGISTRY_PASSWORD}" | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+    - bundle exec rake qa:test_oak
+  rules:
+    - if: '$TOP_UPSTREAM_SOURCE_PROJECT == "gitlab-org/gitlab"'
+      when: never
+    - if: '$PIPELINE_TYPE == "TRIGGERED_EE_PIPELINE"'
+      when: manual
+      allow_failure: true
+  needs:
+    - job: Docker-branch
+      artifacts: false
+
 patroni-ha-test:
   extends: .docker_job
   stage: qa
@@ -735,21 +738,16 @@ patroni-ha-test:
     - job: Docker-branch
       artifacts: false
 
-patroni-pg-upgrade-test:
+redis-valkey-sentinel-test:
   extends: .docker_job
   stage: qa
   script:
     - echo "${CI_REGISTRY_PASSWORD}" | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
-    - bundle exec rake qa:test_patroni_pg_upgrade
+    - bundle exec rake qa:test_redis_valkey_sentinel
   rules:
     - if: '$TOP_UPSTREAM_SOURCE_PROJECT == "gitlab-org/gitlab"'
       when: never
     - if: '$PIPELINE_TYPE == "TRIGGERED_EE_PIPELINE"'
-      changes:
-        - config/software/postgresql_new.rb
-    - if: '$PIPELINE_TYPE == "TRIGGERED_EE_PIPELINE"'
-      when: manual
-      allow_failure: true
   needs:
     - job: Docker-branch
       artifacts: false
@@ -791,7 +789,7 @@ qa-full-ee:
   extends: .qa-full
   trigger:
     inputs:
-      package-variants: "ee,fips"
+      package-variants: "ee"
   rules:
     - if: '"$[[ inputs.skip_qa_full ]]" == "true"'
       when: never
@@ -916,7 +914,7 @@ validate_packer_changes:
 ##############################
 
 pages:
-  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/ubuntu_20.04:${BUILDER_IMAGE_REVISION}"
+  image: "${PUBLIC_BUILDER_IMAGE_REGISTRY}/ubuntu_22.04:${BUILDER_IMAGE_REVISION}"
   stage: prepare
   needs:
     - yard
@@ -935,7 +933,7 @@ pages:
 
 .build-package-on-all-os-vars:
   extends: .base-trigger-job-variables
-  SKIP_JOB_REGEX: '/Ubuntu-24.04|Ubuntu-22.04-(arm|branch)|Ubuntu-20.04-fips|Docker|QA/'
+  SKIP_JOB_REGEX: '/Ubuntu-24.04|Ubuntu-22.04-(arm|branch)|Docker|QA/'
   PIPELINE_TYPE: "${EDITION}_BRANCH_BUILD_PIPELINE"
   CACHE_EDITION: ${EDITION}
   ee: ${ee}

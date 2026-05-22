@@ -37,7 +37,6 @@ module Services
     service 'gitlab_pages',       groups: ['pages_role']
     service 'gitlab_kas',         groups: [DEFAULT_GROUP, 'rails']
     service 'mailroom'
-    service 'mattermost'
     service 'registry'
     service 'storage_check'
     service 'crond'
@@ -54,6 +53,5 @@ module Services
     service 'pgbouncer_exporter', groups: %w(pgbouncer_role monitoring)
     service 'patroni',            groups: %w(postgres patroni_role)
     service 'consul',             groups: %w(consul_role ha pgbouncer_role patroni_role)
-    service 'spamcheck',          groups: %w(spamcheck_role)
   end
 end

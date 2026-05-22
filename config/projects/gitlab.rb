@@ -22,6 +22,7 @@ require "#{Omnibus::Config.project_root}/lib/gitlab/version"
 require "#{Omnibus::Config.project_root}/lib/gitlab/util"
 require "#{Omnibus::Config.project_root}/lib/gitlab/ohai_helper.rb"
 require "#{Omnibus::Config.project_root}/lib/gitlab/openssl_helper"
+require "#{Omnibus::Config.project_root}/lib/gitlab/curl_helper"
 require "#{Omnibus::Config.project_root}/files/gitlab-cookbooks/package/libraries/helpers/selinux_distro_helper.rb"
 require "#{Omnibus::Config.project_root}/lib/gitlab/build/ubt.rb"
 
@@ -107,6 +108,9 @@ if Build::Check.use_system_ssl?
   else
     runtime_dependency 'openssl'
   end
+
+  # FIPS requires system CURL Packages
+  runtime_dependency 'curl'
 end
 
 # FIPS requires system libgcrypt packages to run.
@@ -135,10 +139,6 @@ dependency 'go-crond'
 if Build::Check.include_ee?
   dependency 'consul'
   dependency 'pgbouncer-exporter'
-  unless OhaiHelper.raspberry_pi? || OhaiHelper.sles12?
-    dependency 'spamcheck'
-    dependency 'spam-classifier'
-  end
 end
 dependency 'alertmanager'
 dependency 'node-exporter'
@@ -146,7 +146,6 @@ dependency 'redis-exporter'
 dependency 'postgres-exporter'
 dependency 'prometheus'
 dependency 'gitlab-exporter'
-dependency 'mattermost' unless OhaiHelper.sles12?
 
 # Components that depend on the contents of this repository tends to dirty the
 # cache frequently than vendored components.
@@ -196,7 +195,11 @@ dependency 'git-filter-repo'
 dependency 'gitlab-rails'
 dependency 'gitaly'
 dependency 'ruby-grpc' if Build::Check.use_system_ssl?
-dependency 'ruby-io-event' if OhaiHelper.glibc_2_34?
+# To ensure LD_LIBRARY_PATH includes /opt/gitlab/embedded/lib we need to
+# recompile the Ruby ffi gem instead of relying on the precompiled
+# native gems. For older platforms, we already recompile all native gems
+# with `bundle config force_ruby_platform true`.
+dependency 'ruby-ffi' unless OhaiHelper.ruby_native_gems_unsupported?
 
 # Package scripts
 dependency 'package-scripts'
@@ -205,6 +208,9 @@ dependency 'version-manifest'
 
 if Build::Check.use_system_ssl?
   OpenSSLHelper.allowed_libs.each do |lib|
+    allowed_lib /#{lib}\.so/
+  end
+  CurlHelper.allowed_libs.each do |lib|
     allowed_lib /#{lib}\.so/
   end
 end
@@ -337,9 +343,6 @@ exclude '.package_util'
 exclude 'embedded/lib/python*/**/*.dist-info'
 exclude 'embedded/lib/python*/**/*.egg-info'
 exclude 'embedded/lib/python*/**/__pycache__'
-
-# exclude Spamcheck application source and libraries
-exclude 'embedded/service/spamcheck/app'
 
 package_user 'root'
 package_group 'root'

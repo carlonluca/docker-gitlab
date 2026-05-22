@@ -47,6 +47,24 @@ module Gitlab
             removal: '18.0',
             note: "`gitlab_shell['migration'] will be ignored from 17.3 and removed in 18.0. See https://gitlab.com/groups/gitlab-org/-/epics/14845."
           },
+          {
+            config_keys: %w(mattermost),
+            deprecation: '19.0',
+            removal: '19.0',
+            note: "Bundled Mattermost has been removed from the Linux package in 19.0; `mattermost[...]` keys are no longer supported. Deploy Mattermost separately and point GitLab at it with `gitlab_rails['mattermost_host']`. See https://docs.gitlab.com/integration/mattermost/#running-gitlab-mattermost-on-its-own-server for setup instructions."
+          },
+          {
+            config_keys: %w(gitlab mattermost_external_url),
+            deprecation: '19.0',
+            removal: '20.0',
+            note: "`mattermost_external_url` is deprecated. Use `gitlab_rails['mattermost_host']` instead. See https://docs.gitlab.com/integration/mattermost/#running-gitlab-mattermost-on-its-own-server."
+          },
+          {
+            config_keys: %w(spamcheck),
+            deprecation: '19.0',
+            removal: '19.0',
+            note: "Spamcheck has been removed from the Linux package in 19.0. If you currently use the bundled Spamcheck, you can deploy it separately using Docker. No data migration is required. See https://gitlab.com/gitlab-org/omnibus-gitlab/-/work_items/9608."
+          },
         ]
       end
 
@@ -140,7 +158,7 @@ module Gitlab
       def additional_deprecations(incoming_version, existing_config, type)
         messages = []
 
-        messages += deprecate_registry_notifications(incoming_version, existing_config, type, ['registry', 'notifications'], 'threshold', 17.1, 19.0)
+        messages += deprecate_registry_notifications(incoming_version, existing_config, type, ['registry', 'notifications'], 'threshold', 17.1, 23.0)
 
         messages += remove_git_data_dirs(incoming_version, existing_config, type, '17.8', '18.0')
 
@@ -230,7 +248,7 @@ module Gitlab
           case key
           when "threshold"
             <<~EOS
-              Starting with GitLab 19.0, `registry['notifications'][{'threshold'=> value}] will be removed.
+              Starting with GitLab 23.0, `registry['notifications'][{'threshold'=> value}] will be removed.
               Please use `maxretries` instead https://gitlab.com/gitlab-org/container-registry/-/issues/1243.
             EOS
           else

@@ -129,6 +129,56 @@ RSpec.describe Gitlab::Deprecations do
     end
   end
 
+  describe '.deprecate_registry_notifications' do
+    let(:config_with_threshold) do
+      {
+        "registry" => {
+          "notifications" => [
+            { "threshold" => 5 }
+          ]
+        }
+      }
+    end
+
+    let(:config_without_threshold) do
+      {
+        "registry" => {
+          "notifications" => [
+            { "url" => "https://example.com" }
+          ]
+        }
+      }
+    end
+
+    context 'when threshold is set in registry notifications' do
+      it 'raises deprecation warning with correct removal version' do
+        deprecated_message = "*registry['notifications'][{threshold => value}] has been deprecated since 17.1 and will be removed in 23.0. " \
+                             "Starting with GitLab 23.0, `registry['notifications'][{'threshold'=> value}] will be removed.\n" \
+                             "Please use `maxretries` instead https://gitlab.com/gitlab-org/container-registry/-/issues/1243.\n"
+        expect(described_class.deprecate_registry_notifications('17.1', config_with_threshold, :deprecation, ['registry', 'notifications'], 'threshold', 17.1, 23.0)).to eq([deprecated_message])
+      end
+
+      it 'raises removal warning with correct removal version' do
+        removed_message = "* registry['notifications'][{threshold => value}] has been deprecated since 17.1 and was removed in 23.0. " \
+                          "Starting with GitLab 23.0, `registry['notifications'][{'threshold'=> value}] will be removed.\n" \
+                          "Please use `maxretries` instead https://gitlab.com/gitlab-org/container-registry/-/issues/1243.\n"
+        expect(described_class.deprecate_registry_notifications('23.0', config_with_threshold, :removal, ['registry', 'notifications'], 'threshold', 17.1, 23.0)).to eq([removed_message])
+      end
+    end
+
+    context 'when threshold is not set in registry notifications' do
+      it 'does not raise warning' do
+        expect(described_class.deprecate_registry_notifications('23.0', config_without_threshold, :removal, ['registry', 'notifications'], 'threshold', 17.1, 23.0)).to eq([])
+      end
+    end
+
+    context 'when registry notifications is not configured' do
+      it 'does not raise warning' do
+        expect(described_class.deprecate_registry_notifications('23.0', {}, :removal, ['registry', 'notifications'], 'threshold', 17.1, 23.0)).to eq([])
+      end
+    end
+  end
+
   describe '.remove_git_data_dirs' do
     context 'when git_data_dirs is specified' do
       it 'raises warning' do
@@ -289,6 +339,104 @@ RSpec.describe Gitlab::Deprecations do
 
       expect(config['prometheus']['test']).to eq('test-value')
       expect_logged_deprecation(/Accessing config\['prometheus'\] is deprecated/)
+    end
+  end
+
+  describe 'mattermost deprecation entries' do
+    before do
+      allow(Gitlab::Deprecations).to receive(:list).and_call_original
+    end
+
+    it 'reports any mattermost[*] key as removed in 19.0' do
+      config = { 'mattermost' => { 'enable' => true } }
+      messages = described_class.check_config('19.0', config, :removal)
+      expect(messages).to include(a_string_matching(/mattermost has been deprecated since 19\.0 and was removed in 19\.0/))
+    end
+
+    it 'warns when mattermost_external_url is set in 19.0' do
+      config = { 'gitlab' => { 'mattermost_external_url' => 'http://mattermost.example.com' } }
+      messages = described_class.check_config('19.0', config, :deprecation)
+      expect(messages).to include(a_string_matching(/mattermost_external_url has been deprecated since 19\.0 and will be removed in 20\.0/))
+    end
+
+    it 'does not flag mattermost_external_url as removed before 20.0' do
+      config = { 'gitlab' => { 'mattermost_external_url' => 'http://mattermost.example.com' } }
+      messages = described_class.check_config('19.0', config, :removal)
+      expect(messages).not_to include(a_string_matching(/mattermost_external_url/))
+    end
+  end
+
+  describe 'spamcheck removal entry' do
+    before do
+      allow(Gitlab::Deprecations).to receive(:list).and_call_original
+    end
+
+    let(:config_with_spamcheck) { { 'spamcheck' => { 'enable' => true } } }
+
+    it 'reports spamcheck as removed in 19.0' do
+      messages = described_class.check_config('19.0', config_with_spamcheck, :removal)
+      expect(messages).to include(a_string_matching(/spamcheck has been deprecated since 19\.0 and was removed in 19\.0/))
+    end
+
+    it 'is silent when no spamcheck config is present' do
+      messages = described_class.check_config('19.0', {}, :removal)
+      expect(messages).not_to include(a_string_matching(/spamcheck/))
+    end
+  end
+
+  describe 'when any configuration key gets deprecated' do
+    before do
+      allow(Gitlab::Deprecations).to receive(:list).and_call_original
+    end
+
+    it 'can successfully throw a deprecation warning' do
+      missing = []
+      attribute_blocks = described_class.singleton_class::ATTRIBUTE_BLOCKS
+
+      Gitlab::Deprecations.list.each do |deprecation|
+        keys = deprecation[:config_keys].dup
+        keys.shift if attribute_blocks.include?(keys[0])
+
+        top_level_key =
+          if keys.first == 'roles'
+            "#{SettingsDSL::Utils.node_attribute_key(keys[1])}_role"
+          else
+            SettingsDSL::Utils.node_attribute_key(keys[0])
+          end
+
+        previous_strict_mode = Gitlab.config_strict_mode
+        Gitlab.config_strict_mode true
+        begin
+          Gitlab.public_send(top_level_key.to_sym)
+        rescue Mixlib::Config::UnknownConfigOptionError => e
+          missing << {
+            config_keys: deprecation[:config_keys],
+            top_level_key: top_level_key,
+            error: e.message
+          }
+        ensure
+          Gitlab.config_strict_mode previous_strict_mode
+        end
+      end
+
+      # Save the failure message to avoid output duplication.
+      failure_message =
+        if missing.any?
+          details = missing.map do |m|
+            "  - top_level_key=#{m[:top_level_key].inspect} from config_keys=#{m[:config_keys].inspect}"
+          end.join("\n")
+
+          "These deprecated config_keys have no matching Mixlib::Config configurable on Gitlab. " \
+            "Users with the deprecated setting in /etc/gitlab/gitlab.rb will see\n" \
+            "  Mixlib::Config::UnknownConfigOptionError: Reading unsupported config value <key>.\n" \
+            "from strict mode instead of the deprecation warning:\n\n" \
+            "#{details}\n\n" \
+            "Fix: keep `attribute('<key>')` (or the equivalent role/attribute_block registration) in " \
+            "files/gitlab-cookbooks/package/libraries/config/gitlab.rb until the deprecation entry " \
+            "itself is removed from Gitlab::Deprecations.list."
+        end
+
+      expect(missing).to be_empty, failure_message
     end
   end
 end

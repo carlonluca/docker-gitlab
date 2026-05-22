@@ -39,7 +39,6 @@ class LogfilesHelper < AccountHelper
       'gitlab-workhorse' => { username: gitlab_user, group: gitlab_group },
       'logrotate' => { username: 'root', group: 'root' },
       'mailroom' => { username: gitlab_user, group: gitlab_group },
-      'mattermost' => { username: mattermost_user, group: mattermost_group, mode: '0755' },
       'nginx' => { username: 'root', group: 'root' },
       'node-exporter' => { username: prometheus_user, group: prometheus_group },
       'patroni' => { username: postgresql_user, group: postgresql_group },
@@ -57,8 +56,6 @@ class LogfilesHelper < AccountHelper
       'sidekiq' => { username: gitlab_user, group: gitlab_group },
       'storage-check' => { username: gitlab_user, group: gitlab_group },
       'sentinel' => { username: redis_user, group: redis_group },
-      'spamcheck' => { username: gitlab_user, group: gitlab_group },
-      'spam-classifier' => { username: gitlab_user, group: gitlab_group }
     }
   end
 
@@ -72,21 +69,11 @@ class LogfilesHelper < AccountHelper
   end
 
   def service_settings(service)
-    case service
-    when 'spam-classifier'
-      # special case for `spam-classifier`
-      if parent = service_parent('spamcheck')
-        node[parent]['spamcheck']['classifier']
-      else
-        node['spamcheck']['classifier']
-      end
+    node_attribute_key = SettingsDSL::Utils.node_attribute_key(service)
+    if parent = service_parent(service)
+      node[parent][node_attribute_key]
     else
-      node_attribute_key = SettingsDSL::Utils.node_attribute_key(service)
-      if parent = service_parent(service)
-        node[parent][node_attribute_key]
-      else
-        node[node_attribute_key]
-      end
+      node[node_attribute_key]
     end
   end
 
@@ -94,9 +81,6 @@ class LogfilesHelper < AccountHelper
     case service
     when 'gitaly'
       service_settings('gitaly')['configuration']['logging']['dir']
-    when 'mattermost'
-      # mattermost uses 'log_file_directory' instead of 'log_directory'
-      service_settings('mattermost')['log_file_directory']
     else
       service_settings(service)['log_directory']
     end

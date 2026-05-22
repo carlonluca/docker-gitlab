@@ -38,14 +38,13 @@ module Build
         Gitlab::Util.get_env('USE_SYSTEM_SSL') == 'true' || fips?
       end
 
-      def use_ubt?
+      def use_ubt?(allow_arm: false)
         return false unless Gitlab::Util.get_env('UBT_TEST_BUILD') == 'true'
 
         # Until we get UBT builds for arm64 we should avoid using precompiled binaries.
-        return false if OhaiHelper.arm?
+        return allow_arm if OhaiHelper.arm?
 
-        # SLES and AL2 should not be built with UBT as they are not supported.
-        return false if OhaiHelper.sles12?
+        # AL2 should not be built with UBT as it is not supported.
         return false if OhaiHelper.amazon_linux_2?
 
         true
