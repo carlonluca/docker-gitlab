@@ -6,9 +6,11 @@ RSpec.describe 'patroni cookbook' do
     allow(Gitlab).to receive(:[]).and_call_original
   end
 
-  let(:chef_run) do
+  def patroni_chef_run
     ChefSpec::SoloRunner.new(step_into: %w(database_objects)).converge('gitlab-ee::default')
   end
+
+  let(:chef_run) { patroni_chef_run }
 
   it 'should be disabled by default' do
     expect(chef_run).to include_recipe('patroni::disable')
@@ -257,9 +259,40 @@ RSpec.describe 'patroni cookbook' do
         expect(YAML.safe_load(content, permitted_classes: [Symbol], symbolize_names: true)).to eq(default_patroni_config_pg13)
       }
     end
+
+    it 'should not include superuser password by default' do
+      expect(chef_run).to render_file('/var/opt/gitlab/patroni/patroni.yaml').with_content { |content|
+        cfg = YAML.safe_load(content, permitted_classes: [Symbol], symbolize_names: true)
+        expect(cfg[:postgresql][:authentication][:superuser]).to eq(username: 'gitlab-psql')
+      }
+    end
+
+    context 'when sql_superuser_password is set' do
+      before do
+        stub_gitlab_rb(
+          roles: %w(patroni_role),
+          postgresql: {
+            pgbouncer_user_password: '',
+            sql_superuser_password: 'abc123hash'
+          }
+        )
+      end
+
+      it 'should include superuser password in patroni configuration' do
+        expect(chef_run).to render_file('/var/opt/gitlab/patroni/patroni.yaml').with_content { |content|
+          cfg = YAML.safe_load(content, permitted_classes: [Symbol], symbolize_names: true)
+          expect(cfg[:postgresql][:authentication][:superuser]).to eq(
+            username: 'gitlab-psql',
+            password: 'abc123hash'
+          )
+        }
+      end
+    end
   end
 
   context 'when enabled with specific config' do
+    cached(:chef_run) { patroni_chef_run }
+
     before do
       stub_gitlab_rb(
         roles: %w(postgres_role),
@@ -409,6 +442,8 @@ RSpec.describe 'patroni cookbook' do
   end
 
   context 'when standby cluster is enabled' do
+    cached(:chef_run) { patroni_chef_run }
+
     before do
       stub_gitlab_rb(
         roles: %w(postgres_role),

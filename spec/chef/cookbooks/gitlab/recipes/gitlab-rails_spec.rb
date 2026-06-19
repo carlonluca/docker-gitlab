@@ -3,7 +3,7 @@ require 'chef_helper'
 RSpec.describe 'gitlab::gitlab-rails' do
   using RSpec::Parameterized::TableSyntax
 
-  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(templatesymlink runit_service)).converge('gitlab::default') }
+  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(templatesymlink runit_service)).converge('gitlab-base::config', 'gitlab::gitlab-rails') }
   let(:redis_instances) { RedisHelper::GitlabRails::REDIS_INSTANCES }
   let(:redis_cluster_instances) { %w(cache rate_limiting cluster_rate_limiting) }
   let(:config_dir) { '/var/opt/gitlab/gitlab-rails/etc/' }
@@ -58,7 +58,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
                        manage_storage_directories: { enable: false })
       end
 
-      ChefSpec::SoloRunner.new.converge('gitlab::default')
+      ChefSpec::SoloRunner.new.converge('gitlab-base::config', 'gitlab::gitlab-rails')
     end
 
     it 'does not create the git-data directory' do
@@ -101,6 +101,10 @@ RSpec.describe 'gitlab::gitlab-rails' do
       expect(chef_run).not_to run_ruby_block('directory resource: /tmp/shared/ci_secure_files')
     end
 
+    it 'does not create the agent_plan_content storage directory' do
+      expect(chef_run).not_to run_ruby_block('directory resource: /tmp/shared/agent_plan_content')
+    end
+
     it 'does not create the GitLab pages directory' do
       expect(chef_run).not_to run_ruby_block('directory resource: /tmp/shared/pages')
     end
@@ -137,7 +141,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
                        })
       end
 
-      ChefSpec::SoloRunner.converge('gitlab::default')
+      ChefSpec::SoloRunner.converge('gitlab-base::config', 'gitlab::gitlab-rails')
     end
 
     include_examples "git data directory", "/tmp/git-data/repositories"
@@ -174,6 +178,10 @@ RSpec.describe 'gitlab::gitlab-rails' do
       expect(chef_run).to create_storage_directory('/tmp/shared/ci_secure_files').with(owner: 'git', group: 'git', mode: '0700')
     end
 
+    it 'creates the agent_plan_content directory' do
+      expect(chef_run).to create_storage_directory('/tmp/shared/agent_plan_content').with(owner: 'git', group: 'git', mode: '0700')
+    end
+
     it 'creates the encrypted_settings directory' do
       expect(chef_run).to create_storage_directory('/tmp/shared/encrypted_settings').with(owner: 'git', group: 'git', mode: '0700')
     end
@@ -205,7 +213,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
 
   context 'when uploads storage directory is not specified' do
     cached(:chef_run) do
-      ChefSpec::SoloRunner.converge('gitlab::default')
+      ChefSpec::SoloRunner.converge('gitlab-base::config', 'gitlab::gitlab-rails')
     end
 
     it 'does not create the uploads storage directory' do
@@ -219,7 +227,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
     let(:resque_yml_file_content) { ChefSpec::Renderer.new(chef_run, resque_yml_template).content }
     let(:resque_yml) { YAML.safe_load(resque_yml_file_content, aliases: true, symbolize_names: true) }
 
-    let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(templatesymlink)).converge('gitlab::default') }
+    let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(templatesymlink)).converge('gitlab-base::config', 'gitlab::gitlab-rails') }
 
     context 'and default configuration' do
       it 'creates the config file with the required redis settings' do
@@ -1293,7 +1301,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
 
       describe 'encrypted_settings_file' do
         cached(:chef_run) do
-          ChefSpec::SoloRunner.new(step_into: %w(templatesymlink)).converge('gitlab::default')
+          ChefSpec::SoloRunner.new(step_into: %w(templatesymlink)).converge('gitlab-base::config', 'gitlab::gitlab-rails')
         end
 
         let(:cache_secret_file) { '/etc/gitlab/cache.redis.enc' }
@@ -1357,7 +1365,7 @@ RSpec.describe 'gitlab::gitlab-rails' do
 
         context 'with separate command for an instance' do
           cached(:chef_run) do
-            ChefSpec::SoloRunner.new(step_into: %w(templatesymlink)).converge('gitlab::default')
+            ChefSpec::SoloRunner.new(step_into: %w(templatesymlink)).converge('gitlab-base::config', 'gitlab::gitlab-rails')
           end
 
           before do
@@ -2485,6 +2493,10 @@ RSpec.describe 'gitlab::gitlab-rails' do
     end
 
     context 'custom values' do
+      let(:chef_run) do
+        ChefSpec::SoloRunner.new(step_into: %w(templatesymlink runit_service)).converge('gitlab-base::config', 'gitlab::gitlab-rails', 'logrotate::folders_and_configs')
+      end
+
       before do
         stub_gitlab_rb(
           gitlab_rails: {

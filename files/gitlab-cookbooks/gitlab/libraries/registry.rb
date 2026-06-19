@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-require_relative 'nginx.rb'
+require_relative '../../nginx/libraries/nginx'
 require_relative 'postgresql.rb'
 
 module Registry
@@ -182,6 +182,15 @@ module Registry
         Gitlab['node']['postgresql']['dir']
       # If multiple address are set, we take the first.
       database_config['host'] = take_first_address(database_config['host'])
+
+      # Port follows the embedded PostgreSQL port unless the user explicitly
+      # set a registry database port. This matches how gitlab_rails['db_port']
+      # falls back to postgresql['port'], so changing postgresql['port'] does
+      # not silently break registry database connections (e.g. migrations).
+      database_config['port'] ||=
+        Gitlab['postgresql']['port'] ||
+        Gitlab['node']['postgresql']['port'] ||
+        Gitlab['node']['registry']['database']['port']
 
       # Apply default for enabled if the user hasn't explicitly set it,
       # before the prefer mode override logic. We can't use short-circuit (||=)

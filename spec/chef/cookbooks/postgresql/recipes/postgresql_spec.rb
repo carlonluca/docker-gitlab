@@ -1,7 +1,11 @@
 require 'chef_helper'
 
 RSpec.describe 'postgresql' do
-  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service postgresql_config database_objects)).converge('gitlab::default') }
+  def postgresql_chef_run
+    ChefSpec::SoloRunner.new(step_into: %w(runit_service postgresql_config database_objects)).converge('gitlab-base::config', 'postgresql::enable')
+  end
+
+  let(:chef_run) { postgresql_chef_run }
   let(:postgresql_data_dir) { '/var/opt/gitlab/postgresql/data' }
   let(:postgresql_ssl_cert) { File.join(postgresql_data_dir, 'server.crt') }
   let(:postgresql_ssl_key) { File.join(postgresql_data_dir, 'server.key') }
@@ -39,10 +43,13 @@ RSpec.describe 'postgresql' do
   end
 
   context 'with default settings' do
-    it_behaves_like 'enabled runit service', 'postgresql', 'root', 'root', 'gitlab-psql', 'gitlab-psql', true
+    it_behaves_like 'enabled runit service', 'postgresql', 'root', 'root', 'gitlab-psql', 'gitlab-psql'
+    it_behaves_like 'runit service with supervisor owner', 'postgresql', 'gitlab-psql', 'gitlab-psql'
     it_behaves_like 'a service with proper supervise directories', 'postgresql'
 
     context 'when rendering postgresql.conf' do
+      cached(:chef_run) { postgresql_chef_run }
+
       it 'correctly sets the shared_preload_libraries default setting' do
         expect(chef_run.node['postgresql']['shared_preload_libraries'])
           .to be_nil
@@ -125,7 +132,17 @@ RSpec.describe 'postgresql' do
     end
 
     it 'generates a self-signed SSL certificate and key' do
-      stub_gitlab_rb(postgresql: { ssl_cert_file: 'certfile', ssl_key_file: 'keyfile' })
+      # The mode is lazy: `node['patroni']['use_pg_rewind'] ? 0600 : 0400`.
+      # patroni's `attributes/default.rb` sets `use_pg_rewind = true`, and
+      # that default loads here because `gitlab-base/metadata.rb` globs every
+      # sibling cookbook into `depends` - not because `postgresql::enable`
+      # depends on patroni (it doesn't). Stub it back to false so the lazy
+      # block takes the 0400 branch this example covers; the 0600 branch is
+      # exercised separately below.
+      stub_gitlab_rb(
+        postgresql: { ssl_cert_file: 'certfile', ssl_key_file: 'keyfile' },
+        patroni: { use_pg_rewind: false }
+      )
 
       absolute_cert_path = File.join(postgresql_data_dir, 'certfile')
       absolute_key_path = File.join(postgresql_data_dir, 'keyfile')
@@ -148,7 +165,36 @@ RSpec.describe 'postgresql' do
         .with_content(/-----BEGIN RSA PRIVATE KEY-----/)
     end
 
+    it 'generates SSL files with mode 0600 when pg_rewind is enabled' do
+      # pg_rewind opens server.crt / server.key with O_RDWR even though it
+      # only reads them, so 0400 (`r--`) fails the open with EACCES. The
+      # lazy mode block in `postgresql::enable` relaxes the files to 0600
+      # in that branch - see
+      # https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/5746.
+      stub_gitlab_rb(
+        postgresql: { ssl_cert_file: 'certfile', ssl_key_file: 'keyfile' },
+        patroni: { use_pg_rewind: true }
+      )
+
+      absolute_cert_path = File.join(postgresql_data_dir, 'certfile')
+      absolute_key_path = File.join(postgresql_data_dir, 'keyfile')
+
+      expect(chef_run).to create_file(absolute_cert_path).with(
+        user: 'gitlab-psql',
+        group: 'gitlab-psql',
+        mode: 0600
+      )
+
+      expect(chef_run).to create_file(absolute_key_path).with(
+        user: 'gitlab-psql',
+        group: 'gitlab-psql',
+        mode: 0600
+      )
+    end
+
     context 'when rendering runtime.conf' do
+      cached(:chef_run) { postgresql_chef_run }
+
       it 'correctly sets the log_line_prefix default setting' do
         expect(chef_run.node['postgresql']['log_line_prefix'])
           .to be_nil
@@ -331,6 +377,8 @@ RSpec.describe 'postgresql' do
     end
 
     context 'when rendering pg_hba.conf' do
+      cached(:chef_run) { postgresql_chef_run }
+
       it 'creates a standard pg_hba.conf' do
         expect(chef_run).to render_file(pg_hba_conf)
           .with_content('local   all         all                               peer map=gitlab')
@@ -369,10 +417,13 @@ RSpec.describe 'postgresql' do
                      })
     end
 
-    it_behaves_like 'enabled runit service', 'postgresql', 'root', 'root', 'foo', 'bar', true
+    it_behaves_like 'enabled runit service', 'postgresql', 'root', 'root', 'foo', 'bar'
+    it_behaves_like 'runit service with supervisor owner', 'postgresql', 'foo', 'bar'
     it_behaves_like 'a service with proper supervise directories', 'postgresql'
 
     context 'when rendering postgresql.conf' do
+      cached(:chef_run) { postgresql_chef_run }
+
       it 'correctly sets the shared_preload_libraries setting' do
         expect(chef_run.node['postgresql']['shared_preload_libraries'])
           .to eql('pg_stat_statements')
@@ -442,6 +493,8 @@ RSpec.describe 'postgresql' do
     end
 
     context 'when rendering runtime.conf' do
+      cached(:chef_run) { postgresql_chef_run }
+
       before do
         stub_gitlab_rb(postgresql: {
                          log_line_prefix: '%a',
@@ -516,6 +569,8 @@ RSpec.describe 'postgresql' do
     end
 
     context 'when rendering pg_hba.conf' do
+      cached(:chef_run) { postgresql_chef_run }
+
       before do
         stub_gitlab_rb(
           postgresql: {
@@ -635,6 +690,8 @@ RSpec.describe 'postgresql' do
     end
 
     context 'when on the primary database node' do
+      cached(:chef_run) { postgresql_chef_run }
+
       before do
         allow_any_instance_of(PgHelper).to receive(:is_standby?).and_return(false)
       end
@@ -682,6 +739,8 @@ RSpec.describe 'postgresql' do
     end
 
     context 'when auto_create is false' do
+      cached(:chef_run) { postgresql_chef_run }
+
       before do
         stub_gitlab_rb(
           postgresql: {
@@ -710,10 +769,14 @@ RSpec.describe 'postgresql' do
 
   context 'log directory and runit group' do
     context 'default values' do
+      cached(:chef_run) { postgresql_chef_run }
+
       it_behaves_like 'enabled logged service', 'postgresql', true, { log_directory_owner: 'gitlab-psql' }
     end
 
     context 'custom values' do
+      cached(:chef_run) { postgresql_chef_run }
+
       before do
         stub_gitlab_rb(
           postgresql: {
@@ -727,7 +790,7 @@ RSpec.describe 'postgresql' do
 end
 
 RSpec.describe 'postgres when version mismatches occur' do
-  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service postgresql_config)).converge('gitlab::default') }
+  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service postgresql_config)).converge('gitlab-base::config', 'postgresql::enable') }
   let(:postgresql_conf) { File.join(postgresql_data_dir, 'postgresql.conf') }
   let(:runtime_conf) { '/var/opt/gitlab/postgresql/data/runtime.conf' }
 

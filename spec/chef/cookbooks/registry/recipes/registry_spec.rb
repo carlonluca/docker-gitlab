@@ -1,7 +1,11 @@
 require 'chef_helper'
 
 RSpec.describe 'registry recipe' do
-  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service registry_database_objects nginx_configuration)).converge('gitlab::default') }
+  def registry_recipe_chef_run
+    ChefSpec::SoloRunner.new(step_into: %w(runit_service registry_database_objects nginx_configuration)).converge('gitlab::default')
+  end
+
+  let(:chef_run) { registry_recipe_chef_run }
 
   before do
     allow(Gitlab).to receive(:[]).and_call_original
@@ -14,6 +18,23 @@ RSpec.describe 'registry recipe' do
     expect(chef_run.node['registry']['database']['dbname']).to eq('registry')
     expect(chef_run.node['registry']['database']['port']).to eq(5432)
     expect(chef_run.node['registry']['database']['sslmode']).to eq('prefer')
+  end
+
+  context 'with default values' do
+    it 'does not include Registry enable recipe' do
+      expect(chef_run).not_to include_recipe('registry::enable')
+      expect(chef_run).to include_recipe('registry::disable')
+    end
+
+    context 'registry::disable recipe' do
+      let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service env_dir nginx_configuration)).converge('gitlab-base::config', 'registry::disable') }
+
+      it_behaves_like 'disabled runit service', 'registry'
+
+      it 'deletes nginx configuration' do
+        expect(chef_run).to delete_file('/var/opt/gitlab/nginx/conf/service_conf/gitlab-registry.conf')
+      end
+    end
   end
 
   describe 'letsencrypt' do
@@ -65,6 +86,8 @@ RSpec.describe 'registry recipe' do
     end
 
     context 'default certificate file is missing' do
+      cached(:chef_run) { registry_recipe_chef_run }
+
       before do
         allow(File).to receive(:exist?).with('/etc/gitlab/ssl/registry.example.com.crt').and_return(false)
       end
@@ -81,6 +104,8 @@ RSpec.describe 'registry recipe' do
     end
 
     context 'default certificate file is present' do
+      cached(:chef_run) { registry_recipe_chef_run }
+
       before do
         allow(File).to receive(:exist?).with('/etc/gitlab/ssl/registry.example.com.crt').and_return(true)
       end
@@ -233,6 +258,8 @@ RSpec.describe 'registry recipe' do
       before { stub_gitlab_rb(postgresql: { enable: false }) }
 
       context 'when database.enabled is set to prefer' do
+        cached(:chef_run) { registry_recipe_chef_run }
+
         before do
           stub_gitlab_rb(
             postgresql: { enable: false },
@@ -359,6 +386,8 @@ RSpec.describe 'registry recipe' do
     end
 
     context 'when a log formatter is specified' do
+      cached(:chef_run) { registry_recipe_chef_run }
+
       before { stub_gitlab_rb(registry: { log_formatter: 'json' }) }
 
       it 'creates the registry config with the specified value' do
@@ -404,6 +433,8 @@ RSpec.describe 'registry recipe' do
 
   context 'registry database objects' do
     context 'when PostgreSQL is enabled' do
+      cached(:chef_run) { registry_recipe_chef_run }
+
       before do
         stub_gitlab_rb(
           registry_external_url: 'https://registry.example.com',
@@ -429,6 +460,8 @@ RSpec.describe 'registry recipe' do
     end
 
     context 'when PostgreSQL is disabled' do
+      cached(:chef_run) { registry_recipe_chef_run }
+
       before do
         stub_gitlab_rb(
           registry_external_url: 'https://registry.example.com',
@@ -464,7 +497,11 @@ RSpec.describe 'registry recipe' do
 end
 
 RSpec.describe 'registry' do
-  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service registry_database_objects)).converge('gitlab::default') }
+  def registry_chef_run
+    ChefSpec::SoloRunner.new(step_into: %w(runit_service registry_database_objects)).converge('gitlab::default')
+  end
+
+  let(:chef_run) { registry_chef_run }
   let(:default_vars) do
     {
       'SSL_CERT_DIR' => '/opt/gitlab/embedded/ssl/certs/',
@@ -998,6 +1035,8 @@ RSpec.describe 'registry' do
 
   context 'log directory and runit group' do
     context 'default values' do
+      cached(:chef_run) { registry_chef_run }
+
       before do
         stub_gitlab_rb({ registry_external_url: 'https://registry.example.com' })
       end
@@ -1005,6 +1044,8 @@ RSpec.describe 'registry' do
     end
 
     context 'custom values' do
+      cached(:chef_run) { registry_chef_run }
+
       before do
         stub_gitlab_rb(
           registry_external_url: 'https://registry.example.com',
@@ -1020,7 +1061,12 @@ RSpec.describe 'registry' do
 end
 
 RSpec.describe 'auto enabling registry' do
-  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service registry_database_objects nginx_configuration)).converge('gitlab::default') }
+  def auto_enabling_registry_chef_run
+    ChefSpec::SoloRunner.new(step_into: %w(runit_service registry_database_objects nginx_configuration)).converge('gitlab::default')
+  end
+
+  cached(:chef_run) { auto_enabling_registry_chef_run }
+
   let(:registry_config) { '/var/opt/gitlab/registry/config.yml' }
   let(:nginx_config) { '/var/opt/gitlab/nginx/conf/service_conf/gitlab-registry.conf' }
 

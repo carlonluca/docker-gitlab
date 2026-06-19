@@ -9,6 +9,7 @@ RSpec.shared_context 'recipes' do
         "gitlab-ee::default",
         "pgbouncer::user",
         "gitlab::default",
+        "gitlab::gitlab-healthcheck",
         "package::config",
         "postgresql::directory_locations",
         "package::web-server",
@@ -25,10 +26,15 @@ RSpec.shared_context 'recipes' do
         "monitoring::node-exporter",
         "monitoring::user"
       ]
+    # Mirror the dispatch in `files/gitlab-cookbooks/package/recipes/runit.rb`
+    # so role-dispatch tests pick the right runit recipe on macOS and other
+    # non-systemd hosts.
     runit_recipe = if File.directory?('/run/systemd/system')
                      ["package::runit_systemd"]
-                   else
+                   elsif File.exist?('/.dockerenv')
                      []
+                   else
+                     ["package::runit_sysvinit"]
                    end
     recipes + runit_recipe
   end
@@ -51,8 +57,8 @@ RSpec.shared_context 'recipes' do
       "gitlab::sidekiq",
       "gitlab::gitlab-workhorse",
       "gitlab::nginx",
+      "nginx::directory",
       "nginx::enable",
-      "gitlab::gitlab-healthcheck",
       "monitoring::gitlab-exporter",
       "monitoring::redis-exporter",
       "monitoring::prometheus",
@@ -71,6 +77,7 @@ RSpec.shared_context 'recipes' do
       "gitlab::puma_disable",
       "gitlab::sidekiq_disable",
       "gitlab::gitlab-workhorse_disable",
+      "nginx::disable",
       "gitlab::nginx_disable",
       "monitoring::gitlab-exporter_disable",
       "monitoring::redis-exporter_disable",
@@ -91,6 +98,7 @@ RSpec.shared_context 'recipes' do
       "registry::disable",
       "mattermost::disable",
       "letsencrypt::disable",
+      "oak::disable",
       "monitoring::pgbouncer-exporter_disable",
       "gitlab::gitlab-backup-cli_disable",
       "gitlab::database_reindexing_disable",

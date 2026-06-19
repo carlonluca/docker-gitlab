@@ -309,7 +309,7 @@ If you're running Gitaly on a separate server, see
 
 If you're not looking to move all repositories, but instead want to move specific
 projects between existing repository storages, use the
-[Edit Project API](https://docs.gitlab.com/api/projects/#edit-a-project)
+[Update Project API](https://docs.gitlab.com/api/projects/#update-a-project)
 endpoint and specify the `repository_storage` attribute.
 
 ## Change the name of the Git user or group
@@ -574,6 +574,7 @@ Enabling this setting prevents the creation of the following directories:
 | `/var/opt/gitlab/gitlab-rails/shared/dependency_proxy` | `0700`      | `git:git`        | Holds dependency proxy |
 | `/var/opt/gitlab/gitlab-rails/shared/terraform_state`  | `0700`      | `git:git`        | Holds terraform state |
 | `/var/opt/gitlab/gitlab-rails/shared/ci_secure_files`  | `0700`      | `git:git`        | Holds uploaded secure files |
+| `/var/opt/gitlab/gitlab-rails/shared/agent_plan_content` | `0700`      | `git:git`        | Holds agent plan content |
 | `/var/opt/gitlab/gitlab-rails/shared/pages`            | `0750`      | `git:gitlab-www` | Holds user pages |
 | `/var/opt/gitlab/gitlab-rails/uploads`                 | `0700`      | `git:git`        | Holds user attachments |
 | `/var/opt/gitlab/gitlab-ci/builds`                     | `0700`      | `git:git`        | Holds CI build logs |

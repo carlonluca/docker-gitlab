@@ -299,6 +299,10 @@ The following settings are affected in the `postgresql` block:
   defaults to `gitlab`, and isn't a required setting.
 - `sql_user_password`: Sets the password that PostgreSQL will accept for MD5
   authentication.
+- `sql_superuser_password`: Sets the password for the `gitlab-psql` superuser. Required
+  when using `md5_auth_cidr_addresses` with Patroni so that Patroni can authenticate
+  for `pg_rewind` operations. When set, the password is also populated into the
+  Patroni configuration automatically.
 
 1. Edit `/etc/gitlab/gitlab.rb`:
 
@@ -445,7 +449,7 @@ packaged PostgreSQL server to a later version (if one is included in the
 package). This updates PostgreSQL to the [default shipped version](https://docs.gitlab.com/administration/package_information/postgresql_versions/)
 during package upgrades, unless specifically [opted out](#opt-out-of-automatic-postgresql-upgrades).
 
-Before upgrading GitLab to a newer version, refer to the [version-specific changes](https://docs.gitlab.com/update/#version-specific-upgrading-instructions)
+Before upgrading GitLab to a newer version, refer to the [version-specific changes](https://docs.gitlab.com/update/versions/)
 of the Linux package to see either:
 
 - When a database version has changed.

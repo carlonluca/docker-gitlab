@@ -239,7 +239,7 @@ RSpec.describe 'gitlab-ee::geo-secondary' do
                      gitlab_rails: { enable: true })
     end
 
-    it 'allows gitlab_rails to be overriden' do
+    it 'allows gitlab_rails to be overridden' do
       expect(chef_run.node['gitlab']['gitlab_rails']['enable']).to be true
     end
   end
@@ -486,6 +486,12 @@ RSpec.describe 'gitlab-ee::geo-secondary' do
         node.automatic['cpu']['total'] = 16
         node.automatic['memory']['total'] = '8388608KB' # 8GB
       end.converge('gitlab-ee::default')
+    end
+
+    before do
+      # Stub nproc to match the fixture CPU count so the worker calculation
+      # is not affected by the actual CPU count of the CI runner.
+      allow(Puma).to receive(:nproc_cpu_count).and_return(16)
     end
 
     it 'reduces the number of puma workers on secondary node' do

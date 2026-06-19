@@ -155,8 +155,17 @@ end
   bootstrap
   storage-check
 ].each do |service|
-  node_attribute_key = SettingsDSL::Utils.node_attribute_key(service)
-  if node["gitlab"][node_attribute_key]["enable"]
+  # Temporary until gitlab block has its own nginx attribute -
+  # https://gitlab.com/gitlab-org/omnibus-gitlab/-/merge_requests/8692 For now,
+  # nginx lives at node['nginx']; the other services in this loop  still live
+  # under node['gitlab'][*].
+  enabled = if service == 'nginx'
+              node['nginx']['enable']
+            else
+              node_attribute_key = SettingsDSL::Utils.node_attribute_key(service)
+              node["gitlab"][node_attribute_key]["enable"]
+            end
+  if enabled
     include_recipe "gitlab::#{service}"
   else
     include_recipe "gitlab::#{service}_disable"
@@ -167,9 +176,12 @@ end
   gitlab-pages
   registry
   gitlab-kas
+  oak
   letsencrypt
+  nginx
 ).each do |cookbook|
   node_attribute_key = SettingsDSL::Utils.node_attribute_key(cookbook)
+
   if node[node_attribute_key]["enable"]
     include_recipe "#{cookbook}::enable"
   else
@@ -181,8 +193,10 @@ end
 # removed in 19.0; this stops the supervised service from a prior install.
 # Safe to drop once the `mattermost` deprecation entry expires.
 include_recipe 'mattermost::disable'
-# Configure healthcheck if we have nginx or workhorse enabled
-include_recipe "gitlab::gitlab-healthcheck" if node['gitlab']['nginx']['enable'] || node["gitlab"]["gitlab_workhorse"]["enable"]
+
+# Healthcheck runs on every node; the recipe decides per role whether
+# to render the rc file (web nodes) or delete a stale one (non-web nodes).
+include_recipe "gitlab::gitlab-healthcheck"
 
 # Recipe which handles all prometheus related services
 include_recipe "monitoring"

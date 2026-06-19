@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-require_relative 'nginx.rb'
+require_relative '../../nginx/libraries/nginx'
 require_relative '../../gitaly/libraries/gitaly.rb'
 require_relative '../../package/libraries/settings_dsl.rb'
 require_relative '../../package/libraries/helpers/redis_helper/gitlab_rails'
@@ -54,6 +54,7 @@ module GitlabRails
       parse_dependency_proxy_dir
       parse_terraform_state_dir
       parse_ci_secure_files_dir
+      parse_agent_plan_content_dir
       parse_encrypted_settings_path
       parse_pages_dir
     end
@@ -335,6 +336,11 @@ module GitlabRails
       Gitlab['gitlab_rails']['ci_secure_files_storage_path'] ||= File.join(Gitlab['gitlab_rails']['shared_path'], 'ci_secure_files')
     end
 
+    def parse_agent_plan_content_dir
+      # This requires the parse_shared_dir to be executed before
+      Gitlab['gitlab_rails']['agent_plan_content_storage_path'] ||= File.join(Gitlab['gitlab_rails']['shared_path'], 'agent_plan_content')
+    end
+
     def parse_encrypted_settings_path
       # This requires the parse_shared_dir to be executed before
       encrypted_settings_path = Gitlab['gitlab_rails']['encrypted_settings_path'] ||= File.join(Gitlab['gitlab_rails']['shared_path'], 'encrypted_settings')
@@ -393,7 +399,7 @@ module GitlabRails
     end
 
     def parse_gitlab_trusted_proxies
-      Gitlab['nginx']['real_ip_trusted_addresses'] ||= Gitlab['node']['gitlab']['nginx']['real_ip_trusted_addresses']
+      Gitlab['nginx']['real_ip_trusted_addresses'] ||= Gitlab['node']['nginx']['real_ip_trusted_addresses']
       Gitlab['gitlab_rails']['trusted_proxies'] = Gitlab['nginx']['real_ip_trusted_addresses'] if Gitlab['gitlab_rails']['trusted_proxies'].nil?
     end
 

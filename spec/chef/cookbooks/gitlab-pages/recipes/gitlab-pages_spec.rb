@@ -1,7 +1,11 @@
 require 'chef_helper'
 
-RSpec.describe 'gitlab::gitlab-pages' do
-  let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service env_dir nginx_configuration)).converge('gitlab::default') }
+RSpec.describe 'GitLab Pages' do
+  def pages_chef_run
+    ChefSpec::SoloRunner.new(step_into: %w(runit_service env_dir nginx_configuration)).converge('gitlab::default')
+  end
+
+  let(:chef_run) { pages_chef_run }
 
   before do
     allow(Gitlab).to receive(:[]).and_call_original
@@ -12,6 +16,16 @@ RSpec.describe 'gitlab::gitlab-pages' do
     it 'does not include Pages recipe' do
       expect(chef_run).not_to include_recipe('gitlab-pages::enable')
       expect(chef_run).to include_recipe('gitlab-pages::disable')
+    end
+
+    context 'pages::disable recipe' do
+      let(:chef_run) { ChefSpec::SoloRunner.new(step_into: %w(runit_service env_dir nginx_configuration)).converge('gitlab-base::config', 'gitlab-pages::disable') }
+
+      it_behaves_like 'disabled runit service', 'gitlab-pages'
+
+      it 'deletes nginx configuration' do
+        expect(chef_run).to delete_file('/var/opt/gitlab/nginx/conf/service_conf/gitlab-pages.conf')
+      end
     end
   end
 
@@ -118,6 +132,8 @@ RSpec.describe 'gitlab::gitlab-pages' do
       end
 
       context 'when access control secrets are specified' do
+        cached(:chef_run) { pages_chef_run }
+
         before do
           stub_gitlab_rb(
             external_url: 'https://gitlab.example.com',
@@ -227,6 +243,8 @@ RSpec.describe 'gitlab::gitlab-pages' do
     end
 
     context 'with custom values' do
+      cached(:chef_run) { pages_chef_run }
+
       before do
         stub_gitlab_rb(
           external_url: 'https://gitlab.example.com',
@@ -452,6 +470,8 @@ RSpec.describe 'gitlab::gitlab-pages' do
     end
 
     context 'default certificate file is missing' do
+      cached(:chef_run) { pages_chef_run }
+
       before do
         allow(File).to receive(:exist?).with('/etc/gitlab/ssl/pages.example.com.crt').and_return(false)
       end
@@ -468,6 +488,8 @@ RSpec.describe 'gitlab::gitlab-pages' do
     end
 
     context 'default certificate file is present' do
+      cached(:chef_run) { pages_chef_run }
+
       before do
         allow(File).to receive(:exist?).with('/etc/gitlab/ssl/pages.example.com.crt').and_return(true)
       end
