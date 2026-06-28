@@ -14,6 +14,12 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 19.1.1 (2026-06-23)
+
+### Changed (1 change)
+
+- [Re-enable OpenSUSE 15.6 builds](gitlab-org/security/omnibus-gitlab@7236e421d0a944cf3189facb1637b488035da36a)
+
 ## 19.1.0 (2026-06-17)
 
 ### Added (2 changes)
