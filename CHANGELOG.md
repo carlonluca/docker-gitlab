@@ -14,6 +14,12 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 19.1.2 (2026-07-07)
+
+### Fixed (1 change)
+
+- [Create OAuth application via Authn::OauthApplication with org_id](gitlab-org/security/omnibus-gitlab@ed8c7b70560dd589f612389b7344b3a2a976f90a)
+
 ## 19.1.1 (2026-06-23)
 
 ### Changed (1 change)
