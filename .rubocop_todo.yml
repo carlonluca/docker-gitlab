@@ -14,7 +14,7 @@ CodeReuse/ActiveRecord:
 Cop/AvoidReturnFromBlocks:
   Exclude:
     - 'files/gitlab-cookbooks/consul/libraries/consul_helper.rb'
-    - 'files/gitlab-ctl-commands-ee/lib/patroni.rb'
+    - 'files/gitlab-ctl-commands-ee/lib/gitlab_ctl/patroni.rb'
     - 'files/gitlab-ctl-commands-ee/lib/gitlab_ctl/postgresql/ee.rb'
     - 'lib/gitlab/tasks/build.rake'
 
@@ -23,7 +23,7 @@ Cop/AvoidReturnFromBlocks:
 Cop/LineBreakAroundConditionalBlock:
   Enabled: false
 
-# Offense count: 8
+# Offense count: 10
 Fips/MD5:
   Exclude:
     - 'config/software/gitlab-geo-psql.rb'
@@ -35,8 +35,11 @@ Fips/MD5:
     - 'files/gitlab-cookbooks/gitlab/libraries/helpers/base_pg_helper.rb'
     - 'files/gitlab-cookbooks/gitlab/libraries/postgresql.rb'
     - 'files/gitlab-cookbooks/gitlab/libraries/rails_migration_helper.rb'
+    - 'files/gitlab-cookbooks/postgresql/libraries/component_database_registry.rb'
     - 'files/gitlab-ctl-commands/lib/gitlab_ctl/postgresql/password_hash.rb'
     - 'spec/chef/cookbooks/gitlab/libraries/postgresql_spec.rb'
+    - 'spec/chef/cookbooks/postgresql/libraries/component_database_registry_spec.rb'
+    - 'spec/chef/cookbooks/postgresql/recipes/managed_databases_spec.rb'
 
 # Offense count: 2
 # This cop supports safe autocorrection (--autocorrect).
@@ -225,7 +228,7 @@ Style/CaseLikeIf:
   Exclude:
     - 'files/gitlab-cookbooks/monitoring/libraries/prometheus_helper.rb'
     - 'files/gitlab-cookbooks/package/libraries/deprecations.rb'
-    - 'files/gitlab-ctl-commands-ee/lib/geo/replication_toggle_command.rb'
+    - 'files/gitlab-ctl-commands-ee/lib/gitlab_ctl/geo/replication_toggle_command.rb'
     - 'files/gitlab-ctl-commands/pg-upgrade.rb'
     - 'lib/gitlab/license/analyzer.rb'
 
@@ -254,12 +257,12 @@ Style/FrozenStringLiteralComment:
 # This cop supports unsafe autocorrection (--autocorrect-all).
 Style/GlobalStdStream:
   Exclude:
-    - 'files/gitlab-ctl-commands-ee/lib/geo/promotion_preflight_checks.rb'
-    - 'files/gitlab-ctl-commands-ee/lib/geo/replication.rb'
+    - 'files/gitlab-ctl-commands-ee/lib/gitlab_ctl/geo/promotion_preflight_checks.rb'
+    - 'files/gitlab-ctl-commands-ee/lib/gitlab_ctl/geo/replication.rb'
     - 'files/gitlab-ctl-commands/lib/gitlab_ctl/util.rb'
     - 'lib/gitlab/build/trigger.rb'
-    - 'spec/chef/gitlab-ctl-commands-ee/lib/geo/promotion_preflight_checks_spec.rb'
-    - 'spec/chef/gitlab-ctl-commands-ee/lib/geo/replication_spec.rb'
+    - 'spec/chef/gitlab-ctl-commands-ee/lib/gitlab_ctl/geo/promotion_preflight_checks_spec.rb'
+    - 'spec/chef/gitlab-ctl-commands-ee/lib/gitlab_ctl/geo/replication_spec.rb'
     - 'spec/chef/gitlab-ctl-commands/lib/gitlab_ctl_backup_spec.rb'
     - 'spec/chef/gitlab-ctl-commands/lib/util_spec.rb'
 
@@ -314,7 +317,7 @@ Style/RedundantBegin:
 # This cop supports safe autocorrection (--autocorrect).
 Style/RedundantConditional:
   Exclude:
-    - 'files/gitlab-ctl-commands-ee/lib/geo/replication.rb'
+    - 'files/gitlab-ctl-commands-ee/lib/gitlab_ctl/geo/replication.rb'
 
 # Offense count: 63
 # This cop supports safe autocorrection (--autocorrect).
@@ -376,7 +379,7 @@ Style/SoleNestedConditional:
 Style/StderrPuts:
   Exclude:
     - 'files/gitlab-cookbooks/package/libraries/handlers/gitlab.rb'
-    - 'files/gitlab-ctl-commands-ee/lib/pgbouncer.rb'
+    - 'files/gitlab-ctl-commands-ee/lib/gitlab_ctl/pgbouncer.rb'
     - 'files/gitlab-ctl-commands-ee/pgbouncer.rb'
     - 'files/gitlab-ctl-commands/letsencrypt.rb'
     - 'files/gitlab-ctl-commands/lib/gitlab_ctl/pg_upgrade.rb'

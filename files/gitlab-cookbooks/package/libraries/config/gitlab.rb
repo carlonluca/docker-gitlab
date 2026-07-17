@@ -46,7 +46,7 @@ module Gitlab
   role('backup', manage_services: false).use { BackupRole }
 
   ## Attributes directly on the node
-  attribute('package').use { Package }
+  attribute('package',      priority: 9).use { Package }
   attribute('registry',     priority: 19).use { Registry } # After LetsEncrypt, but before Postgresql
   attribute('oak',          priority: 19).use { Oak }
   attribute('redis',        priority: 20).use { Redis }
@@ -65,6 +65,7 @@ module Gitlab
   attribute('letsencrypt', priority: 17).use { LetsEncrypt } # After GitlabRails, but before Registry
   attribute('crond')
   attribute('logrotate')
+  attribute('high_availability')
   attribute('nginx', priority: 40).use { Nginx } # Parse after gitlab_rails and oak; ports and listen addresses depend on them
   attribute('mattermost_nginx')
   attribute('pages_nginx')
@@ -123,7 +124,6 @@ module Gitlab
     attribute('gitlab_ci')
     attribute('sidekiq').use { Sidekiq }
     attribute('remote_syslog')
-    attribute('high_availability')
     attribute('web_server')
     attribute('prometheus_monitoring')
     attribute('gitlab_backup_cli')

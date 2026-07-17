@@ -86,14 +86,14 @@ RSpec.describe 'letsencrypt::enable' do
       using RSpec::Parameterized::TableSyntax
 
       where(:redirect_config_key, :nginx_config_file) do
-        'nginx' | '/var/opt/gitlab/nginx/conf/service_conf/gitlab-rails.conf'
-        'registry_nginx' | '/var/opt/gitlab/nginx/conf/service_conf/gitlab-registry.conf'
-        'pages_nginx' | '/var/opt/gitlab/nginx/conf/service_conf/gitlab-pages.conf'
+        'gitlab#gitlab_rails#nginx' | '/var/opt/gitlab/nginx/conf/service_conf/gitlab-rails.conf'
+        'registry#nginx' | '/var/opt/gitlab/nginx/conf/service_conf/gitlab-registry.conf'
+        'gitlab_pages#nginx' | '/var/opt/gitlab/nginx/conf/service_conf/gitlab-pages.conf'
       end
 
       with_them do
         it 'redirects http to https' do
-          expect(node[redirect_config_key]['redirect_http_to_https']).to be_truthy
+          expect(node.dig(*redirect_config_key.split('#'), 'redirect_http_to_https')).to be_truthy
         end
 
         it 'includes the well known acme challenge location block' do

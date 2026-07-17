@@ -17,8 +17,8 @@
 
 require 'rainbow'
 
-require "#{base_path}/embedded/service/omnibus-ctl/lib/gitlab_ctl"
-require "#{base_path}/embedded/service/omnibus-ctl/lib/gitlab_ctl/postgresql"
+require "gitlab_ctl"
+require "gitlab_ctl/postgresql"
 
 INST_DIR = "#{base_path}/embedded/postgresql".freeze
 REVERT_VERSION_FILE = "#{data_path}/postgresql-version.old".freeze
@@ -35,24 +35,22 @@ add_command_under_category 'revert-pg-upgrade', 'database',
 
   revert_version = lookup_version(options[:target_version], read_revert_version || default_version)
 
-  @attributes = GitlabCtl::Util.get_node_attributes(base_path)
-  patroni_enabled = service_enabled?('patroni')
-  pg_enabled = service_enabled?('postgresql')
-  geo_pg_enabled = service_enabled?('geo-postgresql')
-
-  @db_service_name = patroni_enabled ? 'patroni' : 'postgresql'
   db_worker = GitlabCtl::PgUpgrade.new(
-    base_path,
-    data_path,
+    self,
     revert_version,
     options[:tmp_dir],
     options[:timeout]
   )
 
+  patroni_enabled = db_worker.patroni_service_enabled?
+  pg_enabled = db_worker.postgres_service_enabled?
+  geo_pg_enabled = db_worker.geo_postgres_service_enabled?
+  @db_service_name = patroni_enabled ? 'patroni' : 'postgresql'
+  @attributes = GitlabCtl::Util.get_node_attributes(base_path)
+
   if geo_pg_enabled
     geo_db_worker = GitlabCtl::PgUpgrade.new(
-      base_path,
-      data_path,
+      self,
       revert_version,
       options[:tmp_dir],
       options[:timeout]
@@ -128,24 +126,31 @@ add_command_under_category 'pg-upgrade', 'database',
                            2 do |_cmd_name|
   options = GitlabCtl::PgUpgrade.parse_options(ARGV)
 
-  patroni_enabled = service_enabled?('patroni')
-  pg_enabled = service_enabled?('postgresql')
-  geo_enabled = service_enabled?('geo-postgresql')
-
-  @db_service_name = patroni_enabled ? 'patroni' : 'postgresql'
   @timeout = options[:timeout]
   @db_worker = GitlabCtl::PgUpgrade.new(
-    base_path,
-    data_path,
+    self,
     lookup_version(options[:target_version], default_version),
     options[:tmp_dir],
     options[:timeout]
   )
-  @instance_type = :single_node
-  @geo_pg_enabled = service_enabled?('geo-postgresql') || false
 
-  @roles = GitlabCtl::Util.roles(base_path)
+  patroni_enabled = @db_worker.patroni_service_enabled?
+  pg_enabled = @db_worker.postgres_service_enabled?
+  geo_enabled = @db_worker.geo_postgres_service_enabled?
+
+  @db_service_name = patroni_enabled ? 'patroni' : 'postgresql'
+  @instance_type = :single_node
+  @geo_pg_enabled = geo_enabled || false
+
   @attributes = GitlabCtl::Util.get_node_attributes(base_path)
+
+  # When invoked non-interactively (e.g. the Docker entrypoint runs),
+  # refuse to upgrade on anything other than a plain single-node install:
+  # Geo, Patroni, and explicitly-disabled topologies all require a
+  # coordinated, manual upgrade. Mirrors the guard in `gitlab-ctl upgrade`
+  # (see upgrade.rb#run_pg_upgrade) so that Docker gets the same protection
+  # as the Linux package upgrade path.
+  skip_multi_node_check(@db_worker) if options[:skip_multi_node]
 
   unless GitlabCtl::Util.progress_message(
     'Checking for an omnibus managed postgresql') do
@@ -291,11 +296,11 @@ add_command_under_category 'pg-upgrade', 'database',
     elsif @instance_type == :patroni_standby_leader
       patroni_standby_leader_upgrade
     end
-  elsif @roles.include?('geo_primary')
+  elsif @db_worker.geo_primary_role?
     log 'Detected a GEO primary node'
     @instance_type = :geo_primary
     general_upgrade
-  elsif @roles.include?('geo_secondary')
+  elsif @db_worker.geo_secondary_role?
     log 'Detected a Geo secondary node'
     @instance_type = :geo_secondary
     geo_secondary_upgrade(options[:tmp_dir], options[:timeout])
@@ -306,6 +311,31 @@ add_command_under_category 'pg-upgrade', 'database',
   else
     general_upgrade
   end
+end
+
+def skip_multi_node_check(db_worker)
+  geo_detected = db_worker.geo_postgres_service_enabled? || db_worker.geo_primary_role? || db_worker.geo_secondary_role?
+
+  skip_message = if db_worker.pg_upgrade_disabled?
+                   'PostgreSQL automatic upgrade is disabled via /etc/gitlab/disable-postgresql-upgrade'
+                 elsif db_worker.patroni_service_enabled?
+                   'Patroni is enabled on this node; PostgreSQL upgrade must be coordinated across the cluster'
+                 elsif geo_detected
+                   'Geo configuration is detected on this node; PostgreSQL upgrade must be coordinated across the Geo deployment'
+                 end
+
+  return unless skip_message
+
+  log ''
+  log '==='
+  log 'Skipping the check for newer PostgreSQL version and automatic upgrade.'
+  log "Reason: #{skip_message}."
+  log 'Please see https://docs.gitlab.com/omnibus/settings/database.html#upgrade-packaged-postgresql-server'
+  log 'for details on how to manually upgrade the PostgreSQL server.'
+  log '==='
+  log ''
+
+  Kernel.exit 0
 end
 
 def common_pre_upgrade(enable_maintenance = true)
@@ -648,7 +678,7 @@ def guess_patroni_node_role
   failure_cause = :none
   unless GitlabCtl::Util.progress_message('Attempting to detect the role of this Patroni node') do
     begin
-      node = Patroni::Client.new
+      node = GitlabCtl::Patroni::Client.new
       scope = @attributes.dig(:patroni, :scope)
       node_name = @attributes.dig(:patroni, :name)
       consul_binary = @attributes.dig(:consul, :binary_path)
@@ -696,7 +726,7 @@ end
 def check_patroni_cluster_status
   # If the client can be created then it means that the
   # required node attributes are stored correctly.
-  node = Patroni::Client.new
+  node = GitlabCtl::Patroni::Client.new
 
   return if [:patroni_leader, :patroni_standby_leader].none? { |type| @instance_type == type }
 

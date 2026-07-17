@@ -72,7 +72,7 @@ To enable Let's Encrypt:
 
    ## Container Registry (optional), must use https protocol
    registry_external_url "https://registry.example.com"
-   #registry_nginx['ssl_certificate'] = "path/to/cert"      # Must be absent or commented out
+   #registry['nginx']['ssl_certificate'] = "path/to/cert"      # Must be absent or commented out
 
    ## GitLab Pages (optional), must use https protocol
    pages_external_url "https://pages.example.com"
@@ -175,7 +175,7 @@ server are:
 - [ZeroSSL](https://zerossl.com/documentation/acme/)
 - [Buypass](https://www.buypass.com/products/tls-ssl-certificates/go-ssl)
 - [SSL.com](https://www.ssl.com/guide/ssl-tls-certificate-issuance-and-revocation-with-acme/)
-- [`step-ca`](https://smallstep.com/docs/step-ca/index.html)
+- [`step-ca`](https://smallstep.com/docs/step-ca/)
 
 To configure GitLab to use a custom ACME server:
 
@@ -448,11 +448,11 @@ GitLab Container Registry configuration is prefixed with `registry_`:
    ```ruby
    registry_external_url 'https://registry.example.com'
 
-   registry_nginx['listen_port'] = 80
-   registry_nginx['listen_https'] = false
+   registry['nginx']['listen_port'] = 80
+   registry['nginx']['listen_https'] = false
    ```
 
-   The same format can be used for Pages (`pages_` prefix).
+   The same format can be used for Pages (`gitlab_pages['nginx']`).
 
 1. Reconfigure GitLab:
 
@@ -513,14 +513,14 @@ To enable the `ssl_dhparam` directive:
 ## Configure the HTTP/2 protocol
 
 By default, when you specify that your GitLab instance is reachable
-through HTTPS, the [HTTP/2 protocol](https://www.rfc-editor.org/rfc/rfc7540) is
+through HTTPS, the [HTTP/2 protocol](https://www.rfc-editor.org/info/rfc7540/) is
 also enabled.
 
 The Linux package sets the required SSL ciphers that are compatible with
 the HTTP/2 protocol.
 
 If you specify your own [custom SSL ciphers](#use-custom-ssl-ciphers) and a cipher is
-in the [HTTP/2 cipher blacklist](https://www.rfc-editor.org/rfc/rfc7540#appendix-A),
+in the [HTTP/2 cipher blacklist](https://www.rfc-editor.org/info/rfc7540/#appendix-A),
 when you try to reach your GitLab instance you are presented with the
 `INADEQUATE_SECURITY` error in your browser. In that case, consider removing the
 offending ciphers from the cipher list. Changing ciphers is only necessary if

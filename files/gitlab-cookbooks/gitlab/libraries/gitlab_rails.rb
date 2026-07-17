@@ -30,6 +30,7 @@ module GitlabRails
       parse_database_adapter
       parse_database_settings
       parse_databases
+      translate_rails_nginx_settings
       parse_external_url
       parse_directories
       parse_gitlab_trusted_proxies
@@ -42,6 +43,7 @@ module GitlabRails
       parse_smtp_settings
       validate_smtp_settings!
       validate_ssh_settings!
+      parse_nginx_settings
     end
 
     def parse_directories
@@ -126,7 +128,7 @@ module GitlabRails
       raise 'initial_root_password: Length is too short, minimum is 8 characters' if Gitlab['gitlab_rails']['initial_root_password'] && Gitlab['gitlab_rails']['initial_root_password'].length < 8
     end
 
-    def parse_external_url
+    def parse_external_url # rubocop:disable Metrics/AbcSize
       return unless Gitlab['external_url']
 
       uri = URI(Gitlab['external_url'].to_s)
@@ -139,15 +141,21 @@ module GitlabRails
       Gitlab['gitlab_rails']['gitlab_host'] = uri.host
       Gitlab['gitlab_rails']['gitlab_email_from'] ||= "gitlab@#{uri.host}"
 
+      parse_proxy_headers_default_args = [
+        Gitlab['gitlab_rails']['nginx'],
+        Gitlab['node']['gitlab']['gitlab_rails']['nginx'],
+        Gitlab['node'].default['gitlab']['gitlab_rails']['nginx']
+      ]
+
       case uri.scheme
       when "http"
         Gitlab['gitlab_rails']['gitlab_https'] = false
-        Nginx.parse_proxy_headers('nginx', false)
+        Gitlab['gitlab_rails']['nginx']['proxy_set_headers'] = Nginx.parse_proxy_headers(*parse_proxy_headers_default_args, false)
       when "https"
         Gitlab['gitlab_rails']['gitlab_https'] = true
-        Gitlab['nginx']['ssl_certificate'] ||= "/etc/gitlab/ssl/#{uri.host}.crt"
-        Gitlab['nginx']['ssl_certificate_key'] ||= "/etc/gitlab/ssl/#{uri.host}.key"
-        Nginx.parse_proxy_headers('nginx', true)
+        Gitlab['gitlab_rails']['nginx']['ssl_certificate'] ||= "/etc/gitlab/ssl/#{uri.host}.crt"
+        Gitlab['gitlab_rails']['nginx']['ssl_certificate_key'] ||= "/etc/gitlab/ssl/#{uri.host}.key"
+        Gitlab['gitlab_rails']['nginx']['proxy_set_headers'] = Nginx.parse_proxy_headers(*parse_proxy_headers_default_args, true)
       else
         raise "Unsupported external URL scheme: #{uri.scheme}"
       end
@@ -400,8 +408,8 @@ module GitlabRails
     end
 
     def parse_gitlab_trusted_proxies
-      Gitlab['nginx']['real_ip_trusted_addresses'] ||= Gitlab['node']['nginx']['real_ip_trusted_addresses']
-      Gitlab['gitlab_rails']['trusted_proxies'] = Gitlab['nginx']['real_ip_trusted_addresses'] if Gitlab['gitlab_rails']['trusted_proxies'].nil?
+      Gitlab['gitlab_rails']['nginx']['real_ip_trusted_addresses'] ||= Gitlab['node']['gitlab']['gitlab_rails']['nginx']['real_ip_trusted_addresses']
+      Gitlab['gitlab_rails']['trusted_proxies'] = Gitlab['gitlab_rails']['nginx']['real_ip_trusted_addresses'] if Gitlab['gitlab_rails']['trusted_proxies'].nil?
     end
 
     def parse_incoming_email_logfile
@@ -491,6 +499,60 @@ gitlab_rails['gitlab_shell_ssh_port'] = 2222
       user_config = Gitlab[service]
       service_config = Gitlab['node']['gitlab'][service]
       (user_config['worker_timeout'] || service_config['worker_timeout']).to_i
+    end
+
+    def translate_rails_nginx_settings
+      # If nginx was enabled as part of default services or application role,
+      # copy that to the rails configuration also.
+      if Gitlab['gitlab_rails']['nginx']['enable'].nil?
+        Gitlab['gitlab_rails']['nginx']['enable'] = Gitlab['nginx']['enable'].nil? ? Gitlab[:node].default['nginx']['enable'] : Gitlab['nginx']['enable']
+      end
+
+      translate_server_settings
+      translate_client_settings
+
+      # Translate settings that were originally under nginx['*'] but was
+      # essentially for just the rails nginx configuration.
+      %w[custom_error_pages default_server_enabled].each do |key|
+        next if Gitlab['nginx'][key].nil?
+
+        LoggingHelper.deprecation("nginx['#{key}'] has been deprecated. Please use gitlab_rails['nginx']['#{key}'] instead.")
+        Gitlab['gitlab_rails']['nginx'][key] = Gitlab['nginx'][key] if Gitlab['gitlab_rails']['nginx'][key].nil?
+      end
+    end
+
+    def translate_server_settings
+      # Translate settings that were originally under nginx['*'] but were
+      # essentially used for
+      # 1. nginx.conf
+      # 2. Rails nginx configuration
+      # 3. Other service nginx configuration
+      # Because the top level usage is still valid, there won't be any deprecation messages.
+      OmnibusGitlab::NginxHelper.new(Gitlab[:node]).shared_default_values.each_key do |key|
+        next if Gitlab['nginx'][key].nil?
+
+        Gitlab['gitlab_rails']['nginx'][key] = Gitlab['nginx'][key] if Gitlab['gitlab_rails']['nginx'][key].nil?
+      end
+    end
+
+    def translate_client_settings
+      # Translate settings that were originally under nginx['*'] but were
+      # essentially used for
+      # 1. Rails nginx configuration
+      # 2. Other service nginx configuration
+      # However, in this library, we care about their usage in Rails nginx configuration.
+      # Hence, the deprecation message suggests to use `gitlab_rails['nginx']` instead.
+      OmnibusGitlab::NginxHelper.new(Gitlab[:node]).client_default_values.each_key do |key|
+        next if Gitlab['nginx'][key].nil?
+
+        LoggingHelper.deprecation("nginx['#{key}'] has been deprecated. Please use gitlab_rails['nginx']['#{key}'] instead.")
+        Gitlab['gitlab_rails']['nginx'][key] = Gitlab['nginx'][key] if Gitlab['gitlab_rails']['nginx'][key].nil?
+      end
+    end
+
+    def parse_nginx_settings
+      Gitlab['gitlab_rails']['nginx']['listen_port'] ||= Gitlab['gitlab_rails']['gitlab_port'] || Gitlab['node']['gitlab']['gitlab_rails']['gitlab_port']
+      Gitlab['gitlab_rails']['nginx']['real_ip_header'] ||= 'proxy_protocol' if Gitlab['gitlab_rails']['nginx']['proxy_protocol']
     end
   end
 end

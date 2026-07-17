@@ -14,6 +14,27 @@ No changes.
 ### Performance (1 change)
 
 - [Upgrade to bundler v2.3.15](gitlab-org/omnibus-gitlab@f722fa80e725a028e54f7b800f0df832dab210fb) ([merge request](gitlab-org/omnibus-gitlab!6157))
+## 19.2.0 (2026-07-15)
+
+### Added (2 changes)
+
+- [Add configurable sv_timeout_buffer attribute for gitaly](gitlab-org/omnibus-gitlab@48cdf1aae95a7740aa591ce7b3cc32e975d728a2) ([merge request](gitlab-org/omnibus-gitlab!9543))
+- [Bring back builds for OpenSUSE/SLES 15.6 temporarily](gitlab-org/omnibus-gitlab@bd236b05f883d205dd7da78433b257aef6664ff1) ([merge request](gitlab-org/omnibus-gitlab!9473))
+
+### Changed (7 changes)
+
+- [Update dependency libarchive/libarchive to v3.8.6](gitlab-org/omnibus-gitlab@c56d03be7a3804d3e2adfe953850cd01345d4337) ([merge request](gitlab-org/omnibus-gitlab!9056))
+- [Update cosign to 3.1.1](gitlab-org/omnibus-gitlab@6f49c79b6e3e28a049fab93eef5bd51ed8643bcd) ([merge request](gitlab-org/omnibus-gitlab!9571))
+- [Update dependency openssl/openssl to v3.6.3](gitlab-org/omnibus-gitlab@5c4742f0b022a88d58e00d20049d4e7ccca482bf) ([merge request](gitlab-org/omnibus-gitlab!9325))
+- [Update dependency RsyncProject/rsync to v3.4.2](gitlab-org/omnibus-gitlab@8d14fe81efe6efab1d0bf035ec2e1b28f83b5e24) ([merge request](gitlab-org/omnibus-gitlab!9371))
+- [Bump redis to v7.2.14](gitlab-org/omnibus-gitlab@a05452a6a923e49d61d4d5ba167eb30c68cd4f3c) ([merge request](gitlab-org/omnibus-gitlab!9426))
+- [Bump PostgreSQL to 17.10](gitlab-org/omnibus-gitlab@b58a54d5bad227787f9032595d3fe8bd06a392d6) ([merge request](gitlab-org/omnibus-gitlab!9467))
+- [Update dependency acme-client to v2.0.31](gitlab-org/omnibus-gitlab@502b340523d6e943be2480cb7fbab88920131123) ([merge request](gitlab-org/omnibus-gitlab!9273))
+
+### Security (1 change)
+
+- [Uninstall the default net-imap gem shipped with Ruby](gitlab-org/omnibus-gitlab@814da0ffe03af81d77d692464f0986e26325ef02) ([merge request](gitlab-org/omnibus-gitlab!9523))
+
 ## 19.1.2 (2026-07-07)
 
 ### Fixed (1 change)
@@ -51,6 +72,22 @@ No changes.
 - [Update gitlabsos digest to fb66af8](gitlab-org/omnibus-gitlab@38c041e357eda6217f03e6ddcc227d4a0dd769e8) ([merge request](gitlab-org/omnibus-gitlab!9429))
 - [Update dependency gitlab-exporter to v16.8.0](gitlab-org/omnibus-gitlab@9a6db0449a815454ff3bcda61c0b8815015260cf) ([merge request](gitlab-org/omnibus-gitlab!9388))
 - [Update dependency redis/redis to v7.2.13](gitlab-org/omnibus-gitlab@e3a190bfadb2f56b59b241e166f091cb5753e419) ([merge request](gitlab-org/omnibus-gitlab!9351))
+
+## 19.0.4 (2026-07-07)
+
+### Fixed (1 change)
+
+- [Create OAuth application via Authn::OauthApplication with org_id](gitlab-org/security/omnibus-gitlab@0398aaf6d64d491d516f41dc75e451fb5e661849)
+
+## 19.0.3 (2026-06-23)
+
+### Fixed (1 change)
+
+- [Default registry database port to postgresql['port']](gitlab-org/security/omnibus-gitlab@83eb2fc2dffa290ef2f55b6c39b58fe261937214)
+
+### Changed (1 change)
+
+- [Re-enable OpenSUSE 15.6 builds](gitlab-org/security/omnibus-gitlab@6080b0d24e30b519abd48d3791a5889455631cde)
 
 ## 19.0.2 (2026-06-10)
 
@@ -95,6 +132,18 @@ No changes.
 
 - [Remove Spamcheck from Omnibus-GitLab for 19.0](gitlab-org/omnibus-gitlab@ca64c4627e2b95a2dec19e44e3f76561ebf4afb2) ([merge request](gitlab-org/omnibus-gitlab!9366))
 - [Remove Mattermost for SLES-12.5](gitlab-org/omnibus-gitlab@580302851cb4486434e0db203d4a1062b9abc4e0) ([merge request](gitlab-org/omnibus-gitlab!9274))
+
+## 18.11.7 (2026-07-07)
+
+### Security (1 change)
+
+- [Mattermost Security Updates June 12, 2026](gitlab-org/security/omnibus-gitlab@85137dd032404df2cbae470171ef3e2a48e9d7da)
+
+## 18.11.6 (2026-06-23)
+
+### Fixed (1 change)
+
+- [Default registry database port to postgresql['port']](gitlab-org/security/omnibus-gitlab@f771b219676fc947f2b8e448d16623f76401ba4c)
 
 ## 18.11.5 (2026-06-10)
 
@@ -341,6 +390,10 @@ No changes.
 ### Security (1 change)
 
 - [Mattermost Security Updates January 15, 2026](gitlab-org/omnibus-gitlab@0b48af1e6492d3f178e74e3e878302ee3faa9081) by @Normo ([merge request](gitlab-org/omnibus-gitlab!9083))
+
+## 18.8.11 (2026-06-29)
+
+No changes.
 
 ## 18.8.10 (2026-05-25)
 

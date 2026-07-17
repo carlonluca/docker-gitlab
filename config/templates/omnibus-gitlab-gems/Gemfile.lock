@@ -93,7 +93,7 @@ GEM
 GEM
   remote: https://rubygems.org/
   specs:
-    acme-client (2.0.30)
+    acme-client (2.0.31)
       base64 (~> 0.2)
       faraday (>= 1.0, < 3.0.0)
       faraday-retry (>= 1.0, < 3.0.0)
@@ -380,7 +380,7 @@ GEM
     uuidtools (2.2.0)
     vault (0.18.2)
       aws-sigv4
-    webrick (1.9.1)
+    webrick (1.9.2)
     winrm (2.3.9)
       builder (>= 2.1.2)
       erubi (~> 1.8)
@@ -417,7 +417,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  acme-client (= 2.0.30)
+  acme-client (= 2.0.31)
   chef (= 18.3.0)!
   chef-bin (= 18.3.0)!
   chef-cli (= 5.6.14)!
@@ -440,7 +440,7 @@ DEPENDENCIES
   unf_ext (= 0.0.9.1)
 
 CHECKSUMS
-  acme-client (2.0.30) sha256=fd87896fcbf5e143cde380a73cfbd87d816f50f619fded50e8fbb62b8ba70616
+  acme-client (2.0.31) sha256=69c6c2bd015fdd4bdacdb3c2baa9f0034dbf91b855e08f15b78a533cc77ff360
   activesupport (7.0.8.4) sha256=69047070402b20fbaeebbeb56d21238db457c54c7e66f356dcba683e500ae197
   addressable (2.8.7) sha256=462986537cf3735ab5f3c0f557f14155d778f4b43ea4f485a9deb9c8f7c58232
   ast (2.4.2) sha256=1e280232e6a33754cde542bc5ef85520b74db2aac73ec14acef453784447cc12
@@ -591,7 +591,7 @@ CHECKSUMS
   unicode_utils (1.4.0) sha256=b922d0cf2313b6b7136ada6645ce7154ffc86418ca07d53b058efe9eb72f2a40
   uuidtools (2.2.0) sha256=c4aed168141746d2357ce907626b83998084aeb3c6ac16670ae902a462191069
   vault (0.18.2) sha256=29346c2d8364c19effb548b7a8952bf187545b99b70d1ddde76bd6c69046d27c
-  webrick (1.9.1) sha256=b42d3c94f166f3fb73d87e9b359def9b5836c426fc8beacf38f2184a21b2a989
+  webrick (1.9.2) sha256=beb4a15fc474defed24a3bda4ffd88a490d517c9e4e6118c3edce59e45864131
   winrm (2.3.9) sha256=ef6b767c5772d06e186300b506ea5e65afb849904a551f8482a5cfc2a1be5d06
   winrm-elevated (1.2.3) sha256=ed733dd163ced9b6acc6a01d331f539946b59e40adbcd63941f62a8c6254b4d2
   winrm-fs (1.3.5) sha256=0d2cdd9e1fb6fc8d01f56a32dce41d98ae6eefb481937ed0e058faa0cd0c693d

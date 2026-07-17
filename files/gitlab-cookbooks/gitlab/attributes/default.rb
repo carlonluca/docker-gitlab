@@ -1007,11 +1007,6 @@ default['gitlab']['remote_syslog']['destination_host'] = "localhost"
 default['gitlab']['remote_syslog']['destination_port'] = 514
 default['gitlab']['remote_syslog']['services'] = %w(redis nginx puma gitlab-rails gitlab-shell postgresql sidekiq gitlab-workhorse gitlab-pages praefect gitlab-kas)
 
-###
-# High Availability
-###
-default['gitlab']['high_availability']['mountpoint'] = nil
-
 ####
 # GitLab CI Rails app
 ####
@@ -1038,3 +1033,9 @@ default['gitlab']['gitlab_backup_cli']['user'] = 'gitlab-backup'
 default['gitlab']['gitlab_backup_cli']['group'] = 'gitlab-backup'
 default['gitlab']['gitlab_backup_cli']['dir'] = '/var/opt/gitlab/backups'
 default['gitlab']['gitlab_backup_cli']['additional_groups'] = %w[git gitlab-psql registry]
+
+####
+# Nginx settings
+####
+default['gitlab']['gitlab_rails']['nginx'] = OmnibusGitlab::NginxHelper.new(node).default_values.dup
+default['gitlab']['gitlab_rails']['nginx']['default_server_enabled'] = true

@@ -11,6 +11,7 @@ RSpec.shared_context 'recipes' do
         "gitlab::default",
         "gitlab::gitlab-healthcheck",
         "package::config",
+        "package::default",
         "postgresql::directory_locations",
         "package::web-server",
         "package::users",
@@ -51,6 +52,7 @@ RSpec.shared_context 'recipes' do
       "postgresql::user",
       "postgresql::sysctl",
       "postgresql::standalone",
+      "postgresql::managed_databases",
       "gitlab-kas::enable",
       "gitlab::database_migrations",
       "gitlab::puma",
@@ -78,12 +80,12 @@ RSpec.shared_context 'recipes' do
       "gitlab::sidekiq_disable",
       "gitlab::gitlab-workhorse_disable",
       "nginx::disable",
-      "gitlab::nginx_disable",
       "monitoring::gitlab-exporter_disable",
       "monitoring::redis-exporter_disable",
       "monitoring::prometheus_disable",
       "monitoring::alertmanager_disable",
       "monitoring::postgres-exporter_disable",
+      "gitlab::nginx_disable"
     ]
   end
 

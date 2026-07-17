@@ -258,10 +258,10 @@
 - - :license
   - "github.com/coder/websocket"
   - ISC
-  - :who: Clemens Beck
-    :why: https://github.com/coder/websocket/blob/v1.8.14/LICENSE.txt
-    :versions: [ v1.8.13, v1.8.14 ]
-    :when: 2025-09-08 06:55:00.000000000 Z
+  - :who: Adam Chu
+    :why: https://github.com/coder/websocket/blob/v1.8.15/LICENSE.txt
+    :versions: [ v1.8.13, v1.8.14, v1.8.15 ]
+    :when: 2026-06-23 10:15:00.000000000 Z
 - - :license
   - "./api"
   - MPL2
@@ -392,3 +392,9 @@
   - :who: Angelo Rivera
     :why: https://gitlab.com/gitlab-org/orbit/knowledge-graph/-/blob/main/clients/gkgpb/LICENSE
     :when: 2026-04-02 15:00:00.000000000 Z
+- - :license
+  - ./pkg/autoflow
+  - MIT
+  - :who: Adam Chu
+    :why: https://gitlab.com/gitlab-org/cluster-integration/gitlab-agent/-/blob/master/LICENSE
+    :when: 2026-06-19 00:00:00.000000000 Z
